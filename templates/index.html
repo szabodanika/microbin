@@ -1,0 +1,23 @@
+{% include "header.html" %}
+<form action="create" method="POST">
+    <input name="id" value="0" type="hidden">
+    <label for="expiration">Expiration</label><br>
+    <select name="expiration" id="expiration">
+        <optgroup label="Expire">
+            <option value="firstread">First Read</option>
+            <option value="10min">10 minutes</option>
+            <option value="1hour">1 hour</option>
+            <option selected value="24hour">24 hours</option>
+            <option value="1week">1 week</option>
+        </optgroup>
+        <option value="never">Never Expire</option>
+    </select>
+    <br>
+    <label>Content</label>
+    <br>
+    <textarea style="width: 100%; min-height: 100px" name="content"></textarea>
+    <br>
+    <br>
+    <input style="width: 100px; background-color: limegreen" type="submit" value="Submit"/>
+</form>
+{% include "footer.html" %}

@@ -1,0 +1,40 @@
+{% include "header.html" %}
+<table style="width: 100%" border="1">
+    <tr style="background: lightgrey">
+        <th>
+            Key
+        </th>
+        <th>
+            Created
+        </th>
+        <th>
+            Expiration
+        </th>
+        <th>
+
+        </th>
+    </tr>
+    {% for pasta in pastas %}
+    <tr>
+        <td>
+            <a href="/pasta/{{pasta.idAsAnimals()}}">{{pasta.idAsAnimals()}}</a>
+        </td>
+        <td>
+            {{pasta.createdAsString()}}
+        </td>
+        <td>
+            {{pasta.expirationAsString()}}
+        </td>
+        <td>
+            <a href="/remove/{{pasta.idAsAnimals()}}">Remove</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% if pastas.is_empty() %}
+<p>
+    No Pastas :-(
+</p>
+{%- endif %}
+{% include "footer.html" %}
