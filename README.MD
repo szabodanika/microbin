@@ -35,4 +35,6 @@ Then start the service with `systemctl start microbin` and enable it on boot wit
 - Removing pasta after N reads
 - File uploads
 - URL shortening
+- CLI tool
+- Configuration with command line arguments (ports, enable-disable pasta list, footer, etc)
 
