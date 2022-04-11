@@ -53,7 +53,7 @@ async fn create(data: web::Data<AppState>, pasta: web::Form<PastaFormData>) -> i
 	} as i64;
 
 	let expiration = match innerPasta.expiration.as_str() {
-		"firstread" => 1,
+		"1min" => timenow + 60,
 		"10min" => timenow + 60 * 10,
 		"1hour" => timenow + 60 * 60,
 		"24hour" => timenow + 60 * 60 * 24,
@@ -78,8 +78,10 @@ async fn create(data: web::Data<AppState>, pasta: web::Form<PastaFormData>) -> i
 
 #[get("/pasta/{id}")]
 async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
-	let pastas = data.pastas.lock().unwrap();
+	let mut pastas = data.pastas.lock().unwrap();
 	let id = to_u64(&*id.into_inner());
+
+	remove_expired(&mut pastas);
 
 	for pasta in pastas.iter() {
 		if pasta.id == id {
@@ -92,8 +94,10 @@ async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpRespo
 
 #[get("/rawpasta/{id}")]
 async fn getrawpasta(data: web::Data<AppState>, id: web::Path<String>) -> String {
-	let pastas = data.pastas.lock().unwrap();
+	let mut pastas = data.pastas.lock().unwrap();
 	let id = to_u64(&*id.into_inner());
+
+	remove_expired(&mut pastas);
 
 	for pasta in pastas.iter() {
 		if pasta.id == id {
@@ -109,6 +113,8 @@ async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRespons
 	let mut pastas = data.pastas.lock().unwrap();
 	let id = to_u64(&*id.into_inner());
 
+	remove_expired(&mut pastas);
+
 	for (i, pasta) in pastas.iter().enumerate() {
 		if pasta.id == id {
 			pastas.remove(i);
@@ -123,6 +129,8 @@ async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRespons
 async fn list(data: web::Data<AppState>) -> HttpResponse {
 	let mut pastas = data.pastas.lock().unwrap();
 
+	remove_expired(&mut pastas);
+
 	HttpResponse::Found().content_type("text/html").body(PastaListTemplate { pastas: &pastas }.render().unwrap())
 }
 
@@ -134,4 +142,15 @@ async fn main() -> std::io::Result<()> {
 
 	HttpServer::new(move || App::new().app_data(data.clone()).service(index).service(create).service(getpasta).service(getrawpasta).service(remove).service(list)
 	).bind("127.0.0.1:8080")?.run().await
+}
+
+fn remove_expired(pastas: &mut Vec<Pasta>) {
+	let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+		Ok(n) => n.as_secs(),
+		Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+	} as i64;
+
+	pastas.retain(|p| {
+		p.expiration == 0 || p.expiration > timenow
+	});
 }

@@ -1,4 +1,11 @@
 {% include "header.html" %}
+
+
+{% if pastas.is_empty() %}
+<p>
+    No pastas yet. 😔 Create one <a href="/">here</a>.
+</p>
+{%- else %}
 <table style="width: 100%" border="1">
     <tr style="background: lightgrey">
         <th>
@@ -31,10 +38,5 @@
     </tr>
     {% endfor %}
 </table>
-
-{% if pastas.is_empty() %}
-<p>
-    No Pastas :-(
-</p>
 {%- endif %}
 {% include "footer.html" %}

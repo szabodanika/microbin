@@ -4,7 +4,7 @@
     <label for="expiration">Expiration</label><br>
     <select name="expiration" id="expiration">
         <optgroup label="Expire">
-            <option value="firstread">First Read</option>
+            <option value="1min">1 minute</option>
             <option value="10min">10 minutes</option>
             <option value="1hour">1 hour</option>
             <option selected value="24hour">24 hours</option>
@@ -18,6 +18,6 @@
     <textarea style="width: 100%; min-height: 100px" name="content"></textarea>
     <br>
     <br>
-    <input style="width: 100px; background-color: limegreen" type="submit" value="Submit"/>
+    <input style="width: 100px; background-color: limegreen"; type="submit" value="Save"/>
 </form>
 {% include "footer.html" %}
