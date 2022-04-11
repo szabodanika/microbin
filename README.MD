@@ -23,6 +23,24 @@ WantedBy=multi-user.target
 
 Then start the service with `systemctl start microbin` and enable it on boot with `systemctl enable microbin`.
 
+### Create Pasta with cURL
+
+Simple text Pasta: `curl -d "expiration=10min&content=This is a test pasta" -X POST https://microbin.myserver.com/create`
+
+Simple text Pasta: `curl -d "expiration=10min&content=$( < mypastafile.txt )" -X POST https://microbin.myserver.com/create`
+
+Available expiration options:
+- 1min
+- 10min
+- 1hour
+- 24hour
+- 1week
+- never
+
+Use cURL to read the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony-crow`
+
+or to download the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony-crow > output.txt`
+
 ### Features
 - No CSS or JS, super lightweight and simple
 - Animal names instead of random numbers for pasta identifiers
