@@ -6,8 +6,13 @@
     No pastas yet. 😔 Create one <a href="/">here</a>.
 </p>
 {%- else %}
-<table style="width: 100%" border="1">
-    <tr style="background: lightgrey">
+<br>
+<table style="width: 100%">
+<thead>
+    <tr>
+      <th colspan="4">Pastas</th>
+     </tr>
+    <tr>
         <th>
             Key
         </th>
@@ -21,22 +26,71 @@
 
         </th>
     </tr>
+    </thead>
+    <tbody>
     {% for pasta in pastas %}
-    <tr>
-        <td>
-            <a href="/pasta/{{pasta.idAsAnimals()}}">{{pasta.idAsAnimals()}}</a>
-        </td>
-        <td>
-            {{pasta.createdAsString()}}
-        </td>
-        <td>
-            {{pasta.expirationAsString()}}
-        </td>
-        <td>
-            <a href="/remove/{{pasta.idAsAnimals()}}">Remove</a>
-        </td>
-    </tr>
+         {% if pasta.pasta_type == "text" %}
+            <tr>
+                <td>
+                    <a href="/pasta/{{pasta.idAsAnimals()}}">{{pasta.idAsAnimals()}}</a>
+                </td>
+                <td>
+                    {{pasta.createdAsString()}}
+                </td>
+                <td>
+                    {{pasta.expirationAsString()}}
+                </td>
+                <td>
+                   <a style="margin-right:1rem" href="/raw/{{pasta.idAsAnimals()}}">Raw</a>
+                   <a href="/remove/{{pasta.idAsAnimals()}}">Remove</a>
+                </td>
+            </tr>
+         {%- endif %}
     {% endfor %}
+    </tbody>
+    </table>
+    <br>
+    <table>
+    <thead>
+      <tr>
+      <th colspan="4">URL Redirects</th>
+     </tr>
+     <tr >
+        <th>
+            Key
+        </th>
+        <th>
+            Created
+        </th>
+        <th>
+            Expiration
+        </th>
+        <th>
+
+        </th>
+    </tr>
+    </thead>
+    {% for pasta in pastas %}
+        {% if pasta.pasta_type == "url" %}
+            <tr>
+                <td>
+                    <a href="/url/{{pasta.idAsAnimals()}}">{{pasta.idAsAnimals()}}</a>
+                </td>
+                <td>
+                    {{pasta.createdAsString()}}
+                </td>
+                <td>
+                    {{pasta.expirationAsString()}}
+                </td>
+                <td>
+                   <a style="margin-right:1rem" href="/raw/{{pasta.idAsAnimals()}}">Raw</a>
+                   <a href="/remove/{{pasta.idAsAnimals()}}">Remove</a>
+                </td>
+            </tr>
+        {%- endif %}
+    {% endfor %}
+    </tbody>
 </table>
+<br>
 {%- endif %}
 {% include "footer.html" %}

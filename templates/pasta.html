@@ -1,6 +1,4 @@
 {% include "header.html" %}
-<a href="/rawpasta/{{pasta.idAsAnimals()}}">Raw Pasta</a>
-<pre style="background: lightgray; border: 1px black solid; padding: 0.5rem; overflow: auto">
-{{pasta}}
-</pre>
+<a href="/raw/{{pasta.idAsAnimals()}}">Raw Pasta</a>
+<pre><code>{{pasta}}</code></pre>
 {% include "footer.html" %}

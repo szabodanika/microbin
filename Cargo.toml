@@ -11,3 +11,5 @@ askama = "0.10"
 askama-filters = { version = "0.1.3", features = ["chrono"] }
 chrono = "0.4.19"
 rand = "0.8.5"
+linkify = "0.8.1"
+clap = { version = "3.1.12", features = ["derive"] }

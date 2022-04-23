@@ -8,7 +8,8 @@ pub struct Pasta {
 	pub id: u64,
 	pub content: String,
 	pub created: i64,
-	pub expiration: i64
+	pub expiration: i64,
+	pub pasta_type: String
 }
 
 #[derive(Deserialize)]
