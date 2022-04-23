@@ -7,7 +7,6 @@ use askama::Template;
 use clap::Parser;
 use linkify::{LinkFinder, LinkKind};
 use rand::Rng;
-use regex::Regex;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
