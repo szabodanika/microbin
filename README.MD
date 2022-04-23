@@ -27,7 +27,7 @@ Then start the service with `systemctl start microbin` and enable it on boot wit
 
 Simple text Pasta: `curl -d "expiration=10min&content=This is a test pasta" -X POST https://microbin.myserver.com/create`
 
-Simple text Pasta: `curl -d "expiration=10min&content=$( < mypastafile.txt )" -X POST https://microbin.myserver.com/create`
+File contents: `curl -d "expiration=10min&content=$( < mypastafile.txt )" -X POST https://microbin.myserver.com/create`
 
 Available expiration options:
 - 1min
