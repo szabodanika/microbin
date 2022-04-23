@@ -2,10 +2,21 @@
 
 ![Screenshot](git/index.png)
 
-MicroBin is a super tiny and simple self hosted pastebin app written in Rust. The executable is around 6MB and it uses 2MB memory (plus your pastas).
+MicroBin is a super tiny and simple self hosted pastebin app written in Rust. The executable is around 6MB and it uses 2MB memory (plus your pastas, because they are all stored in the memory at the moment).
+
+### Features
+- Is very small
+- Automatic dark mode (follows system preferences)
+- Animal names instead of random numbers for pasta identifiers (64 animals)
+- Automatically expiring pastas
+- Never expiring pastas
+- Listing and manually removing pastas (/pastalist)
+- Raw pasta content (/raw/[animals])
+- URL shortening and redirection
+- Very little CSS and absolutely no JS (see [water.css](https://github.com/kognise/water.css))
 
 ### Installation
-Simply clone the repository, build it with `cargo build --release` and run the `microbin` executable in the created `target/release/` directory. It will start on port 8080. 
+Simply clone the repository, build it with `cargo build --release` and run the `microbin` executable in the created `target/release/` directory. It will start on port 8080. You can change the port with `-p` or `--port` CL arguments.
 
 To install it as a service on your Linux machine, create a file called `/etc/systemd/system/microbin.service`, paste this into it with the value of `ExecStart` replaced with the actual path to microbin on your machine.
 
@@ -41,13 +52,6 @@ Use cURL to read the pasta: `curl https://microbin.myserver.com/rawpasta/fish-po
 
 or to download the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony-crow > output.txt`
 
-### Features
-- Very little CSS and no JS, super lightweight and simple (see [water.css](https://github.com/kognise/water.css))
-- Animal names instead of random numbers for pasta identifiers
-- Automatically expiring pastas
-- Never expiring pastas
-- Listing and manually removing pastas
-- URL shortening and redirection
 
 ### Needed improvements
 - Persisting pastas on disk (currently they are lost on restart)
@@ -56,4 +60,3 @@ or to download the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony
 - ~~URL shortening~~ (added on 23 April 2022)
 - CLI tool
 - Configuration with command line arguments (ports, enable-disable pasta list, footer, etc)
-
