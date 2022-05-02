@@ -6,13 +6,15 @@ MicroBin is a super tiny and simple self hosted pastebin app written in Rust. Th
 
 ### Features
 - Is very small
+- File uploads
+- Raw pasta content (/raw/[animals])
+- URL shortening and redirection
 - Automatic dark mode (follows system preferences)
+- Very simple database (json + files) for portability and easy backups
 - Animal names instead of random numbers for pasta identifiers (64 animals)
 - Automatically expiring pastas
 - Never expiring pastas
 - Listing and manually removing pastas (/pastalist)
-- Raw pasta content (/raw/[animals])
-- URL shortening and redirection
 - Very little CSS and absolutely no JS (see [water.css](https://github.com/kognise/water.css))
 
 ### Installation
@@ -54,9 +56,9 @@ or to download the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony
 
 
 ### Needed improvements
-- Persisting pastas on disk (currently they are lost on restart)
+- ~~Persisting pastas on disk (currently they are lost on restart)~~ (added on 2 May 2022)
 - Removing pasta after N reads
-- File uploads
+- ~~File uploads~~ (added on 2 May 2022)
 - ~~URL shortening~~ (added on 23 April 2022)
 - CLI tool
 - Configuration with command line arguments (ports, enable-disable pasta list, footer, etc)
