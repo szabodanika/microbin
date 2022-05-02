@@ -1,4 +1,9 @@
 {% include "header.html" %}
-<a href="/raw/{{pasta.idAsAnimals()}}">Raw Pasta</a>
+<a  style="margin-right: 0.5rem" href="/raw/{{pasta.id_as_animals()}}">Raw Text Content</a>
+{% if pasta.file != "no-file" %}
+<a  style="margin-right: 0.5rem; margin-left: 0.5rem" href="/file/{{pasta.id_as_animals()}}/{{pasta.file}}">Attached file '{{pasta.file}}'</a>
+{%- endif %}
+<a style="margin-right: 0.5rem; margin-left: 0.5rem" href="/remove/{{pasta.id_as_animals()}}">Remove</a>
 <pre><code>{{pasta}}</code></pre>
+
 {% include "footer.html" %}

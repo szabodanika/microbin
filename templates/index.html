@@ -1,8 +1,8 @@
 {% include "header.html" %}
-<form action="create" method="POST">
+<form action="upload" method="POST" enctype="multipart/form-data">
     <br>
     <label for="expiration">Expiration</label><br>
-    <select name="expiration" id="expiration">
+    <select style="width: 100%;" name="expiration" id="expiration">
         <optgroup label="Expire">
             <option value="1min">1 minute</option>
             <option value="10min">10 minutes</option>
@@ -17,7 +17,11 @@
     <br>
     <textarea style="width: 100%; min-height: 100px" name="content" autofocus></textarea>
     <br>
-    <input style="width: 100px; background-color: limegreen"; type="submit" value="Save"/>
+    <label>File attachment</label>
+    <br>
+    <input style="width: 100%;" type="file" id="file" name="file">
+    <br>
+    <input style="width: 120px; background-color: limegreen" ; type="submit" value="Save"/>
     <br>
 </form>
 {% include "footer.html" %}
