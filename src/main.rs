@@ -5,16 +5,22 @@ use std::io::Write;
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use actix_files as fs;
+use actix_files;
 use actix_multipart::Multipart;
-use actix_web::{get, web, App, Error, HttpResponse, HttpServer, Responder};
+use actix_web::dev::ServiceRequest;
+use actix_web::middleware::Condition;
+use actix_web::{error, get, middleware, web, App, Error, HttpResponse, HttpServer, Responder};
+use actix_web_httpauth::extractors::basic::BasicAuth;
+use actix_web_httpauth::middleware::HttpAuthentication;
 use askama::Template;
 use chrono::Local;
 use clap::Parser;
 use futures::TryStreamExt as _;
+use lazy_static::lazy_static;
 use linkify::{LinkFinder, LinkKind};
 use log::LevelFilter;
 use rand::Rng;
+use std::fs;
 
 use crate::animalnumbers::{to_animal_names, to_u64};
 use crate::dbio::save_to_file;
@@ -24,48 +30,103 @@ mod animalnumbers;
 mod dbio;
 mod pasta;
 
+lazy_static! {
+    static ref ARGS: Args = Args::parse();
+}
+
 struct AppState {
     pastas: Mutex<Vec<Pasta>>,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
     #[clap(short, long, default_value_t = 8080)]
     port: u32,
+
+    #[clap(short, long, default_value_t = 1)]
+    threads: u8,
+
+    #[clap(long)]
+    hide_header: bool,
+
+    #[clap(long)]
+    hide_footer: bool,
+
+    #[clap(long)]
+    pure_html: bool,
+
+    #[clap(long)]
+    no_listing: bool,
+
+    #[clap(long)]
+    auth_username: Option<String>,
+
+    #[clap(long)]
+    auth_password: Option<String>,
+}
+
+async fn auth_validator(
+    req: ServiceRequest,
+    credentials: BasicAuth,
+) -> Result<ServiceRequest, Error> {
+    // check if username matches
+    if credentials.user_id().as_ref() == ARGS.auth_username.as_ref().unwrap() {
+        return match ARGS.auth_password.as_ref() {
+            Some(cred_pass) => match credentials.password() {
+                None => Err(error::ErrorBadRequest("Invalid login details.")),
+                Some(arg_pass) => {
+                    if arg_pass == cred_pass {
+                        Ok(req)
+                    } else {
+                        Err(error::ErrorBadRequest("Invalid login details."))
+                    }
+                }
+            },
+            None => Ok(req),
+        };
+    } else {
+        Err(error::ErrorBadRequest("Invalid login details."))
+    }
 }
 
 #[derive(Template)]
 #[template(path = "index.html")]
-struct IndexTemplate {}
+struct IndexTemplate<'a> {
+    args: &'a Args,
+}
 
 #[derive(Template)]
 #[template(path = "error.html")]
-struct ErrorTemplate {}
+struct ErrorTemplate<'a> {
+    args: &'a Args,
+}
 
 #[derive(Template)]
 #[template(path = "pasta.html")]
 struct PastaTemplate<'a> {
     pasta: &'a Pasta,
+    args: &'a Args,
 }
 
 #[derive(Template)]
 #[template(path = "pastalist.html")]
 struct PastaListTemplate<'a> {
     pastas: &'a Vec<Pasta>,
+    args: &'a Args,
 }
 
 #[get("/")]
 async fn index() -> impl Responder {
     HttpResponse::Found()
         .content_type("text/html")
-        .body(IndexTemplate {}.render().unwrap())
+        .body(IndexTemplate { args: &ARGS }.render().unwrap())
 }
 
 async fn not_found() -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Found()
         .content_type("text/html")
-        .body(ErrorTemplate {}.render().unwrap()))
+        .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }
 
 async fn create(data: web::Data<AppState>, mut payload: Multipart) -> Result<HttpResponse, Error> {
@@ -155,6 +216,7 @@ async fn create(data: web::Data<AppState>, mut payload: Multipart) -> Result<Htt
 #[get("/pasta/{id}")]
 async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let mut pastas = data.pastas.lock().unwrap();
+
     let id = to_u64(&*id.into_inner());
 
     remove_expired(&mut pastas);
@@ -163,18 +225,19 @@ async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpRespo
         if pasta.id == id {
             return HttpResponse::Found()
                 .content_type("text/html")
-                .body(PastaTemplate { pasta }.render().unwrap());
+                .body(PastaTemplate { pasta, args: &ARGS }.render().unwrap());
         }
     }
 
     HttpResponse::Found()
         .content_type("text/html")
-        .body(ErrorTemplate {}.render().unwrap())
+        .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
 #[get("/url/{id}")]
 async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let mut pastas = data.pastas.lock().unwrap();
+
     let id = to_u64(&*id.into_inner());
 
     remove_expired(&mut pastas);
@@ -186,12 +249,16 @@ async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> HttpRe
                     .append_header(("Location", String::from(&pasta.content)))
                     .finish();
             } else {
-                return HttpResponse::Found().body("This is not a valid URL. :-(");
+                return HttpResponse::Found()
+                    .content_type("text/html")
+                    .body(ErrorTemplate { args: &ARGS }.render().unwrap());
             }
         }
     }
 
-    HttpResponse::Found().body("Pasta not found! :-(")
+    HttpResponse::Found()
+        .content_type("text/html")
+        .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
 #[get("/raw/{id}")]
@@ -214,6 +281,7 @@ async fn getrawpasta(data: web::Data<AppState>, id: web::Path<String>) -> String
 #[get("/remove/{id}")]
 async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let mut pastas = data.pastas.lock().unwrap();
+
     let id = to_u64(&*id.into_inner());
 
     remove_expired(&mut pastas);
@@ -226,23 +294,37 @@ async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRespons
                 .finish();
         }
     }
-    HttpResponse::Found().body("Pasta not found! :-(")
+
+    HttpResponse::Found()
+        .content_type("text/html")
+        .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
 #[get("/pastalist")]
 async fn list(data: web::Data<AppState>) -> HttpResponse {
+    if ARGS.no_listing {
+        return HttpResponse::Found()
+            .append_header(("Location", "/"))
+            .finish();
+    }
+
     let mut pastas = data.pastas.lock().unwrap();
 
     remove_expired(&mut pastas);
 
-    HttpResponse::Found()
-        .content_type("text/html")
-        .body(PastaListTemplate { pastas: &pastas }.render().unwrap())
+    HttpResponse::Found().content_type("text/html").body(
+        PastaListTemplate {
+            pastas: &pastas,
+            args: &ARGS,
+        }
+        .render()
+        .unwrap(),
+    )
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let args = Args::parse();
+    let args: Args = Args::parse();
 
     Builder::new()
         .format(|buf, record| {
@@ -258,11 +340,17 @@ async fn main() -> std::io::Result<()> {
         .init();
 
     log::info!(
-        "MicroBin listening on http://127.0.0.1:{}",
+        "MicroBin starting on http://127.0.0.1:{}",
         args.port.to_string()
     );
 
-    std::fs::create_dir_all("./pasta_data").unwrap();
+    match std::fs::create_dir_all("./pasta_data") {
+        Ok(dir) => dir,
+        Err(error) => {
+            log::error!("Couldn't create data directory ./pasta_data: {:?}", error);
+            panic!("Couldn't create data directory ./pasta_data: {:?}", error);
+        }
+    };
 
     let data = web::Data::new(AppState {
         pastas: Mutex::new(dbio::load_from_file().unwrap()),
@@ -271,16 +359,22 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(data.clone())
+            .wrap(middleware::NormalizePath::trim())
             .service(index)
             .service(getpasta)
             .service(redirecturl)
             .service(getrawpasta)
-            .service(remove)
-            .service(list)
-            .service(fs::Files::new("/static", "./static"))
-            .service(fs::Files::new("/file", "./pasta_data"))
+            .service(actix_files::Files::new("/static", "./static"))
+            .service(actix_files::Files::new("/file", "./pasta_data"))
             .service(web::resource("/upload").route(web::post().to(create)))
             .default_service(web::route().to(not_found))
+            .wrap(middleware::Logger::default())
+            .service(remove)
+            .service(list)
+            .wrap(Condition::new(
+                args.auth_username.is_some(),
+                HttpAuthentication::basic(auth_validator),
+            ))
     })
     .bind(format!("127.0.0.1:{}", args.port.to_string()))?
     .run()
@@ -288,12 +382,23 @@ async fn main() -> std::io::Result<()> {
 }
 
 fn remove_expired(pastas: &mut Vec<Pasta>) {
+    // get current time - this will be needed to check which pastas have expired
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     } as i64;
 
-    pastas.retain(|p| p.expiration == 0 || p.expiration > timenow);
+    pastas.retain(|p| {
+        // delete the files too
+        if p.expiration < timenow {
+            // remove the file itself
+            fs::remove_file(format!("./pasta_data/{}/{}", p.id_as_animals(), p.file));
+            // and remove the containing directory
+            fs::remove_dir(format!("./pasta_data/{}/", p.id_as_animals()));
+        };
+
+        p.expiration == 0 || p.expiration > timenow
+    });
 }
 
 fn is_valid_url(url: &str) -> bool {

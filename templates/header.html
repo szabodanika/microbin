@@ -3,7 +3,9 @@
     <title>MicroBin</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/water.css">
+    {% if !args.pure_html %}
+        <link rel="stylesheet" href="/static/water.css">
+    {%- endif %}
     </head>
 <body style="
     max-width: 720px;
@@ -13,7 +15,10 @@
         line-height: 1.5;
         font-size: 1.1em;
         ">
+
 <br>
+
+{% if !args.hide_header %}
 
 <b style="margin-right: 0.5rem">
     <i><span style="font-size:2.2rem; margin-right:1rem">μ</span></i> MicroBin
@@ -26,3 +31,5 @@
 <a href="https://github.com/szabodanika/microbin" style="margin-right: 0.5rem; margin-left: 0.5rem">GitHub</a>
  
 <hr>
+
+{%- endif %}
