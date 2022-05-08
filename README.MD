@@ -18,7 +18,7 @@ MicroBin is a super tiny and simple self hosted pastebin app written in Rust. Th
 - Very little CSS and absolutely no JS (see [water.css](https://github.com/kognise/water.css))
 
 ### Installation
-Simply clone the repository, build it with `cargo build --release` and run the `microbin` executable in the created `target/release/` directory. It will start on port 8080. You can change the port with `-p` or `--port` CL arguments.
+Simply clone the repository, build it with `cargo build --release` and run the `microbin` executable in the created `target/release/` directory. It will start on port 8080. You can change the port with `-p` or `--port` CL arguments. For other arguments see [the Wiki](https://github.com/szabodanika/microbin/wiki).
 
 To install it as a service on your Linux machine, create a file called `/etc/systemd/system/microbin.service`, paste this into it with the `[username]` and `[path to installation directory]` replaced with the actual values.
 
