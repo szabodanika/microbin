@@ -377,6 +377,7 @@ async fn main() -> std::io::Result<()> {
             ))
     })
     .bind(format!("127.0.0.1:{}", args.port.to_string()))?
+    .workers(args.threads as usize)
     .run()
     .await
 }
