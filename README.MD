@@ -20,16 +20,21 @@ MicroBin is a super tiny and simple self hosted pastebin app written in Rust. Th
 ### Installation
 Simply clone the repository, build it with `cargo build --release` and run the `microbin` executable in the created `target/release/` directory. It will start on port 8080. You can change the port with `-p` or `--port` CL arguments.
 
-To install it as a service on your Linux machine, create a file called `/etc/systemd/system/microbin.service`, paste this into it with the value of `ExecStart` replaced with the actual path to microbin on your machine.
+To install it as a service on your Linux machine, create a file called `/etc/systemd/system/microbin.service`, paste this into it with the `[username]` and `[path to installation directory]` replaced with the actual values.
 
 ```
 [Unit]
 Description=MicroBin
 After=network.target
+
 [Service]
 Type=simple
 Restart=always
-ExecStart=/home/pi/microbin/target/release/microbin
+User=[username]
+RootDirectory=/
+WorkingDirectory=[path to installation directory]
+ExecStart=[path to installation directory]/target/release/microbin
+
 [Install]
 WantedBy=multi-user.target
 ```
@@ -43,22 +48,19 @@ Simple text Pasta: `curl -d "expiration=10min&content=This is a test pasta" -X P
 File contents: `curl -d "expiration=10min&content=$( < mypastafile.txt )" -X POST https://microbin.myserver.com/create`
 
 Available expiration options:
-- 1min
-- 10min
-- 1hour
-- 24hour
-- 1week
-- never
+`1min`, `10min`, `1hour`, `24hour`, `1week`, `never`
 
-Use cURL to read the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony-crow`
+Use cURL to read the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony-crow`,
 
-or to download the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony-crow > output.txt`
+or to download the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony-crow > output.txt` (use /file instead of /rawpasta to download attached file).
 
 
 ### Needed improvements
 - ~~Persisting pastas on disk (currently they are lost on restart)~~ (added on 2 May 2022)
-- Removing pasta after N reads
+- ~~Configuration with command line arguments (ports, enable-disable pasta list, footer, etc)~~  (added on 7 May 2022)
 - ~~File uploads~~ (added on 2 May 2022)
 - ~~URL shortening~~ (added on 23 April 2022)
-- CLI tool
-- Configuration with command line arguments (ports, enable-disable pasta list, footer, etc)
+- Removing pasta after N reads
+- CLI tool (beyond wget)
+- Better instructions and documentation - on GitHub and built in 
+
