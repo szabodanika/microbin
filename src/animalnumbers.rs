@@ -7,29 +7,24 @@ const ANIMAL_NAMES: &[&str] = &[
     "wolf", "duck", "lion", "shark", "worm", "eagle", "lizard", "sheep", "zebra",
 ];
 
-pub fn to_animal_names(mut n: u64) -> String {
+pub fn to_animal_names(mut number: u64) -> String {
     let mut result: Vec<&str> = Vec::new();
 
-    if n == 0 {
+    if number == 0 {
         return ANIMAL_NAMES[0].parse().unwrap();
-    } else if n == 1 {
-        return ANIMAL_NAMES[1].parse().unwrap();
     }
 
     // max 4 animals so 6 * 6 = 64 bits
     let mut power = 6;
     loop {
-        let d = n / ANIMAL_NAMES.len().pow(power) as u64;
-
-        if !(result.is_empty() && d == 0) {
-            result.push(ANIMAL_NAMES[d as usize]);
+        let digit = number / ANIMAL_NAMES.len().pow(power) as u64;
+        if !(result.is_empty() && digit == 0) {
+            result.push(ANIMAL_NAMES[digit as usize]);
         }
-
-        n -= d * ANIMAL_NAMES.len().pow(power) as u64;
-
+        number -= digit * ANIMAL_NAMES.len().pow(power) as u64;
         if power > 0 {
             power -= 1;
-        } else {
+        } else if power <= 0 || number == 0 {
             break;
         }
     }
@@ -37,10 +32,10 @@ pub fn to_animal_names(mut n: u64) -> String {
     result.join("-")
 }
 
-pub fn to_u64(n: &str) -> u64 {
+pub fn to_u64(animal_names: &str) -> u64 {
     let mut result: u64 = 0;
 
-    let animals: Vec<&str> = n.split("-").collect();
+    let animals: Vec<&str> = animal_names.split("-").collect();
 
     let mut pow = animals.len();
     for i in 0..animals.len() {

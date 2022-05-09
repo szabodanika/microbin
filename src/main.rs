@@ -390,15 +390,18 @@ fn remove_expired(pastas: &mut Vec<Pasta>) {
     } as i64;
 
     pastas.retain(|p| {
-        // delete the files too
-        if p.expiration < timenow {
+        // expiration is `never` or not reached
+        if p.expiration == 0 || p.expiration > timenow {
+            // keep
+            true
+        } else {
             // remove the file itself
             fs::remove_file(format!("./pasta_data/{}/{}", p.id_as_animals(), p.file));
             // and remove the containing directory
             fs::remove_dir(format!("./pasta_data/{}/", p.id_as_animals()));
-        };
-
-        p.expiration == 0 || p.expiration > timenow
+            // remove
+            false
+        }
     });
 }
 

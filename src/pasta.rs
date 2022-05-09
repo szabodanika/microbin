@@ -32,15 +32,19 @@ impl Pasta {
     }
 
     pub fn expiration_as_string(&self) -> String {
-        let date =
-            DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(self.expiration, 0), Utc);
-        format!(
-            "{:02}-{:02} {}:{}",
-            date.month(),
-            date.day(),
-            date.hour(),
-            date.minute(),
-        )
+        if self.expiration == 0 {
+            String::from("Never")
+        } else {
+            let date =
+                DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(self.expiration, 0), Utc);
+            format!(
+                "{:02}-{:02} {}:{}",
+                date.month(),
+                date.day(),
+                date.hour(),
+                date.minute(),
+            )
+        }
     }
 }
 
