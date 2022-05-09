@@ -376,7 +376,7 @@ async fn main() -> std::io::Result<()> {
                 HttpAuthentication::basic(auth_validator),
             ))
     })
-    .bind(format!("127.0.0.1:{}", args.port.to_string()))?
+    .bind(format!("0.0.0.0:{}", args.port.to_string()))?
     .workers(args.threads as usize)
     .run()
     .await
