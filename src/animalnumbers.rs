@@ -24,7 +24,7 @@ pub fn to_animal_names(mut number: u64) -> String {
         number -= digit * ANIMAL_NAMES.len().pow(power) as u64;
         if power > 0 {
             power -= 1;
-        } else if power <= 0 || number == 0 {
+        } else if power == 0 || number == 0 {
             break;
         }
     }

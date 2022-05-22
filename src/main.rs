@@ -29,6 +29,7 @@ use crate::pasta::Pasta;
 mod animalnumbers;
 mod dbio;
 mod pasta;
+mod plugins;
 
 lazy_static! {
     static ref ARGS: Args = Args::parse();
@@ -46,6 +47,12 @@ struct Args {
 
     #[clap(short, long, default_value_t = 1)]
     threads: u8,
+
+    #[clap(short, long)]
+    wide: bool,
+
+    #[clap(short, long, default_value_t = 3)]
+    animals: u8,
 
     #[clap(long)]
     hide_header: bool,
@@ -103,7 +110,7 @@ struct ErrorTemplate<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "pasta.html")]
+#[template(path = "pasta.html", escape = "none")]
 struct PastaTemplate<'a> {
     pasta: &'a Pasta,
     args: &'a Args,
@@ -165,7 +172,8 @@ async fn create(data: web::Data<AppState>, mut payload: Multipart) -> Result<Htt
             }
             "content" => {
                 while let Some(chunk) = field.try_next().await? {
-                    new_pasta.content = std::str::from_utf8(&chunk).unwrap().to_string();
+                    new_pasta.content =
+                        plugins::on_pasta_created(std::str::from_utf8(&chunk).unwrap());
                     new_pasta.pasta_type = if is_valid_url(new_pasta.content.as_str()) {
                         String::from("url")
                     } else {
@@ -223,9 +231,23 @@ async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpRespo
 
     for pasta in pastas.iter() {
         if pasta.id == id {
-            return HttpResponse::Found()
-                .content_type("text/html")
-                .body(PastaTemplate { pasta, args: &ARGS }.render().unwrap());
+            let pasta_copy = Pasta {
+                id: pasta.id,
+                content: plugins::on_pasta_read(&pasta.content),
+                file: pasta.file.to_string(),
+                created: pasta.created,
+                pasta_type: pasta.pasta_type.to_string(),
+                expiration: pasta.expiration,
+            };
+
+            return HttpResponse::Found().content_type("text/html").body(
+                PastaTemplate {
+                    pasta: &pasta_copy,
+                    args: &ARGS,
+                }
+                .render()
+                .unwrap(),
+            );
         }
     }
 

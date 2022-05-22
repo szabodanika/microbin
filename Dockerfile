@@ -22,5 +22,10 @@ COPY --from=builder /usr/src/microbin/target/release/microbin /usr/local/bin/mic
 # copy /static folder containing the stylesheets
 COPY --from=builder /usr/src/microbin/static /usr/local/bin/static
 
+# Install Ruby (no need if you're disabling all plugins)
+RUN \
+  apt-get update && \
+  apt-get install -y ruby
+
 # run the binary
 CMD ["microbin"]
