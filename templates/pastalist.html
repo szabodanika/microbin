@@ -35,7 +35,7 @@
     </thead>
     <tbody>
     {% for pasta in pastas %}
-    {% if pasta.pasta_type == "text" %}
+    {% if pasta.pasta_type == "text"  && !pasta.private %}
     <tr>
         <td>
             <a href="/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
@@ -87,7 +87,7 @@
     </tr>
     </thead>
     {% for pasta in pastas %}
-    {% if pasta.pasta_type == "url" %}
+    {% if pasta.pasta_type == "url" && !pasta.private %}
     <tr>
         <td>
             <a href="/url/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>

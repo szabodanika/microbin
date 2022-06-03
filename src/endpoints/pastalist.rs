@@ -23,8 +23,6 @@ pub async fn list(data: web::Data<AppState>) -> HttpResponse {
 
     let mut pastas = data.pastas.lock().unwrap();
 
-    pastas.retain(|p| !p.private);
-
     remove_expired(&mut pastas);
 
     HttpResponse::Found().content_type("text/html").body(
