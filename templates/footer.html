@@ -3,8 +3,12 @@
 
 <hr>
 <p style="font-size: smaller">
-    MicroBin by Daniel Szabo. Fork me on <a href="https://github.com/szabodanika/microbin">GitHub</a>!
-    Let's keep the Web <b>compact</b>, <b>accessible</b> and <b>humane</b>!
+    {% if args.footer_text.as_ref().is_none() %}
+        MicroBin by Dániel Szabó. Fork me on <a href="https://github.com/szabodanika/microbin">GitHub</a>!
+        Let's keep the Web <b>compact</b>, <b>accessible</b> and <b>humane</b>!
+    {%- else %}
+        {{ args.footer_text.as_ref().unwrap() }}
+    {%- endif %}
 </p>
 
 {%- endif %}

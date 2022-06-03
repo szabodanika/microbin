@@ -3,13 +3,17 @@ use std::fmt;
 use chrono::{DateTime, Datelike, NaiveDateTime, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::to_animal_names;
+use crate::util::animalnumbers::to_animal_names;
+use crate::util::syntaxhighlighter::html_highlight;
 
 #[derive(Serialize, Deserialize)]
 pub struct Pasta {
     pub id: u64,
     pub content: String,
     pub file: String,
+    pub extension: String,
+    pub private: bool,
+    pub editable: bool,
     pub created: i64,
     pub expiration: i64,
     pub pasta_type: String,
@@ -45,6 +49,14 @@ impl Pasta {
                 date.minute(),
             )
         }
+    }
+
+    pub fn content_syntax_highlighted(&self) -> String {
+        html_highlight(&self.content, &self.extension)
+    }
+
+    pub fn content_not_highlighted(&self) -> String {
+        html_highlight(&self.content, "txt")
     }
 }
 

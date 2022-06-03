@@ -1,0 +1,153 @@
+{% include "header.html" %}
+
+
+<h2 id="welcome-to-the-microbin-wiki-">Welcome to MicroBin!</h2>
+<p>This page contains help regarding the installation, configuration and use of MicroBin. If you have questions that are not answered here, head to our <a href="https://github.com/szabodanika/microbin">GitHub repository</a>.</p>
+<h2 id="1-usage">1 Usage</h2>
+<h3 id="what-is-a-pasta-anyway-">What is a &quot;pasta&quot; anyway?</h3>
+<p>In microbin, a pasta can be:</p>
+<ul>
+    <li>A text that you want to paste from one machine to another, eg. some code</li>
+    <li>A file that you want to share, eg. a video that is too large for Discord, a zip with a code project in it or an image</li>
+    <li>A URL redirect</li>
+</ul>
+<h3 id="when-is-microbin-useful-">When is MicroBin useful?</h3>
+<p>You can use MicroBin</p>
+<ul>
+    <li>As a URL shortener/redirect service,</li>
+    <li>To send long texts to other people,</li>
+    <li>To send large files to other people,</li>
+    <li>To serve content on the web, eg. configuration files for testing, images, or any other file content using the Raw functionality,</li>
+    <li>To move files between your desktop and a server you access from the console,</li>
+    <li>As a &quot;postbox&quot; service where people can upload their files or texts, but they cannot see or remove what others sent you - just disable the pastalist page</li>
+    <li>To take notes! Simply create an editable pasta.</li>
+</ul>
+<p>...and many other things, why not get creative?</p>
+<h3 id="creating-a-pasta">Creating a Pasta</h3>
+<p>Navigate to the root of your server, for example <a href="https://microbin.myserver.com/">https://microbin.myserver.com/</a>. This should show you a form where you will at the very least see an expiration selector, a file attachment input, a content text field and a green save button. Depending on your configuration there miight also be a syntax highlight selector, an editable checkbox and a private ceckbox.</p>
+<p>Use the expiration dropdown to choose how long you want your pasta to exist. When the selected time has expired, it will be removed from the server. The content can be any text, including plain text, code, html, even a URL. A URL is a special case, because when you open the pasta again, it will redirect you to that URL instead of showing it as a text. Entering content is optional, and so is the file attachment. If you want, you can even submit a pasta completely empty.</p>
+<p>You will be redirected to the URL of the pasta, which will end with a few animal names. If you remember those animals, you can simply type them in on another machine and open your pasta elsewhere.</p>
+<p>If you have editable pastas enabled and you check the editable checkbox, then later on there will be an option to change the text content of your pasta. Selecting the private checkbox will simply prevent your pasta to show up on the pasta list page, if that is enabled.</p>
+<p>If you have syntax higlighting enabled, then select your language from the dropdown, or leave it as none if you just want to upload plain with no highlighting.</p>
+<h3 id="listing-pastas">Listing Pastas</h3>
+<p>If you have pasta listing enabled, then there is a pasta list option in the navigation bar, which will list all the pastas on the server in two groups: regular pastas and URL redirects (pastas containing nothing but a URL). If you have private pastas enabled, they will not show up here at all.</p>
+<p>From the pasta list page, you will be able to view individual pastas by clicking on their animal identifiers on the lest, view their raw contrent by clicking on the Raw button, remove them, and if you have editable pastas enabled, then open them in edit view.</p>
+<h3 id="use-microbin-from-the-console-with-curl">Use MicroBin from the console with cURL</h3>
+<p>Simple text Pasta: <code>curl -d &quot;expiration=10min&amp;content=This is a test pasta&quot; -X POST https://microbin.myserver.com/create</code></p>
+<p>File contents: <code>curl -d &quot;expiration=10min&amp;content=$( &lt; mypastafile.txt )&quot; -X POST https://microbin.myserver.com/create</code></p>
+<p>Available expiration options:
+    <code>1min</code>, <code>10min</code>, <code>1hour</code>, <code>24hour</code>, <code>1week</code>, <code>never</code></p>
+<p>Use cURL to read the pasta: <code>curl https://microbin.myserver.com/rawpasta/fish-pony-crow</code>,</p>
+<p>or to download the pasta: <code>curl https://microbin.myserver.com/rawpasta/fish-pony-crow &gt; output.txt</code> (use /file instead of /rawpasta to download attached file).</p>
+<h2 id="2-installation">2 Installation</h2>
+<h3 id="building-microbin">Building MicroBin</h3>
+<p>Simply clone the repository, build it with <code>cargo build --release</code> and run the <code>microbin</code> executable in the created <code>target/release/</code> directory. It will start on port 8080. You can change the port with <code>-p</code> or <code>--port</code> CL arguments. For other arguments see <a href="https://github.com/szabodanika/microbin/wiki">the Wiki</a>.</p>
+<pre><code>git clone https:<span class="hljs-comment">//github.com/szabodanika/microbin.git</span>
+cd microbin
+cargo build --<span class="hljs-built_in">release</span>
+./target/<span class="hljs-built_in">release</span>/microbin -p <span class="hljs-number">80</span>
+</code></pre><h3 id="microbin-as-a-service">MicroBin as a service</h3>
+<p>To install it as a service on your Linux machine, create a file called <code>/etc/systemd/system/microbin.service</code>, paste this into it with the <code>[username]</code> and <code>[path to installation directory]</code> replaced with the actual values.</p>
+<pre><code><span class="hljs-section">[Unit]</span>
+<span class="hljs-attr">Description</span>=MicroBin
+<span class="hljs-attr">After</span>=network.target
+<span class="hljs-section">
+[Service]</span>
+<span class="hljs-attr">Type</span>=simple
+<span class="hljs-attr">Restart</span>=always
+<span class="hljs-attr">User</span>=[username]
+<span class="hljs-attr">RootDirectory</span>=/
+<span class="hljs-attr">WorkingDirectory</span>=[path to installation directory]
+<span class="hljs-attr">ExecStart</span>=[path to installation directory]/target/release/microbin
+<span class="hljs-section">
+[Install]</span>
+<span class="hljs-attr">WantedBy</span>=multi-user.target
+</code></pre><p>Here is my <code>microbin.service</code> for example, with some optional arguments:</p>
+<pre><code><span class="hljs-section">[Unit]</span>
+<span class="hljs-attr">Description</span>=MicroBin
+<span class="hljs-attr">After</span>=network.target
+<span class="hljs-section">
+[Service]</span>
+<span class="hljs-attr">Type</span>=simple
+<span class="hljs-attr">Restart</span>=always
+<span class="hljs-attr">User</span>=ubuntu
+<span class="hljs-attr">RootDirectory</span>=/
+
+<span class="hljs-comment"># This is the directory where I want to run microbin. It will store all the pastas here.</span>
+<span class="hljs-attr">WorkingDirectory</span>=/home/ubuntu/server/microbin
+
+<span class="hljs-comment"># This is the location of my executable - I also have 2 optional features enabled</span>
+<span class="hljs-attr">ExecStart</span>=/home/ubuntu/server/microbin/target/release/microbin --editable --linenumbers --highlightsyntax
+
+<span class="hljs-comment"># I keep my installation in the home directory, so I need to add this</span>
+<span class="hljs-attr">ProtectHome</span>=<span class="hljs-literal">off</span>
+<span class="hljs-section">
+[Install]</span>
+<span class="hljs-attr">WantedBy</span>=multi-user.target
+</code></pre><p>Then start the service with <code>systemctl start microbin</code> and enable it on boot with <code>systemctl enable microbin</code>. To update your MicroBin, simply update or clone the repository again, build it again, and then restart the service with <code>systemctl restart microbin</code>. An update will never affect your existing pastas, unless there is a breaking change in the data model (in which case MicroBin just won&#39;t be able to import your DB), which will always be mentioned explicitly.</p>
+<h3 id="nginx-configuration">NGINX configuration</h3>
+<pre><code><span class="hljs-section">server</span> {
+    <span class="hljs-comment"># I have HTTPS enabled using certbot - you can use HTTP of course if you want!</span>
+  <span class="hljs-attribute">listen</span> <span class="hljs-number">443</span> ssl; <span class="hljs-comment"># managed by Certbot</span>
+
+    <span class="hljs-attribute">server_name</span>    microbin.myserver.com;
+
+    <span class="hljs-attribute">location</span> / {
+            <span class="hljs-comment"># Make sure to change the port if you are not running MicroBin at 8080!</span>
+        <span class="hljs-attribute">proxy_pass</span>            http://127.0.0.1:8080<span class="hljs-variable">$request_uri</span>;
+        <span class="hljs-attribute">proxy_set_header</span>    Host <span class="hljs-variable">$host</span>;
+        <span class="hljs-attribute">proxy_set_header</span>    X-Forwarded-Proto <span class="hljs-variable">$scheme</span>;
+        <span class="hljs-attribute">proxy_set_header</span>    X-Real-IP <span class="hljs-variable">$remote_addr</span>;
+        <span class="hljs-attribute">proxy_set_header</span>    X-Forwarded-For <span class="hljs-variable">$proxy_add_x_forwarded_for</span>;
+    }
+
+    <span class="hljs-comment"># Limit content size - I have 1GB because my MicroBin server is private, no one else will use it.</span>
+    <span class="hljs-attribute">client_max_body_size</span> <span class="hljs-number">1024M</span>;
+
+  <span class="hljs-attribute">ssl_certificate</span> /etc/letsencrypt/live/microbin.myserver.com/fullchain.pem; <span class="hljs-comment"># managed by Certbot</span>
+  <span class="hljs-attribute">ssl_certificate_key</span> /etc/letsencrypt/live/microbin.myserver.com/privkey.pem; <span class="hljs-comment"># managed by Certbot</span>
+  <span class="hljs-attribute">include</span> /etc/letsencrypt/options-ssl-nginx.conf; <span class="hljs-comment"># managed by Certbot</span>
+  <span class="hljs-attribute">ssl_dhparam</span> /etc/letsencrypt/ssl-dhparams.pem; <span class="hljs-comment"># managed by Certbot</span>
+}
+</code></pre><h2 id="3-command-line-arguments">3 Command Line Arguments</h2>
+<p>There is an ever expanding list of customisations built into MicroBin so you can use it the way you want. Instead of a configuration file, we simply use arguments that you pass to the executable, making the workflow even simpler. Read the following options and if you cannot find what you need, you can always open an issue at our GitHub repository and request a new feature!</p>
+<h3 id="-auth-username-auth_username-">--auth-username [AUTH_USERNAME]</h3>
+<p>Require username for HTTP Basic Authentication when visiting the service. If <code>--auth-username</code> is set but <code>--auth-password</code> is not, just leave the password field empty when logging in. You can also just go to <a href="https://username:password@yourserver.net">https://username:password@yourserver.net</a> or <a href="https://username@yourserver.net">https://username@yourserver.net</a> if password is not set instead of typing into the password</p>
+<h3 id="-auth-password-auth_password-">--auth-password [AUTH_PASSWORD]</h3>
+<p>Require password for HTTP Basic Authentication when visiting the service. Will not have any affect unless <code>--auth-username</code> is also set. If <code>--auth-username</code> is set but <code>--auth-password</code> is not, just leave the password field empty when logging in. You can also just go to <a href="https://username:password@yourserver.net">https://username:password@yourserver.net</a> or <a href="https://username@yourserver.net">https://username@yourserver.net</a> if password is not set instead of typing into the password prompt.</p>
+<h3 id="-editable">--editable</h3>
+<p>Enables editable pastas. You will still be able to make finalised pastas but there will be an extra checkbox to make your new pasta editable from the pasta list or the pasta view page.</p>
+<h3 id="-footer_text-text-">--footer_text [TEXT]</h3>
+<p>Replaces the default footer text with your own. If you want to hide the footer, use --hide-footer instead.</p>
+<h3 id="-h-help">-h, --help</h3>
+<p>Show all commands in the terminal.</p>
+<h3 id="-hide-footer">--hide-footer</h3>
+<p>Hides the footer on every page.</p>
+<h3 id="-hide-header">--hide-header</h3>
+<p>Hides the navigation bar on every page.</p>
+<h3 id="-hide-logo">--hide-logo</h3>
+<p>Hides the MicroBin logo from the navigation bar on every page.</p>
+<h3 id="-no-listing">--no-listing</h3>
+<p>Disables the /pastalist endpoint, essentially making all pastas private.</p>
+<h3 id="-highlightsyntax">--highlightsyntax</h3>
+<p>Enables syntax highlighting support. When creating a new pasta, a new dropdown selector will be added where you can select your pasta&#39;s syntax, or just leave it empty for no highlighting.</p>
+<h3 id="-p-port-port-">-p, --port [PORT]</h3>
+<p>Default value: 8080</p>
+<p>Sets the port for the server will be listening on.</p>
+<h3 id="-private">--private</h3>
+<p>Enables private pastas. Adds a new checkbox to make your pasta private, which then won&#39;t show up on the pastalist page. With the URL to your pasta, it will still be accessible.</p>
+<h3 id="-pure-html">--pure-html</h3>
+<p>Disables main CSS styling, just uses a few in-line stylings for the layout. With this option you will lose dark-mode support.</p>
+<h3 id="-readonly">--readonly</h3>
+<p>Disables adding/editing/removing pastas entirely.</p>
+<h3 id="-title-title-">--title [TITLE]</h3>
+<p>Replaces &quot;MicroBin&quot; with your title of choice in the navigation bar.</p>
+<h3 id="-t-threads-threads-">-t, --threads [THREADS]</h3>
+<p>Default value: 1</p>
+<p>Number of workers MicroBin is allowed to have. Increase this to the number of CPU cores you have if you want to go beast mode, but for personal use one worker is enough.</p>
+<h3 id="-v-version">-V, --version</h3>
+<p>Displays your MicroBin&#39;s version information.</p>
+<h3 id="-wide">--wide</h3>
+<p>Changes the maximum width of the UI from 720 pixels to 1080 pixels.</p>
+
+{% include "footer.html" %}

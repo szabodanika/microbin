@@ -1,35 +1,59 @@
 <html>
 <head>
-    <title>MicroBin</title>
+    {% if args.footer_text.as_ref().is_none() %}
+        <title>MicroBin</title>
+    {%- else %}
+    <title>{{ args.title.as_ref().unwrap() }}</title>
+    {%- endif %}
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% if !args.pure_html %}
         <link rel="stylesheet" href="/static/water.css">
     {%- endif %}
     </head>
+{% if args.wide %}
 <body style="
-    max-width: 720px;
+    max-width: 1080;
         margin: auto;
         padding-left:0.5rem;
         padding-right:0.5rem;
         line-height: 1.5;
         font-size: 1.1em;
         ">
-
+{%- else %}
+<body style="
+    max-width: 720;
+        margin: auto;
+        padding-left:0.5rem;
+        padding-right:0.5rem;
+        line-height: 1.5;
+        font-size: 1.1em;
+        ">
+{%- endif %}
 <br>
 
 {% if !args.hide_header %}
 
 <b style="margin-right: 0.5rem">
-    <i><span style="font-size:2.2rem; margin-right:1rem">μ</span></i> MicroBin
+
+    {% if !args.hide_logo %}
+        <i><span style="font-size:2.2rem; margin-right:1rem">μ</span></i>
+    {%- endif %}
+
+    {% if args.footer_text.as_ref().is_none() %}
+        MicroBin
+    {%- else %}
+        {{ args.title.as_ref().unwrap() }}
+    {%- endif %}
 </b>
 
 <a href="/" style="margin-right: 0.5rem; margin-left: 0.5rem">New Pasta</a>
 
 <a href="/pastalist" style="margin-right: 0.5rem; margin-left: 0.5rem">Pasta List</a>
 
-<a href="https://github.com/szabodanika/microbin" style="margin-right: 0.5rem; margin-left: 0.5rem">GitHub</a>
- 
+<a href="/help" style="margin-right: 0.5rem; margin-left: 0.5rem">Help</a>
+
 <hr>
 
 {%- endif %}

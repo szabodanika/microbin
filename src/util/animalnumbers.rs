@@ -14,8 +14,8 @@ pub fn to_animal_names(mut number: u64) -> String {
         return ANIMAL_NAMES[0].parse().unwrap();
     }
 
-    // max 4 animals so 6 * 6 = 64 bits
     let mut power = 6;
+
     loop {
         let digit = number / ANIMAL_NAMES.len().pow(power) as u64;
         if !(result.is_empty() && digit == 0) {
@@ -32,7 +32,7 @@ pub fn to_animal_names(mut number: u64) -> String {
     result.join("-")
 }
 
-pub fn to_u64(animal_names: &str) -> u64 {
+pub fn to_u64(animal_names: &str) -> Result<u64, &str> {
     let mut result: u64 = 0;
 
     let animals: Vec<&str> = animal_names.split("-").collect();
@@ -40,9 +40,14 @@ pub fn to_u64(animal_names: &str) -> u64 {
     let mut pow = animals.len();
     for i in 0..animals.len() {
         pow -= 1;
-        result += (ANIMAL_NAMES.iter().position(|&r| r == animals[i]).unwrap()
-            * ANIMAL_NAMES.len().pow(pow as u32)) as u64;
+        let animal_index = ANIMAL_NAMES.iter().position(|&r| r == animals[i]);
+        match animal_index {
+            None => return Err("Failed to convert animal name to u64!"),
+            Some(_) => {
+                result += (animal_index.unwrap() * ANIMAL_NAMES.len().pow(pow as u32)) as u64
+            }
+        }
     }
 
-    result
+    Ok(result)
 }

@@ -1,0 +1,20 @@
+{% include "header.html" %}
+<form method="POST" enctype="multipart/form-data">
+    <h4>
+        Editing pasta '{{ pasta.id_as_animals() }}'
+    </h4>
+    <label>Content</label>
+    <br>
+    <textarea style="width: 100%; min-height: 100px" name="content" id="content" autofocus>{{ pasta.content }}</textarea>
+    <br>
+
+    {% if args.readonly %}
+    <input style="width: 140px; background-color: limegreen" disabled type="submit" value="Read Only"/>
+    {%- else %}
+    <input style="width: 140px; background-color: limegreen" type="submit" value="Save"/>
+    {%- endif %}
+    </td>
+
+    <br>
+</form>
+{% include "footer.html" %}

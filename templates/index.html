@@ -1,27 +1,99 @@
 {% include "header.html" %}
 <form action="upload" method="POST" enctype="multipart/form-data">
     <br>
-    <label for="expiration">Expiration</label><br>
-    <select style="width: 100%;" name="expiration" id="expiration">
-        <optgroup label="Expire">
-            <option value="1min">1 minute</option>
-            <option value="10min">10 minutes</option>
-            <option value="1hour">1 hour</option>
-            <option selected value="24hour">24 hours</option>
-            <option value="1week">1 week</option>
-        </optgroup>
-        <option value="never">Never Expire</option>
-    </select>
-    <br>
+    <div style="display: grid;
+        grid-gap: 4px;
+        grid-template-columns: repeat(auto-fit, 234px);
+        grid-template-rows: repeat(1, 100px);  ">
+        <div>
+            <label for="expiration">Expiration</label><br>
+            <select style="width: 100%;" name="expiration" id="expiration">
+                <optgroup label="Expire">
+                    <option value="1min">1 minute</option>
+                    <option value="10min">10 minutes</option>
+                    <option value="1hour">1 hour</option>
+                    <option selected value="24hour">24 hours</option>
+                    <option value="1week">1 week</option>
+                </optgroup>
+                <option value="never">Never Expire</option>
+            </select>
+        </div>
+        {% if args.highlightsyntax %}
+        <div>
+            <label for="syntax-highlight">Syntax Highlighting</label><br>
+            <select style="width: 100%;" name="syntax-highlight" id="syntax-highlight">
+                <option value="none">None</option>
+                <optgroup label="Source Code">
+                    <option value="sh">Bash Shell</option>
+                    <option value="c">C</option>
+                    <option value="cpp">C++</option>
+                    <option value="cs">C#</option>
+                    <option value="pas">Delphi</option>
+                    <option value="erl">Erlang</option>
+                    <option value="go">Go</option>
+                    <option value="hs">Haskell</option>
+                    <option value="html">HTML</option>
+                    <option value="lua">Lua</option>
+                    <option value="lisp">Lisp</option>
+                    <option value="java">Java</option>
+                    <option value="js">JavaScript</option>
+                    <option value="kt">Kotlin</option>
+                    <option value="py">Python</option>
+                    <option value="php">PHP</option>
+                    <option value="r">R</option>
+                    <option value="rs">Rust</option>
+                    <option value="rb">Ruby</option>
+                    <option value="sc">Scala</option>
+                    <option value="swift">Swift</option>
+                </optgroup>
+                <optgroup label="Descriptors">
+                    <!-- no toml support ;-( -->
+                    <option value="json">TOML</option>
+                    <option value="yaml">YAML</option>
+                    <option value="json">JSON</option>
+                    <option value="xml">XML</option>
+                </optgroup>
+            </select>
+        </div>
+        {%- else %}
+        <input type="hidden" name="syntax-highlight" value="none">
+        {%- endif %}
+
+        <div>
+            <label>File attachment</label>
+            <br>
+            <input style="width: 100%;" type="file" id="file" name="file">
+        </div>
+    </div>
     <label>Content</label>
     <br>
     <textarea style="width: 100%; min-height: 100px" name="content" autofocus></textarea>
     <br>
-    <label>File attachment</label>
-    <br>
-    <input style="width: 100%;" type="file" id="file" name="file">
-    <br>
-    <input style="width: 120px; background-color: limegreen" ; type="submit" value="Save"/>
+    <div style="display: grid;
+        grid-gap: 4px;
+        grid-template-columns: repeat(auto-fit, 120px);
+        grid-template-rows: repeat(1, 50px);  ">
+        {% if args.editable %}
+        <div>
+            <input type="checkbox" id="editable" name="editable" value="editable">
+            <label for="editable">Editable</label>
+        </div>
+        {%- endif %}
+        {% if args.private %}
+        <div>
+            <input type="checkbox" id="private" name="private" value="private">
+            <label for="private">Private</label>
+        </div>
+        {%- endif %}
+    </div>
+
+    {% if args.readonly %}
+    <input style="width: 140px; background-color: limegreen" disabled type="submit" value="Read Only"/>
+    {%- else %}
+    <input style="width: 140px; background-color: limegreen" type="submit" value="Save"/>
+    {%- endif %}
+    </td>
+
     <br>
 </form>
 {% include "footer.html" %}

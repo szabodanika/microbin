@@ -4,97 +4,111 @@
 {% if pastas.is_empty() %}
 <br>
 <p>
-  No pastas yet. 😔 Create one <a href="/">here</a>.
+    No pastas yet. 😔 Create one <a href="/">here</a>.
 </p>
 <br>
 {%- else %}
 <br>
+{% if args.pure_html %}
+<table border="1" style="width: 100%">
+{% else %}
 <table style="width: 100%">
-  <thead>
+    {% endif %}
+    <thead>
     <tr>
-      <th colspan="4">Pastas</th>
+        <th colspan="4">Pastas</th>
     </tr>
     <tr>
-      <th>
-        Key
-      </th>
-      <th>
-        Created
-      </th>
-      <th>
-        Expiration
-      </th>
-      <th>
+        <th>
+            Key
+        </th>
+        <th>
+            Created
+        </th>
+        <th>
+            Expiration
+        </th>
+        <th>
 
-      </th>
+        </th>
     </tr>
-  </thead>
-  <tbody>
+    </thead>
+    <tbody>
     {% for pasta in pastas %}
     {% if pasta.pasta_type == "text" %}
     <tr>
-      <td>
-        <a href="/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
-      </td>
-      <td>
-        {{pasta.created_as_string()}}
-      </td>
-      <td>
-        {{pasta.expiration_as_string()}}
-      </td>
-      <td>
-        <a style="margin-right:1rem" href="/raw/{{pasta.id_as_animals()}}">Raw</a>
-        {% if pasta.file != "no-file" %}
-          <a style="margin-right:1rem"  href="/file/{{pasta.id_as_animals()}}/{{pasta.file}}">File</a>
-        {%- endif %}
-        <a href="/remove/{{pasta.id_as_animals()}}">Remove</a>
-      </td>
+        <td>
+            <a href="/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+        </td>
+        <td>
+            {{pasta.created_as_string()}}
+        </td>
+        <td>
+            {{pasta.expiration_as_string()}}
+        </td>
+        <td>
+            <a style="margin-right:1rem" href="/raw/{{pasta.id_as_animals()}}">Raw</a>
+            {% if pasta.file != "no-file" %}
+            <a style="margin-right:1rem" href="/file/{{pasta.id_as_animals()}}/{{pasta.file}}">File</a>
+            {%- endif %}
+            {% if pasta.editable %}
+            <a style="margin-right:1rem" href="/edit/{{pasta.id_as_animals()}}">Edit</a>
+            {%- endif %}
+            <a href="/remove/{{pasta.id_as_animals()}}">Remove</a>
+        </td>
     </tr>
     {%- endif %}
     {% endfor %}
-  </tbody>
+    </tbody>
 </table>
 <br>
-<table>
-  <thead>
+{% if args.pure_html %}
+<table border="1" style="width: 100%">
+{% else %}
+<table style="width: 100%">
+{% endif %}
+    <thead>
     <tr>
-      <th colspan="4">URL Redirects</th>
+        <th colspan="4">URL Redirects</th>
     </tr>
-    <tr >
-      <th>
-        Key
-      </th>
-      <th>
-        Created
-      </th>
-      <th>
-        Expiration
-      </th>
-      <th>
+    <tr>
+        <th>
+            Key
+        </th>
+        <th>
+            Created
+        </th>
+        <th>
+            Expiration
+        </th>
+        <th>
 
-      </th>
+        </th>
     </tr>
-  </thead>
-  {% for pasta in pastas %}
-  {% if pasta.pasta_type == "url" %}
-  <tr>
-    <td>
-      <a href="/url/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
-    </td>
-    <td>
-      {{pasta.created_as_string()}}
-    </td>
-    <td>
-      {{pasta.expiration_as_string()}}
-    </td>
-    <td>
-      <a style="margin-right:1rem" href="/raw/{{pasta.id_as_animals()}}">Raw</a>
-      <a href="/remove/{{pasta.id_as_animals()}}">Remove</a>
-    </td>
-  </tr>
-  {%- endif %}
-  {% endfor %}
-</tbody>
+    </thead>
+    {% for pasta in pastas %}
+    {% if pasta.pasta_type == "url" %}
+    <tr>
+        <td>
+            <a href="/url/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+        </td>
+        <td>
+            {{pasta.created_as_string()}}
+        </td>
+        <td>
+            {{pasta.expiration_as_string()}}
+        </td>
+        <td>
+            <a style="margin-right:1rem" href="/raw/{{pasta.id_as_animals()}}">Raw</a>
+            {% if pasta.editable %}
+            <a style="margin-right:1rem" href="/edit/{{pasta.id_as_animals()}}">Edit</a>
+            {%- endif %}
+            <a href="/remove/{{pasta.id_as_animals()}}">Remove</a>
+        </td>
+    </tr>
+    {%- endif %}
+    {% endfor %}
+    </tbody>
 </table>
 <br>
 {%- endif %}

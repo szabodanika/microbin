@@ -1,9 +1,44 @@
 {% include "header.html" %}
-<a  style="margin-right: 0.5rem" href="/raw/{{pasta.id_as_animals()}}">Raw Text Content</a>
+<a style="margin-right: 0.5rem" href="/raw/{{pasta.id_as_animals()}}">Raw Text Content</a>
 {% if pasta.file != "no-file" %}
-<a  style="margin-right: 0.5rem; margin-left: 0.5rem" href="/file/{{pasta.id_as_animals()}}/{{pasta.file}}">Attached file '{{pasta.file}}'</a>
+<a style="margin-right: 0.5rem; margin-left: 0.5rem" href="/file/{{pasta.id_as_animals()}}/{{pasta.file}}">Attached file
+    '{{pasta.file}}'</a>
+{%- endif %}
+{% if pasta.editable %}
+<a style="margin-right: 0.5rem; margin-left: 0.5rem" href="/edit/{{pasta.id_as_animals()}}">Edit</a>
 {%- endif %}
 <a style="margin-right: 0.5rem; margin-left: 0.5rem" href="/remove/{{pasta.id_as_animals()}}">Remove</a>
-<pre><code>{{pasta}}</code></pre>
+{% if args.highlightsyntax %}
+<pre><code>{{pasta.content_syntax_highlighted()}}</code></pre>
+{%- else %}
+<pre><code>{{pasta.content_not_highlighted()}}</code></pre>
+{%- endif %}
+
+<style>
+code-line {
+  counter-increment: listing;
+  text-align: right;
+  float: left;
+  clear: left;
+}
+
+code-line::before {
+  content: counter(listing);
+  display: inline-block;
+  float: left;
+  padding-left: auto;
+  margin-left: auto;
+  text-align: left;
+  width: 1.6rem;
+  border-right: 1px solid lightgrey;
+  color: grey;
+  margin-right: 0.4rem;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+</style>
 
 {% include "footer.html" %}
