@@ -54,7 +54,7 @@ pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Ht
     for pasta in pastas.iter() {
         if pasta.id == id {
             if pasta.pasta_type == "url" {
-                return HttpResponse::Ok()
+                return HttpResponse::Found()
                     .append_header(("Location", String::from(&pasta.content)))
                     .finish();
             } else {
