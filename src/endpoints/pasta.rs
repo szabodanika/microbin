@@ -27,7 +27,7 @@ pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
 
     for pasta in pastas.iter() {
         if pasta.id == id {
-            return HttpResponse::Found().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html").body(
                 PastaTemplate {
                     pasta: &pasta,
                     args: &ARGS,
@@ -38,7 +38,7 @@ pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
         }
     }
 
-    HttpResponse::Found()
+    HttpResponse::Ok()
         .content_type("text/html")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
@@ -54,18 +54,18 @@ pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Ht
     for pasta in pastas.iter() {
         if pasta.id == id {
             if pasta.pasta_type == "url" {
-                return HttpResponse::Found()
+                return HttpResponse::Ok()
                     .append_header(("Location", String::from(&pasta.content)))
                     .finish();
             } else {
-                return HttpResponse::Found()
+                return HttpResponse::Ok()
                     .content_type("text/html")
                     .body(ErrorTemplate { args: &ARGS }.render().unwrap());
             }
         }
     }
 
-    HttpResponse::Found()
+    HttpResponse::Ok()
         .content_type("text/html")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }

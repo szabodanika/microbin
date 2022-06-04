@@ -10,7 +10,7 @@ pub struct ErrorTemplate<'a> {
 }
 
 pub async fn not_found() -> Result<HttpResponse, Error> {
-    Ok(HttpResponse::Found()
+    Ok(HttpResponse::Ok()
         .content_type("text/html")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }

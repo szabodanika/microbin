@@ -10,9 +10,7 @@ use askama::Template;
 #[get("/remove/{id}")]
 pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     if ARGS.readonly {
-        return HttpResponse::Found()
-            .append_header(("Location", "/"))
-            .finish();
+        return HttpResponse::Ok().append_header(("Location", "/")).finish();
     }
 
     let mut pastas = data.pastas.lock().unwrap();
@@ -24,13 +22,13 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
             pastas.remove(i);
-            return HttpResponse::Found()
+            return HttpResponse::Ok()
                 .append_header(("Location", "/pastalist"))
                 .finish();
         }
     }
 
-    HttpResponse::Found()
+    HttpResponse::Ok()
         .content_type("text/html")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }

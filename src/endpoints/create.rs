@@ -18,7 +18,7 @@ struct IndexTemplate<'a> {
 
 #[get("/")]
 pub async fn index() -> impl Responder {
-    HttpResponse::Found()
+    HttpResponse::Ok()
         .content_type("text/html")
         .body(IndexTemplate { args: &ARGS }.render().unwrap())
 }

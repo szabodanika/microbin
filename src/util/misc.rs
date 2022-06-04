@@ -3,7 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use linkify::{LinkFinder, LinkKind};
 use std::fs;
 
-use crate::Pasta;
+use crate::{dbio, Pasta};
 
 pub fn remove_expired(pastas: &mut Vec<Pasta>) {
     // get current time - this will be needed to check which pastas have expired
@@ -22,17 +22,25 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             true
         } else {
             // remove the file itself
-            fs::remove_file(format!("./pasta_data/{}/{}", p.id_as_animals(), p.file))
-                .expect(&*format!("Failed to delete file {}!", p.file));
+            match fs::remove_file(format!("./pasta_data/{}/{}", p.id_as_animals(), p.file)) {
+                Ok(_) => {}
+                Err(_) => {
+                    log::error!("Failed to delete file {}!", p.file)
+                }
+            }
             // and remove the containing directory
-            fs::remove_dir(format!("./pasta_data/{}/", p.id_as_animals())).expect(&*format!(
-                "Failed to delete directory {}!",
-                p.id_as_animals()
-            ));
+            match fs::remove_dir(format!("./pasta_data/{}/", p.id_as_animals())) {
+                Ok(_) => {}
+                Err(_) => {
+                    log::error!("Failed to delete directory {}!", p.file)
+                }
+            }
             // remove
             false
         }
     });
+
+    dbio::save_to_file(pastas);
 }
 
 pub fn is_valid_url(url: &str) -> bool {

@@ -12,7 +12,7 @@ struct Help<'a> {
 
 #[get("/help")]
 pub async fn help() -> HttpResponse {
-    HttpResponse::Found().content_type("text/html").body(
+    HttpResponse::Ok().content_type("text/html").body(
         Help {
             args: &ARGS,
             _marker: Default::default(),

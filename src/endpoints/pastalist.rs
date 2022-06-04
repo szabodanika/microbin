@@ -25,7 +25,7 @@ pub async fn list(data: web::Data<AppState>) -> HttpResponse {
 
     remove_expired(&mut pastas);
 
-    HttpResponse::Found().content_type("text/html").body(
+    HttpResponse::Ok().content_type("text/html").body(
         PastaListTemplate {
             pastas: &pastas,
             args: &ARGS,

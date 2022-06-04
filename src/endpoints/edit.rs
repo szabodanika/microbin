@@ -31,7 +31,7 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
                     .append_header(("Location", "/"))
                     .finish();
             }
-            return HttpResponse::Found().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html").body(
                 EditTemplate {
                     pasta: &pasta,
                     args: &ARGS,
@@ -42,7 +42,7 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
         }
     }
 
-    HttpResponse::Found()
+    HttpResponse::Ok()
         .content_type("text/html")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
@@ -93,7 +93,7 @@ pub async fn post_edit(
         }
     }
 
-    Ok(HttpResponse::Found()
+    Ok(HttpResponse::Ok()
         .content_type("text/html")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }
