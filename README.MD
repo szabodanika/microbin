@@ -3,10 +3,22 @@
 
 # MicroBin
 
+
+![Build](https://github.com/szabodanika/microbin/actions/workflows/rust.yml/badge.svg)
+![crates.io](https://img.shields.io/crates/v/microbin.svg)
+
+
 MicroBin is a super tiny, feature rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/szabodanika/microbin)
+ 
+Or install from Cargo: 
 
+`cargo install microbin`
+
+And run with your custom configuration:
+
+`microbin --port 8080 --highlightsyntax --editable`
 
 ### Features
 - Is very small
@@ -81,6 +93,20 @@ or to download the pasta: `curl https://microbin.myserver.com/rawpasta/fish-pony
 
 ## 2 Installation
 
+### From Cargo
+
+Install from Cargo:
+
+`cargo install microbin`
+
+Remember, MicroBin will create your database and file storage wherever you execute it. I recommend that you create a folder for it first and execute it there:
+
+`mkdir ~/microbin/`
+
+`cd ~/microbin/`
+
+`microbin --port 8080 --highlightsyntax --editable`
+
 ### Building MicroBin
 
 Simply clone the repository, build it with `cargo build --release` and run the `microbin` executable in the created `target/release/` directory. It will start on port 8080. You can change the port with `-p` or `--port` CL arguments. For other arguments see [the Wiki](https://github.com/szabodanika/microbin/wiki).
@@ -94,7 +120,7 @@ cargo build --release
 
 ### MicroBin as a service
 
-To install it as a service on your Linux machine, create a file called `/etc/systemd/system/microbin.service`, paste this into it with the `[username]` and `[path to installation directory]` replaced with the actual values.
+To install it as a service on your Linux machine, create a file called `/etc/systemd/system/microbin.service`, paste this into it with the `[username]` and `[path to installation directory]` replaced with the actual values. If you installed MicroBin from cargo, your executable will be in your cargo directory, e.g. `/Users/daniel/.cargo/bin/microbin`.
 
 ```
 [Unit]

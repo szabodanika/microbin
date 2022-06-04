@@ -40,6 +40,13 @@
 <p>Use cURL to read the pasta: <code>curl https://microbin.myserver.com/rawpasta/fish-pony-crow</code>,</p>
 <p>or to download the pasta: <code>curl https://microbin.myserver.com/rawpasta/fish-pony-crow &gt; output.txt</code> (use /file instead of /rawpasta to download attached file).</p>
 <h2 id="2-installation">2 Installation</h2>
+<h3 id="from-cargo">From Cargo</h3>
+<p>Install from Cargo:</p>
+<p><code>cargo install microbin</code></p>
+<p>Remember, MicroBin will create your database and file storage wherever you execute it. I recommend that you create a folder for it first and execute it there:</p>
+<p><code>mkdir ~/microbin/</code></p>
+<p><code>cd ~/microbin/</code></p>
+<p><code>microbin --port 8080 --highlightsyntax --editable</code></p>
 <h3 id="building-microbin">Building MicroBin</h3>
 <p>Simply clone the repository, build it with <code>cargo build --release</code> and run the <code>microbin</code> executable in the created <code>target/release/</code> directory. It will start on port 8080. You can change the port with <code>-p</code> or <code>--port</code> CL arguments. For other arguments see <a href="https://github.com/szabodanika/microbin/wiki">the Wiki</a>.</p>
 <pre><code>git clone https:<span class="hljs-comment">//github.com/szabodanika/microbin.git</span>
@@ -47,7 +54,7 @@ cd microbin
 cargo build --<span class="hljs-built_in">release</span>
 ./target/<span class="hljs-built_in">release</span>/microbin -p <span class="hljs-number">80</span>
 </code></pre><h3 id="microbin-as-a-service">MicroBin as a service</h3>
-<p>To install it as a service on your Linux machine, create a file called <code>/etc/systemd/system/microbin.service</code>, paste this into it with the <code>[username]</code> and <code>[path to installation directory]</code> replaced with the actual values.</p>
+<p>To install it as a service on your Linux machine, create a file called <code>/etc/systemd/system/microbin.service</code>, paste this into it with the <code>[username]</code> and <code>[path to installation directory]</code> replaced with the actual values. If you installed MicroBin from Cargo, your executable will be in your system's Cargo directory, e.g. <code>/Users/daniel/.cargo/bin/microbin</code>.</p>
 <pre><code><span class="hljs-section">[Unit]</span>
 <span class="hljs-attr">Description</span>=MicroBin
 <span class="hljs-attr">After</span>=network.target
