@@ -157,7 +157,7 @@ RootDirectory=/
 WorkingDirectory=/home/ubuntu/server/microbin
 
 # This is the location of my executable - I also have 2 optional features enabled
-ExecStart=/home/ubuntu/server/microbin/target/release/microbin --editable --linenumbers --highlightsyntax
+ExecStart=/home/ubuntu/server/microbin/target/release/microbin --editable --highlightsyntax
 
 # I keep my installation in the home directory, so I need to add this
 ProtectHome=off
