@@ -1,0 +1,4 @@
+Dockerfile
+docker-buildx.sh
+.git
+.github
