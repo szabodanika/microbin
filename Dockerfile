@@ -5,7 +5,9 @@ FROM rust:latest as builder
 WORKDIR /usr/src/microbin
 
 # copy sources to /usr/src/microbin on the temporary container
-COPY . .
+COPY Cargo.toml render.yaml .
+COPY templates ./templates
+COPY src ./src
 
 # run release build
 RUN cargo build --release
@@ -13,14 +15,12 @@ RUN cargo build --release
 # create final container using slim version of debian
 FROM debian:buster-slim
 
-# microbin will be in /usr/local/bin/microbin/
-WORKDIR /usr/local/bin
+WORKDIR /app
 
 # copy built exacutable
 COPY --from=builder /usr/src/microbin/target/release/microbin /usr/local/bin/microbin
 
-# copy /static folder containing the stylesheets
-COPY --from=builder /usr/src/microbin/static /usr/local/bin/static
+VOLUME ["/app/pasta_data"]
 
 # run the binary
-CMD ["microbin"]
+CMD ["/usr/local/bin/microbin"]
