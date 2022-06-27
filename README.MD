@@ -128,7 +128,7 @@ cd microbin
 docker build -t microbin-docker .
 ```
 
-Then, for `docker compose` you can do the following:
+Then, for `docker compose` you can repurpose the following example in your compose file:
 
 ```
 services:
@@ -138,7 +138,7 @@ services:
     ports:
      - "80:8080"
     volumes:
-     - ./microbin-data:./pasta_data
+     - ./microbin-data:/usr/local/bin/pasta_data
 ```
 
 **Note:** If you are getting the following error about domain name resolution:
