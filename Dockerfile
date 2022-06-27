@@ -19,8 +19,5 @@ WORKDIR /usr/local/bin
 # copy built exacutable
 COPY --from=builder /usr/src/microbin/target/release/microbin /usr/local/bin/microbin
 
-# copy /static folder containing the stylesheets
-COPY --from=builder /usr/src/microbin/static /usr/local/bin/static
-
 # run the binary
 CMD ["microbin"]
