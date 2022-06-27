@@ -118,6 +118,42 @@ cargo build --release
 ./target/release/microbin -p 80
 ```
 
+### Building Docker Image
+
+MicroBin includes a Dockerfile. To build the image, follow these steps:
+
+```
+git clone https://github.com/szabodanika/microbin.git
+cd microbin
+docker build -t microbin-docker .
+```
+
+Then, for `docker compose` you can repurpose the following example in your compose file:
+
+```
+services:
+  paste:
+    image: microbin-docker
+    restart: always
+    ports:
+     - "80:8080"
+    volumes:
+     - ./microbin-data:/usr/local/bin/pasta_data
+```
+
+**Note:** If you are getting the following error about domain name resolution:
+
+```
+warning: spurious network error (2 tries remaining): failed to resolve address for github.com: Temporary failure in name resolution; class=Net (12)
+warning: spurious network error (1 tries remaining): failed to resolve address for github.com: Temporary failure in name resolution; class=Net (12)
+```
+
+You might need to run `docker build` with the `--network` option:
+
+```
+docker build --network host -t microbin-docker .
+```
+
 ### MicroBin as a service
 
 To install it as a service on your Linux machine, create a file called `/etc/systemd/system/microbin.service`, paste this into it with the `[username]` and `[path to installation directory]` replaced with the actual values. If you installed MicroBin from cargo, your executable will be in your cargo directory, e.g. `/Users/daniel/.cargo/bin/microbin`.
