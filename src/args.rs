@@ -39,7 +39,7 @@ pub struct Args {
     #[clap(short, long, default_value_t = 8080)]
     pub port: u16,
 
-    #[clap(short, long, default_value_t = IpAddr::from([127, 0, 0, 1]))]
+    #[clap(short, long, default_value_t = IpAddr::from([0, 0, 0, 0]))]
     pub bind: IpAddr,
 
     #[clap(long)]
