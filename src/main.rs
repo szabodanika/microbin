@@ -58,7 +58,8 @@ async fn main() -> std::io::Result<()> {
         .init();
 
     log::info!(
-        "MicroBin starting on http://127.0.0.1:{}",
+        "MicroBin starting on http://{}:{}",
+        ARGS.bind.to_string(),
         ARGS.port.to_string()
     );
 
@@ -97,7 +98,7 @@ async fn main() -> std::io::Result<()> {
                 HttpAuthentication::basic(util::auth::auth_validator),
             ))
     })
-    .bind(format!("0.0.0.0:{}", ARGS.port.to_string()))?
+    .bind((ARGS.bind, ARGS.port))?
     .workers(ARGS.threads as usize)
     .run()
     .await

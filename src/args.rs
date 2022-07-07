@@ -1,3 +1,4 @@
+use std::net::IpAddr;
 use clap::Parser;
 use lazy_static::lazy_static;
 
@@ -36,7 +37,10 @@ pub struct Args {
     pub highlightsyntax: bool,
 
     #[clap(short, long, default_value_t = 8080)]
-    pub port: u32,
+    pub port: u16,
+
+    #[clap(short, long, default_value_t = IpAddr::from([127, 0, 0, 1]))]
+    pub bind: IpAddr,
 
     #[clap(long)]
     pub private: bool,
