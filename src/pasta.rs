@@ -2,15 +2,21 @@ use std::fmt;
 
 use chrono::{DateTime, Datelike, NaiveDateTime, Timelike, Utc};
 use serde::{Deserialize, Serialize};
+use bytesize::ByteSize;
 
 use crate::util::animalnumbers::to_animal_names;
 use crate::util::syntaxhighlighter::html_highlight;
+
+#[derive(Serialize, Deserialize, PartialEq, Eq)]
+pub struct PastaFile {
+    pub name: String, pub size: ByteSize ,
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct Pasta {
     pub id: u64,
     pub content: String,
-    pub file: String,
+    pub file: Option<PastaFile>,
     pub extension: String,
     pub private: bool,
     pub editable: bool,

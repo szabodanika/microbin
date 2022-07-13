@@ -1,8 +1,8 @@
 {% include "header.html" %}
 <a style="margin-right: 0.5rem" href="/raw/{{pasta.id_as_animals()}}">Raw Text Content</a>
-{% if pasta.file != "no-file" %}
-<a style="margin-right: 0.5rem; margin-left: 0.5rem" href="/file/{{pasta.id_as_animals()}}/{{pasta.file}}">Attached file
-    '{{pasta.file}}'</a>
+{% if pasta.file.is_some() %}
+<a style="margin-right: 0.5rem; margin-left: 0.5rem" href="/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name}}">Attached file
+	'{{pasta.file.as_ref().unwrap().name}}' [{{pasta.file.as_ref().unwrap().size}}]</a>
 {%- endif %}
 {% if pasta.editable %}
 <a style="margin-right: 0.5rem; margin-left: 0.5rem" href="/edit/{{pasta.id_as_animals()}}">Edit</a>
