@@ -1,6 +1,6 @@
 use std::fmt;
 
-use chrono::{DateTime, Datelike, NaiveDateTime, Timelike, Utc};
+use chrono::{Datelike, Timelike, Local, TimeZone};
 use serde::{Deserialize, Serialize};
 
 use crate::util::animalnumbers::to_animal_names;
@@ -25,7 +25,7 @@ impl Pasta {
     }
 
     pub fn created_as_string(&self) -> String {
-        let date = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(self.created, 0), Utc);
+        let date = Local.timestamp(self.created, 0);
         format!(
             "{:02}-{:02} {:02}:{:02}",
             date.month(),
@@ -39,8 +39,7 @@ impl Pasta {
         if self.expiration == 0 {
             String::from("Never")
         } else {
-            let date =
-                DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(self.expiration, 0), Utc);
+            let date = Local.timestamp(self.expiration, 0);
             format!(
                 "{:02}-{:02} {:02}:{:02}",
                 date.month(),
