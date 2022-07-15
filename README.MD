@@ -105,14 +105,14 @@ Remember, MicroBin will create your database and file storage wherever you execu
 
 `cd ~/microbin/`
 
-`microbin --port 8080 --highlightsyntax --editable`
+`microbin --highlightsyntax --editable`
 
 ### From AUR (for any Arch-based distro)
 Install `microbin` package from AUR and start/enable microbin systemd service. Systemd will start server on port 8080, which can be [changed](https://wiki.archlinux.org/title/Systemd#Editing_providd_units) via `systemctl edit microbin`. By default, almost all functions are enabled, and data is stored in `/var/lib/microbin`
 
 ### Building MicroBin
 
-Simply clone the repository, build it with `cargo build --release` and run the `microbin` executable in the created `target/release/` directory. It will start on port 8080. You can change the port with `-p` or `--port` CL arguments. For other arguments see [the Wiki](https://github.com/szabodanika/microbin/wiki).
+Simply clone the repository, build it with `cargo build --release` and run the `microbin` executable in the created `target/release/` directory. It will start listening on 0.0.0.0:8080. You can change the port or bind address with CL arguments `-p (--port)` or `-b (--bind)` respectively . For other arguments see [the Wiki](https://github.com/szabodanika/microbin/wiki).
 
 ```
 git clone https://github.com/szabodanika/microbin.git
@@ -285,6 +285,13 @@ Enables syntax highlighting support. When creating a new pasta, a new dropdown s
 Default value: 8080
 
 Sets the port for the server will be listening on.
+
+
+### -b, --bind [ADDRESS]
+
+Default value: 0.0.0.0
+
+Sets the bind address for the server will be listening on. Both ipv4 and ipv6 are supported.
 
 ### --private
 
