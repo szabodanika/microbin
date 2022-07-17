@@ -1,10 +1,12 @@
 use crate::dbio::save_to_file;
+use crate::pasta::PastaFile;
 use crate::util::animalnumbers::to_animal_names;
 use crate::util::misc::is_valid_url;
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::{get, web, Error, HttpResponse, Responder};
 use askama::Template;
+use bytesize::ByteSize;
 use futures::TryStreamExt;
 use rand::Rng;
 use std::io::Write;
@@ -46,7 +48,7 @@ pub async fn create(
     let mut new_pasta = Pasta {
         id: rand::thread_rng().gen::<u16>() as u64,
         content: String::from("No Text Content"),
-        file: String::from("no-file"),
+        file: None,
         extension: String::from(""),
         private: false,
         editable: false,
@@ -115,15 +117,18 @@ pub async fn create(
                     .unwrap();
 
                 let filepath = format!("./pasta_data/{}/{}", &new_pasta.id_as_animals(), &filename);
-
-                new_pasta.file = filename;
-
                 let mut f = web::block(|| std::fs::File::create(filepath)).await??;
 
+                let mut size = 0;
                 while let Some(chunk) = field.try_next().await? {
+                    size += chunk.len();
                     f = web::block(move || f.write_all(&chunk).map(|_| f)).await??;
                 }
 
+                new_pasta.file = Some(PastaFile {
+                    name: filename,
+                    size: ByteSize::b(size as u64),
+                });
                 new_pasta.pasta_type = String::from("text");
             }
             _ => {}

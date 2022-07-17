@@ -3,7 +3,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use linkify::{LinkFinder, LinkKind};
 use std::fs;
 
-use crate::{dbio, Pasta};
+use crate::{dbio, pasta::PastaFile, Pasta};
 
 pub fn remove_expired(pastas: &mut Vec<Pasta>) {
     // get current time - this will be needed to check which pastas have expired
@@ -22,20 +22,17 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             true
         } else {
             // remove the file itself
-            match fs::remove_file(format!("./pasta_data/{}/{}", p.id_as_animals(), p.file)) {
-                Ok(_) => {}
-                Err(_) => {
-                    log::error!("Failed to delete file {}!", p.file)
+            if let Some(PastaFile { name, .. }) = &p.file {
+                if fs::remove_file(format!("./pasta_data/{}/{}", p.id_as_animals(), name)).is_err()
+                {
+                    log::error!("Failed to delete file {}!", name)
+                }
+
+                // and remove the containing directory
+                if fs::remove_dir(format!("./pasta_data/{}/", p.id_as_animals())).is_err() {
+                    log::error!("Failed to delete directory {}!", name)
                 }
             }
-            // and remove the containing directory
-            match fs::remove_dir(format!("./pasta_data/{}/", p.id_as_animals())) {
-                Ok(_) => {}
-                Err(_) => {
-                    log::error!("Failed to delete directory {}!", p.file)
-                }
-            }
-            // remove
             false
         }
     });
