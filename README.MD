@@ -143,6 +143,13 @@ services:
     volumes:
      - ./microbin-data:/usr/local/bin/pasta_data
 ```
+To pass command line arguments you must edit the Dockerfile and change the CMD line. In this example we add the syntax highlighting option and enable private pastas:
+
+```
+CMD ["microbin", "--highlightsyntax", "--private"]
+```
+You then need to rebuild the image and recreate your container.
+
 
 **Note:** If you are getting the following error about domain name resolution:
 
