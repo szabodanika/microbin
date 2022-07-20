@@ -33,7 +33,7 @@ pub struct Args {
     #[clap(long, env="MICROBIN_NO_LISTING")]
     pub no_listing: bool,
 
-    #[clap(long, env="MICROBIN_HIGHLIGHTINGSYNTAX")]
+    #[clap(long, env="MICROBIN_HIGHLIGHTSYNTAX")]
     pub highlightsyntax: bool,
 
     #[clap(short, long, env="MICROBIN_PORT", default_value_t = 8080)]
