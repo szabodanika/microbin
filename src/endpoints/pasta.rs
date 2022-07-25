@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 use actix_web::{get, web, HttpResponse};
 use askama::Template;
 
@@ -5,6 +7,7 @@ use crate::args::{Args, ARGS};
 use crate::endpoints::errors::ErrorTemplate;
 use crate::pasta::Pasta;
 use crate::util::animalnumbers::to_u64;
+use crate::util::dbio::DataStore;
 use crate::util::misc::remove_expired;
 use crate::AppState;
 
@@ -16,26 +19,22 @@ struct PastaTemplate<'a> {
 }
 
 #[get("/pasta/{id}")]
-pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
-    let mut pastas = data.pastas.lock().unwrap();
+pub async fn getpasta(data: web::Data<Box<dyn DataStore + Send + Sync>>, id: web::Path<String>) -> HttpResponse {
 
     let id = to_u64(&*id.into_inner()).unwrap_or(0);
 
     println!("{}", id);
+    data.remove_expired();
 
-    remove_expired(&mut pastas);
-
-    for pasta in pastas.iter() {
-        if pasta.id == id {
-            return HttpResponse::Ok().content_type("text/html").body(
-                PastaTemplate {
-                    pasta: &pasta,
-                    args: &ARGS,
-                }
-                .render()
-                .unwrap(),
-            );
-        }
+    if let Some(pasta) = data.get_pasta(id) {
+        return HttpResponse::Ok().content_type("text/html").body(
+            PastaTemplate {
+                pasta: &pasta,
+                args: &ARGS,
+            }
+            .render()
+            .unwrap(),
+        );
     }
 
     HttpResponse::Ok()

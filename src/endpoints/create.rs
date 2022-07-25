@@ -1,8 +1,8 @@
-use crate::dbio::save_to_file;
 use crate::pasta::PastaFile;
 use crate::util::animalnumbers::to_animal_names;
+use crate::util::dbio::DataStore;
 use crate::util::misc::is_valid_url;
-use crate::{AppState, Pasta, ARGS};
+use crate::{Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::{get, web, Error, HttpResponse, Responder};
 use askama::Template;
@@ -26,7 +26,7 @@ pub async fn index() -> impl Responder {
 }
 
 pub async fn create(
-    data: web::Data<AppState>,
+    data: web::Data<Box<dyn DataStore + Send + Sync>>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
     if ARGS.readonly {
@@ -34,8 +34,7 @@ pub async fn create(
             .append_header(("Location", "/"))
             .finish());
     }
-
-    let mut pastas = data.pastas.lock().unwrap();
+    data.remove_expired();
 
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
@@ -137,9 +136,7 @@ pub async fn create(
 
     let id = new_pasta.id;
 
-    pastas.push(new_pasta);
-
-    save_to_file(&pastas);
+    data.create(new_pasta);
 
     Ok(HttpResponse::Found()
         .append_header(("Location", format!("/pasta/{}", to_animal_names(id))))

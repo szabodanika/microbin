@@ -1,8 +1,62 @@
+use std::borrow::{Cow, Borrow};
 use std::fs::File;
 use std::io;
 use std::io::{BufReader, BufWriter};
+use std::sync::Mutex;
+use std::ops::Deref;
+use actix_web::web::Json;
 
 use crate::Pasta;
+
+pub trait DataStore {
+    fn remove_expired(&self);
+    fn edit(&self, id: u64, content: String);
+    fn create(&self, pasta: Pasta);
+    fn get_pasta(&self, id: u64) -> Option<Pasta>;
+    fn get_pastalist(&self) -> Box<dyn Deref<Target=Vec<Pasta>> + '_>;
+}
+
+
+pub struct JsonStore {
+    pub pastas: Mutex<Vec<Pasta>>
+}
+
+impl Default for JsonStore {
+    fn default() -> Self {
+        Self{pastas: Mutex::new(vec!())}
+    }
+}
+
+impl DataStore for JsonStore {
+    fn remove_expired(&self) {
+        
+    }
+
+    fn edit(&self, id: u64, content: String) {
+        todo!()
+    }
+
+    fn create(&self, pasta: Pasta) {
+        let mut pastas = self.pastas.lock().unwrap();
+        pastas.push(pasta);
+        save_to_file(&pastas);
+    }
+
+    fn get_pasta(&self, id: u64) -> Option<Pasta> {
+        let pastas = self.pastas.lock().unwrap();
+        for pasta in pastas.iter() {
+            if pasta.id == id {
+                return Some(pasta.clone());
+            }
+        }
+        None
+    }
+
+    fn get_pastalist(&self) -> Box<dyn Deref<Target=Vec<Pasta>> + '_>{
+        return Box::new(self.pastas.lock().unwrap());
+    }
+}
+
 
 static DATABASE_PATH: &'static str = "pasta_data/database.json";
 

@@ -7,12 +7,12 @@ use bytesize::ByteSize;
 use crate::util::animalnumbers::to_animal_names;
 use crate::util::syntaxhighlighter::html_highlight;
 
-#[derive(Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct PastaFile {
     pub name: String, pub size: ByteSize ,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Pasta {
     pub id: u64,
     pub content: String,

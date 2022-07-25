@@ -5,7 +5,7 @@ use crate::endpoints::{
     create, edit, errors, help, pasta as pasta_endpoint, pastalist, remove, static_resources,
 };
 use crate::pasta::Pasta;
-use crate::util::dbio;
+use crate::util::dbio::{self, DataStore, JsonStore};
 use actix_web::middleware::Condition;
 use actix_web::{middleware, web, App, HttpServer};
 use actix_web_httpauth::middleware::HttpAuthentication;
@@ -75,9 +75,13 @@ async fn main() -> std::io::Result<()> {
         pastas: Mutex::new(dbio::load_from_file().unwrap()),
     });
 
+    let boxed: Box<dyn DataStore+ Send + Sync> = Box::new(JsonStore::default()) as Box<dyn DataStore+ Send + Sync>;
+    let new_data = web::Data::new(boxed);
+
     HttpServer::new(move || {
         App::new()
             .app_data(data.clone())
+            .app_data(new_data.clone())
             .wrap(middleware::NormalizePath::trim())
             .service(create::index)
             .service(help::help)
