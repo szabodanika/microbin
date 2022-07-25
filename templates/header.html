@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    {% if args.footer_text.as_ref().is_none() %}
+    {% if args.title.as_ref().is_none() %}
         <title>MicroBin</title>
     {%- else %}
     <title>{{ args.title.as_ref().unwrap() }}</title>
@@ -42,7 +42,7 @@
         <i><span style="font-size:2.2rem; margin-right:1rem">μ</span></i>
     {%- endif %}
 
-    {% if args.footer_text.as_ref().is_none() %}
+    {% if args.title.as_ref().is_none() %}
         MicroBin
     {%- else %}
         {{ args.title.as_ref().unwrap() }}
