@@ -49,7 +49,7 @@
         <td>
             <a style="margin-right:1rem" href="/raw/{{pasta.id_as_animals()}}">Raw</a>
             {% if pasta.file.is_some() %}
-            <a style="margin-right:1rem" href="/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name}}">File</a>
+            <a style="margin-right:1rem" href="/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name()}}">File</a>
             {%- endif %}
             {% if pasta.editable %}
             <a style="margin-right:1rem" href="/edit/{{pasta.id_as_animals()}}">Edit</a>

@@ -8,6 +8,7 @@ use actix_web::{get, web, Error, HttpResponse, Responder};
 use askama::Template;
 use bytesize::ByteSize;
 use futures::TryStreamExt;
+use log::warn;
 use rand::Rng;
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -105,30 +106,41 @@ pub async fn create(
                 continue;
             }
             "file" => {
-                let content_disposition = field.content_disposition();
+                let path = field.content_disposition().get_filename();
 
-                let filename = match content_disposition.get_filename() {
+                let path = match path {
                     Some("") => continue,
-                    Some(filename) => filename.replace(' ', "_").to_string(),
+                    Some(p) => p,
                     None => continue,
+                };
+
+                let mut file = match PastaFile::from_unsanitized(&path) {
+                    Ok(f) => f,
+                    Err(e) => {
+                        warn!("Unsafe file name: {e:?}");
+                        continue;
+                    }
                 };
 
                 std::fs::create_dir_all(format!("./pasta_data/{}", &new_pasta.id_as_animals()))
                     .unwrap();
 
-                let filepath = format!("./pasta_data/{}/{}", &new_pasta.id_as_animals(), &filename);
-                let mut f = web::block(|| std::fs::File::create(filepath)).await??;
+                let filepath = format!(
+                    "./pasta_data/{}/{}",
+                    &new_pasta.id_as_animals(),
+                    &file.name()
+                );
 
+                let mut f = web::block(|| std::fs::File::create(filepath)).await??;
                 let mut size = 0;
                 while let Some(chunk) = field.try_next().await? {
                     size += chunk.len();
                     f = web::block(move || f.write_all(&chunk).map(|_| f)).await??;
                 }
 
-                new_pasta.file = Some(PastaFile {
-                    name: filename,
-                    size: ByteSize::b(size as u64),
-                });
+                file.size = ByteSize::b(size as u64);
+
+                new_pasta.file = Some(file);
                 new_pasta.pasta_type = String::from("text");
             }
             _ => {}

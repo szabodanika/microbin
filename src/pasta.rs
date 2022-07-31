@@ -1,15 +1,32 @@
-use std::fmt;
-
-use chrono::{Datelike, Timelike, Local, TimeZone};
-use serde::{Deserialize, Serialize};
 use bytesize::ByteSize;
+use chrono::{Datelike, Local, TimeZone, Timelike};
+use serde::{Deserialize, Serialize};
+use std::fmt;
+use std::path::Path;
 
 use crate::util::animalnumbers::to_animal_names;
 use crate::util::syntaxhighlighter::html_highlight;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq)]
 pub struct PastaFile {
-    pub name: String, pub size: ByteSize ,
+    pub name: String,
+    pub size: ByteSize,
+}
+
+impl PastaFile {
+    pub fn from_unsanitized(path: &str) -> Result<Self, &'static str> {
+        let path = Path::new(path);
+        let name = path.file_name().ok_or("Path did not contain a file name")?;
+        let name = name.to_string_lossy().replace(' ', "_");
+        Ok(Self {
+            name,
+            size: ByteSize::b(0),
+        })
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 #[derive(Serialize, Deserialize)]
