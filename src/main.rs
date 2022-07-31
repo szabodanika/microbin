@@ -63,11 +63,11 @@ async fn main() -> std::io::Result<()> {
         ARGS.port.to_string()
     );
 
-    match fs::create_dir_all("./pasta_data") {
+    match fs::create_dir_all("./pasta_data/public") {
         Ok(dir) => dir,
         Err(error) => {
-            log::error!("Couldn't create data directory ./pasta_data: {:?}", error);
-            panic!("Couldn't create data directory ./pasta_data: {:?}", error);
+            log::error!("Couldn't create data directory ./pasta_data/public/: {:?}", error);
+            panic!("Couldn't create data directory ./pasta_data/public/: {:?}", error);
         }
     };
 
@@ -87,7 +87,7 @@ async fn main() -> std::io::Result<()> {
             .service(edit::get_edit)
             .service(edit::post_edit)
             .service(static_resources::static_resources)
-            .service(actix_files::Files::new("/file", "./pasta_data"))
+            .service(actix_files::Files::new("/file", "./pasta_data/public/"))
             .service(web::resource("/upload").route(web::post().to(create::create)))
             .default_service(web::route().to(errors::not_found))
             .wrap(middleware::Logger::default())

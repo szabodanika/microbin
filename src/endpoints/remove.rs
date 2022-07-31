@@ -25,14 +25,14 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
         if pasta.id == id {
             // remove the file itself
             if let Some(PastaFile { name, .. }) = &pasta.file {
-                if fs::remove_file(format!("./pasta_data/{}/{}", pasta.id_as_animals(), name))
+                if fs::remove_file(format!("./pasta_data/public/{}/{}", pasta.id_as_animals(), name))
                     .is_err()
                 {
                     log::error!("Failed to delete file {}!", name)
                 }
 
                 // and remove the containing directory
-                if fs::remove_dir(format!("./pasta_data/{}/", pasta.id_as_animals())).is_err() {
+                if fs::remove_dir(format!("./pasta_data/public/{}/", pasta.id_as_animals())).is_err() {
                     log::error!("Failed to delete directory {}!", name)
                 }
             }

@@ -122,11 +122,11 @@ pub async fn create(
                     }
                 };
 
-                std::fs::create_dir_all(format!("./pasta_data/{}", &new_pasta.id_as_animals()))
+                std::fs::create_dir_all(format!("./pasta_data/public/{}", &new_pasta.id_as_animals()))
                     .unwrap();
 
                 let filepath = format!(
-                    "./pasta_data/{}/{}",
+                    "./pasta_data/public/{}/{}",
                     &new_pasta.id_as_animals(),
                     &file.name()
                 );
