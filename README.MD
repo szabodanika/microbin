@@ -108,7 +108,7 @@ Remember, MicroBin will create your database and file storage wherever you execu
 `microbin --highlightsyntax --editable`
 
 ### From AUR (for any Arch-based distro)
-Install `microbin` package from AUR and start/enable microbin systemd service. Systemd will start server on port 8080, which can be [changed](https://wiki.archlinux.org/title/Systemd#Editing_providd_units) via `systemctl edit microbin`. By default, almost all functions are enabled, and data is stored in `/var/lib/microbin`
+Install `microbin` package from AUR and start/enable microbin systemd service. Systemd will start server on  127.0.0.1:8080 with almost all features enabled, but this can be changed in `/etc/microbin.conf`.
 
 ### Building MicroBin
 
