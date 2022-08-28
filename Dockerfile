@@ -10,8 +10,8 @@ COPY . .
 # run release build
 RUN cargo build --release
 
-# create final container using rust
-FROM rust:latest
+# https://hub.docker.com/r/bitnami/minideb
+FROM bitnami/minideb:latest
 
 # microbin will be in /usr/local/bin/microbin/
 WORKDIR /usr/local/bin
