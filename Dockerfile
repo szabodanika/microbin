@@ -1,23 +1,33 @@
-# latest rust will be used to build the binary
-FROM rust:latest as builder
+FROM rust:latest as build
 
-# the temporary directory where we build
-WORKDIR /usr/src/microbin
+WORKDIR /app
 
-# copy sources to /usr/src/microbin on the temporary container
 COPY . .
 
-# run release build
-RUN cargo build --release
+RUN \
+  DEBIAN_FRONTEND=noninteractive \
+  apt-get update &&\
+  apt-get -y install ca-certificates tzdata &&\
+  cargo build --release
 
 # https://hub.docker.com/r/bitnami/minideb
 FROM bitnami/minideb:latest
 
-# microbin will be in /usr/local/bin/microbin/
-WORKDIR /usr/local/bin
+# microbin will be in /app
+WORKDIR /app
+
+# copy time zone info
+COPY --from=build \
+  /usr/share/zoneinfo \
+  /usr/share/zoneinfo
+
+COPY --from=build \
+  /etc/ssl/certs/ca-certificates.crt \
+  /etc/ssl/certs/ca-certificates.crt
 
 # copy built exacutable
-COPY --from=builder /usr/src/microbin/target/release/microbin /usr/local/bin/microbin
+COPY --from=build \
+  /app/target/release/microbin \
+  /usr/bin/microbin
 
-# run the binary
-CMD ["microbin"]
+ENTRYPOINT ["microbin"]
