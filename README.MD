@@ -6,7 +6,7 @@
 
 ![Build](https://github.com/szabodanika/microbin/actions/workflows/rust.yml/badge.svg)
 ![crates.io](https://img.shields.io/crates/v/microbin.svg)
-
+[![Docker Image](https://github.com/szabodanika/microbin/actions/workflows/docker.yml/badge.svg)](https://github.com/szabodanika/microbin/actions/workflows/docker.yml)
 
 MicroBin is a super tiny, feature rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
@@ -121,9 +121,9 @@ cargo build --release
 ./target/release/microbin -p 80
 ```
 
-### Building Docker Image
+### Docker
 
-MicroBin includes a Dockerfile. To build the image, follow these steps:
+The official automated docker images are available on [Docker Hub at danielszabo99/microbin](https://hub.docker.com/repository/docker/danielszabo99/microbin). Alternatively you can also build an image yourself, following the steps below:
 
 ```
 git clone https://github.com/szabodanika/microbin.git
