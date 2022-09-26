@@ -6,7 +6,7 @@
 
 ![Build](https://github.com/szabodanika/microbin/actions/workflows/rust.yml/badge.svg)
 ![crates.io](https://img.shields.io/crates/v/microbin.svg)
-[![Docker Image](https://github.com/szabodanika/microbin/actions/workflows/docker.yml/badge.svg)](https://github.com/szabodanika/microbin/actions/workflows/docker.yml)
+[![Docker Image](https://github.com/szabodanika/microbin/actions/workflows/docker.yml/badge.svg)](https://hub.docker.com/r/danielszabo99/microbin)
 
 MicroBin is a super tiny, feature rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
