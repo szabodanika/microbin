@@ -141,7 +141,7 @@ services:
     ports:
      - "80:8080"
     volumes:
-     - ./microbin-data:/usr/local/bin/pasta_data
+     - ./microbin-data:/app/pasta_data
 ```
 To pass command line arguments you must edit the Dockerfile and change the CMD line. In this example we add the syntax highlighting option and enable private pastas:
 
