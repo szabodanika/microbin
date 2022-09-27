@@ -123,7 +123,7 @@ cargo build --release
 
 ### Docker
 
-The official automated docker images are available on [Docker Hub at danielszabo99/microbin](https://hub.docker.com/repository/docker/danielszabo99/microbin). Alternatively you can also build an image yourself, following the steps below:
+The official automated docker images are available on [Docker Hub at danielszabo99/microbin](https://hub.docker.com/r/danielszabo99/microbin). Alternatively you can also build an image yourself, following the steps below:
 
 ```
 git clone https://github.com/szabodanika/microbin.git
