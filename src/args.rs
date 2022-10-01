@@ -59,4 +59,7 @@ pub struct Args {
 
     #[clap(long, env="MICROBIN_WIDE")]
     pub wide: bool,
+
+    #[clap(short, long, env="MICROBIN_NO_FILE_UPLOAD")]
+    pub no_file_upload: bool,
 }
