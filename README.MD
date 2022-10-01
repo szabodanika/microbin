@@ -11,8 +11,8 @@
 MicroBin is a super tiny, feature rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/szabodanika/microbin)
- 
-Or install from Cargo: 
+
+Or install from Cargo:
 
 `cargo install microbin`
 
@@ -37,7 +37,7 @@ And run with your custom configuration:
 - Automatic dark mode (follows system preferences)
 - Very little CSS and absolutely no JS (see [water.css](https://github.com/kognise/water.css))
 - Most of the above can be toggled on and off!
- 
+
 ## 1 Usage
 
 ### What is a "pasta" anyway?
@@ -222,7 +222,7 @@ server {
   listen 443 ssl; # managed by Certbot
 
 	server_name	microbin.myserver.com;
-	
+
 	location / {
 			# Make sure to change the port if you are not running MicroBin at 8080!
     	proxy_pass	        http://127.0.0.1:8080$request_uri;
@@ -234,7 +234,7 @@ server {
 
 	# Limit content size - I have 1GB because my MicroBin server is private, no one else will use it.
 	client_max_body_size 1024M;
-	
+
   ssl_certificate /etc/letsencrypt/live/microbin.myserver.com/fullchain.pem; # managed by Certbot
   ssl_certificate_key /etc/letsencrypt/live/microbin.myserver.com/privkey.pem; # managed by Certbot
   include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
@@ -329,3 +329,7 @@ Displays your MicroBin's version information.
 ### --wide
 
 Changes the maximum width of the UI from 720 pixels to 1080 pixels.
+
+### --no-file-upload
+
+Disables and hides the file upload option in the UI.
