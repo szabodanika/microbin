@@ -16,13 +16,31 @@
   <a href="/pasta/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
 </div>
 <br>
-<div style="clear: both;">
-  {% if args.highlightsyntax %}
-  <pre><code>{{pasta.content_syntax_highlighted()}}</code></pre>
-  {%- else %}
-  <pre><code>{{pasta.content_not_highlighted()}}</code></pre>
-  {%- endif %}
+<div class="code-container">
+  <button id="copy-button" class="copy-button">
+    <svg id="copy-icon" style="width:24px;height:24px" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
+    </svg>
+  </button>
+  <div style="clear: both;">
+    {% if args.highlightsyntax %}
+    <pre><code id="code">{{pasta.content_syntax_highlighted()}}</code></pre>
+    {%- else %}
+    <pre><code id="code">{{pasta.content_not_highlighted()}}</code></pre>
+    {%- endif %}
+  </div>
 </div>
+
+<script>
+  const btn = document.getElementById("copy-icon")
+  const content = `{{ pasta.content }}`
+
+  btn.addEventListener("click", () => {
+    navigator.clipboard.writeText(content)
+  })
+
+</script>
+
 <style>
 code-line {
   counter-increment: listing;
@@ -46,6 +64,19 @@ code-line::before {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.code-container {
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  background: transparent;
+  top: 0;
+  right: 0;
+  padding: 8px;
+  margin: 5px;
 }
 
 </style>
