@@ -33,7 +33,7 @@
 
 <script>
   const btn = document.getElementById("copy-icon")
-  const content = `{{ pasta.content }}`
+  const content = `{{ pasta.content_escaped() }}`
 
   btn.addEventListener("click", () => {
     navigator.clipboard.writeText(content)
@@ -68,6 +68,10 @@ code-line::before {
 
 .code-container {
   position: relative;
+}
+
+.hidden {
+  display: none;
 }
 
 .copy-button {
