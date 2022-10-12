@@ -51,7 +51,7 @@ pub struct Args {
     #[clap(long, env="MICROBIN_PURE_HTML")]
     pub pure_html: bool,
 
-    #[clap(long, env="MICROBIN_PUBLIC_PATH", default_value_t = PublicUrl(String::from("/")))]
+    #[clap(long, env="MICROBIN_PUBLIC_PATH", default_value_t = PublicUrl(String::from("")))]
     pub public_path: PublicUrl,
 
     #[clap(long, env="MICROBIN_READONLY")]
