@@ -32,7 +32,7 @@ pub async fn create(
 ) -> Result<HttpResponse, Error> {
     if ARGS.readonly {
         return Ok(HttpResponse::Found()
-            .append_header(("Location", "/"))
+            .append_header(("Location", format!("{}/", ARGS.public_path)))
             .finish());
     }
 
@@ -154,6 +154,6 @@ pub async fn create(
     save_to_file(&pastas);
 
     Ok(HttpResponse::Found()
-        .append_header(("Location", format!("/pasta/{}", to_animal_names(id))))
+        .append_header(("Location", format!("{}/pasta/{}", ARGS.public_path, to_animal_names(id))))
         .finish())
 }

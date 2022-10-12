@@ -4,7 +4,7 @@
 {% if pastas.is_empty() %}
 <br>
 <p>
-    No pastas yet. 😔 Create one <a href="/">here</a>.
+    No pastas yet. 😔 Create one <a href="{{ args.public_path }}/">here</a>.
 </p>
 <br>
 {%- else %}
@@ -38,7 +38,7 @@
     {% if pasta.pasta_type == "text"  && !pasta.private %}
     <tr>
         <td>
-            <a href="/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+            <a href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
         </td>
         <td>
             {{pasta.created_as_string()}}
@@ -47,14 +47,14 @@
             {{pasta.expiration_as_string()}}
         </td>
         <td>
-            <a style="margin-right:1rem" href="/raw/{{pasta.id_as_animals()}}">Raw</a>
+            <a style="margin-right:1rem" href="{{ args.public_path }}/raw/{{pasta.id_as_animals()}}">Raw</a>
             {% if pasta.file.is_some() %}
-            <a style="margin-right:1rem" href="/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name()}}">File</a>
+            <a style="margin-right:1rem" href="{{ args.public_path }}/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name()}}">File</a>
             {%- endif %}
             {% if pasta.editable %}
-            <a style="margin-right:1rem" href="/edit/{{pasta.id_as_animals()}}">Edit</a>
+            <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
             {%- endif %}
-            <a href="/remove/{{pasta.id_as_animals()}}">Remove</a>
+            <a href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
         </td>
     </tr>
     {%- endif %}
@@ -90,7 +90,7 @@
     {% if pasta.pasta_type == "url" && !pasta.private %}
     <tr>
         <td>
-            <a href="/url/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+            <a href="{{ args.public_path }}/url/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
         </td>
         <td>
             {{pasta.created_as_string()}}
@@ -99,11 +99,11 @@
             {{pasta.expiration_as_string()}}
         </td>
         <td>
-            <a style="margin-right:1rem" href="/raw/{{pasta.id_as_animals()}}">Raw</a>
+            <a style="margin-right:1rem" href="{{ args.public_path }}raw/{{pasta.id_as_animals()}}">Raw</a>
             {% if pasta.editable %}
-            <a style="margin-right:1rem" href="/edit/{{pasta.id_as_animals()}}">Edit</a>
+            <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
             {%- endif %}
-            <a href="/remove/{{pasta.id_as_animals()}}">Remove</a>
+            <a href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
         </td>
     </tr>
     {%- endif %}

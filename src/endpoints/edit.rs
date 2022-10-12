@@ -28,7 +28,7 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
         if pasta.id == id {
             if !pasta.editable {
                 return HttpResponse::Found()
-                    .append_header(("Location", "/"))
+                    .append_header(("Location", format!("{}/", ARGS.public_path)))
                     .finish();
             }
             return HttpResponse::Ok().content_type("text/html").body(
@@ -55,7 +55,7 @@ pub async fn post_edit(
 ) -> Result<HttpResponse, Error> {
     if ARGS.readonly {
         return Ok(HttpResponse::Found()
-            .append_header(("Location", "/"))
+            .append_header(("Location", format!("{}/", ARGS.public_path)))
             .finish());
     }
 
@@ -85,7 +85,7 @@ pub async fn post_edit(
                 save_to_file(&pastas);
 
                 return Ok(HttpResponse::Found()
-                    .append_header(("Location", format!("/pasta/{}", pastas[i].id_as_animals())))
+                    .append_header(("Location", format!("{}/pasta/{}", ARGS.public_path, pastas[i].id_as_animals())))
                     .finish());
             } else {
                 break;
