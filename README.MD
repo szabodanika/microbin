@@ -259,7 +259,7 @@ Require password for HTTP Basic Authentication when visiting the service. Will n
 
 Enables editable pastas. You will still be able to make finalised pastas but there will be an extra checkbox to make your new pasta editable from the pasta list or the pasta view page.
 
-### --footer_text [TEXT]
+### --footer-text [TEXT]
 
 Replaces the default footer text with your own. If you want to hide the footer, use --hide-footer instead.
 
