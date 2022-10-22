@@ -59,11 +59,13 @@
         <input type="hidden" name="syntax-highlight" value="none">
         {%- endif %}
 
+        {% if !args.no_file_upload %}
         <div>
             <label>File attachment</label>
             <br>
             <input style="width: 100%;" type="file" id="file" name="file">
         </div>
+        {% endif %}
     </div>
     <label>Content</label>
     <br>
