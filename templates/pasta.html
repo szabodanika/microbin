@@ -18,9 +18,7 @@
 <br>
 <div class="code-container">
   <button id="copy-button" class="copy-button">
-    <svg id="copy-icon" style="width:24px;height:24px" viewBox="0 0 24 24">
-      <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
-    </svg>
+    Copy
   </button>
   <div style="clear: both;">
     {% if args.highlightsyntax %}
@@ -32,11 +30,15 @@
 </div>
 
 <script>
-  const btn = document.getElementById("copy-icon")
+  const btn = document.getElementById("copy-button")
   const content = `{{ pasta.content_escaped() }}`
 
   btn.addEventListener("click", () => {
     navigator.clipboard.writeText(content)
+    btn.innerHTML = "Copied"
+    setTimeout(() => {
+      btn.innerHTML = "Copy"
+    }, 1000)
   })
 
 </script>
@@ -79,8 +81,8 @@ code-line::before {
   background: transparent;
   top: 0;
   right: 0;
-  padding: 8px;
-  margin: 5px;
+  padding: 3px;
+  margin: 3px;
 }
 
 </style>
