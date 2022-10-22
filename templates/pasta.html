@@ -17,9 +17,9 @@
 </div>
 <br>
 <div class="code-container">
-  <button id="copy-button" class="copy-button">
+  <a id="copy-button" class="copy-button">
     Copy
-  </button>
+  </a>
   <div style="clear: both;">
     {% if args.highlightsyntax %}
     <pre><code id="code">{{pasta.content_syntax_highlighted()}}</code></pre>
@@ -83,6 +83,7 @@ code-line::before {
   right: 0;
   padding: 3px;
   margin: 3px;
+  cursor:  pointer;
 }
 
 </style>
