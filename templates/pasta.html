@@ -16,13 +16,33 @@
   <a href="/pasta/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
 </div>
 <br>
-<div style="clear: both;">
-  {% if args.highlightsyntax %}
-  <pre><code>{{pasta.content_syntax_highlighted()}}</code></pre>
-  {%- else %}
-  <pre><code>{{pasta.content_not_highlighted()}}</code></pre>
-  {%- endif %}
+<div class="code-container">
+  <a role="button" id="copy-button" class="copy-button">
+    Copy
+  </a>
+  <div style="clear: both;">
+    {% if args.highlightsyntax %}
+    <pre><code id="code">{{pasta.content_syntax_highlighted()}}</code></pre>
+    {%- else %}
+    <pre><code id="code">{{pasta.content_not_highlighted()}}</code></pre>
+    {%- endif %}
+  </div>
 </div>
+
+<script>
+  const btn = document.getElementById("copy-button")
+  const content = `{{ pasta.content_escaped() }}`
+
+  btn.addEventListener("click", () => {
+    navigator.clipboard.writeText(content)
+    btn.innerHTML = "Copied"
+    setTimeout(() => {
+      btn.innerHTML = "Copy"
+    }, 1000)
+  })
+
+</script>
+
 <style>
 code-line {
   counter-increment: listing;
@@ -46,6 +66,24 @@ code-line::before {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.code-container {
+  position: relative;
+}
+
+.hidden {
+  display: none;
+}
+
+.copy-button {
+  position: absolute;
+  background: transparent;
+  top: 0;
+  right: 0;
+  padding: 3px;
+  margin: 3px;
+  cursor:  pointer;
 }
 
 </style>

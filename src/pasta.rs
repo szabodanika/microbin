@@ -80,6 +80,10 @@ impl Pasta {
     pub fn content_not_highlighted(&self) -> String {
         html_highlight(&self.content, "txt")
     }
+
+    pub fn content_escaped(&self) -> String {
+        self.content.replace("`", "\\`").replace("$", "\\$")
+    }
 }
 
 impl fmt::Display for Pasta {
