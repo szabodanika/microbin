@@ -106,6 +106,10 @@ pub async fn create(
                 continue;
             }
             "file" => {
+                if ARGS.no_file_upload {
+                    continue;
+                }
+
                 let path = field.content_disposition().get_filename();
 
                 let path = match path {
