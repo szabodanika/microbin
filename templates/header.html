@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     {% if !args.pure_html %}
-        <link rel="stylesheet" href="/static/water.css">
+        <link rel="stylesheet" href="{{ args.public_path }}/static/water.css">
     {%- endif %}
     </head>
 {% if args.wide %}
@@ -50,11 +50,11 @@
     {%- endif %}
 </b>
 
-<a href="/" style="margin-right: 0.5rem; margin-left: 0.5rem">New Pasta</a>
+<a href="{{ args.public_path }}/" style="margin-right: 0.5rem; margin-left: 0.5rem">New Pasta</a>
 
-<a href="/pastalist" style="margin-right: 0.5rem; margin-left: 0.5rem">Pasta List</a>
+<a href="{{ args.public_path }}/pastalist" style="margin-right: 0.5rem; margin-left: 0.5rem">Pasta List</a>
 
-<a href="/help" style="margin-right: 0.5rem; margin-left: 0.5rem">Help</a>
+<a href="{{ args.public_path }}/help" style="margin-right: 0.5rem; margin-left: 0.5rem">Help</a>
 
 <hr>
 

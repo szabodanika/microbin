@@ -17,7 +17,7 @@ struct PastaListTemplate<'a> {
 pub async fn list(data: web::Data<AppState>) -> HttpResponse {
     if ARGS.no_listing {
         return HttpResponse::Found()
-            .append_header(("Location", "/"))
+            .append_header(("Location", format!("{}/", ARGS.public_path)))
             .finish();
     }
 

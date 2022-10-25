@@ -13,7 +13,7 @@ use std::fs;
 pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     if ARGS.readonly {
         return HttpResponse::Found()
-            .append_header(("Location", "/"))
+            .append_header(("Location", format!("{}/", ARGS.public_path)))
             .finish();
     }
 
@@ -39,7 +39,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
             // remove it from in-memory pasta list
             pastas.remove(i);
             return HttpResponse::Found()
-                .append_header(("Location", "/pastalist"))
+                .append_header(("Location", format!("{}/pastalist", ARGS.public_path)))
                 .finish();
         }
     }

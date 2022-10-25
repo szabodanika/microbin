@@ -1,4 +1,7 @@
+use std::convert::Infallible;
+use std::fmt;
 use std::net::IpAddr;
+use std::str::FromStr;
 use clap::Parser;
 use lazy_static::lazy_static;
 
@@ -48,6 +51,9 @@ pub struct Args {
     #[clap(long, env="MICROBIN_PURE_HTML")]
     pub pure_html: bool,
 
+    #[clap(long, env="MICROBIN_PUBLIC_PATH", default_value_t = PublicUrl(String::from("")))]
+    pub public_path: PublicUrl,
+
     #[clap(long, env="MICROBIN_READONLY")]
     pub readonly: bool,
 
@@ -59,7 +65,24 @@ pub struct Args {
 
     #[clap(long, env="MICROBIN_WIDE")]
     pub wide: bool,
-
+    
     #[clap(short, long, env="MICROBIN_NO_FILE_UPLOAD")]
     pub no_file_upload: bool,
 }
+
+#[derive(Debug, Clone)]
+pub struct PublicUrl(pub String);
+
+impl fmt::Display for PublicUrl {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl FromStr for PublicUrl {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let uri = s.strip_suffix('/').unwrap_or(s).to_owned();
+        Ok(PublicUrl(uri))
+    }

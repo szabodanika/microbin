@@ -330,6 +330,64 @@ Displays your MicroBin's version information.
 
 Changes the maximum width of the UI from 720 pixels to 1080 pixels.
 
+### --public-path [PUBLIC_PATH]
+
+Add the given public path prefix to all urls.
+
+This allows you to host MicroBin behind a reverse proxy on a subpath.
+Note that MicroBin itself still expects all routes to be as without this option, and thus is unsuited
+if you are running MicroBin directly.
+
+#### Example Usage (caddy)
+
+An example of running MicroBin behind the reverse proxy `caddy` on the path `/paste` (using systemd)
+
+**microbin.service**
+
+```unit file (systemd)
+[Unit]
+Description=Micobin Paste
+
+[Service]
+Type=simple
+User=microbin
+# Path to your binary
+ExecStart=/home/microbin/microbin/target/release/microbin
+# Set your desired working directory, eg where microbin places its data
+WorkingDirectory=/home/pi/bin/micro
+
+# bind to localhost, as its exposed via Caddy
+Environment=MICROBIN_BIND=127.0.0.1
+# bind to a unused port
+Environment=MICROBIN_PORT=31333
+# All your other config (change and add as needed)
+Environment=MICROBIN_EDITABLE=true
+Environment=MICROBIN_HIGHLIGHTSYNTAX=true
+Environment=MICROBIN_THREADS=2
+Environment=MICROBIN_FOOTER_TEXT="Bin the bytes"
+# Set your **public** url. Eg the one you will later use to access microbin
+# Ensure it either starts with http(s):// or with a /
+Environment=MICROBIN_PUBLIC_PATH="http://100.127.233.32/paste"
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Caddyfile**
+
+```caddy
+example.com {
+    # Your normal http root
+    root * /var/www/html
+    file_server
+    
+    # Route all requests to past
+    handle_path /paste/* {
+        reverse_proxy http://127.0.0.1:31333
+    }
+}
+```
+
 ### --no-file-upload
 
 Disables and hides the file upload option in the UI.
