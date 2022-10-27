@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     {% if args.title.as_ref().is_none() %}
-        <title>MicroBin</title>
+    <title>MicroBin</title>
     {%- else %}
     <title>{{ args.title.as_ref().unwrap() }}</title>
     {%- endif %}
@@ -11,51 +12,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     {% if !args.pure_html %}
-        <link rel="stylesheet" href="{{ args.public_path }}/static/water.css">
+    <link rel="stylesheet" href="{{ args.public_path }}/static/water.css">
     {%- endif %}
-    </head>
+</head>
 {% if args.wide %}
+
 <body style="
-    max-width: 1080;
+    max-width: 720px;
         margin: auto;
         padding-left:0.5rem;
         padding-right:0.5rem;
         line-height: 1.5;
         font-size: 1.1em;
         ">
-{%- else %}
-<body style="
-    max-width: 720;
-        margin: auto;
-        padding-left:0.5rem;
-        padding-right:0.5rem;
-        line-height: 1.5;
-        font-size: 1.1em;
-        ">
-{%- endif %}
-<br>
-
-{% if !args.hide_header %}
-
-<b style="margin-right: 0.5rem">
-
-    {% if !args.hide_logo %}
-        <i><span style="font-size:2.2rem; margin-right:1rem">μ</span></i>
-    {%- endif %}
-
-    {% if args.title.as_ref().is_none() %}
-        MicroBin
     {%- else %}
-        {{ args.title.as_ref().unwrap() }}
-    {%- endif %}
-</b>
 
-<a href="{{ args.public_path }}/" style="margin-right: 0.5rem; margin-left: 0.5rem">New Pasta</a>
+    <body style="
+    max-width: 720px;
+        margin: auto;
+        padding-left:0.5rem;
+        padding-right:0.5rem;
+        line-height: 1.5;
+        font-size: 1.1em;
+        ">
+        {%- endif %}
+        <br>
 
-<a href="{{ args.public_path }}/pastalist" style="margin-right: 0.5rem; margin-left: 0.5rem">Pasta List</a>
+        {% if !args.hide_header %}
 
-<a href="{{ args.public_path }}/help" style="margin-right: 0.5rem; margin-left: 0.5rem">Help</a>
+        <b style="margin-right: 0.5rem">
 
-<hr>
+            {% if !args.hide_logo %}
+            <i><span style="font-size:2.2rem; margin-right:1rem">μ</span></i>
+            {%- endif %}
 
-{%- endif %}
+            {% if args.title.as_ref().is_none() %}
+            MicroBin
+            {%- else %}
+            {{ args.title.as_ref().unwrap() }}
+            {%- endif %}
+        </b>
+
+        <a href="{{ args.public_path }}/" style="margin-right: 0.5rem; margin-left: 0.5rem">New Pasta</a>
+
+        <a href="{{ args.public_path }}/pastalist" style="margin-right: 0.5rem; margin-left: 0.5rem">Pasta List</a>
+
+        <a href="{{ args.public_path }}/help" style="margin-right: 0.5rem; margin-left: 0.5rem">Help</a>
+
+        <hr>
+
+        {%- endif %}

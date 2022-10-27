@@ -8,18 +8,20 @@
   </a>
   {%- endif %}
   {% if pasta.editable %}
-  <a style="margin-right: 0.5rem; margin-left: 0.5rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
+  <a style="margin-right: 0.5rem; margin-left: 0.5rem"
+    href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
   {%- endif %}
-  <a style="margin-right: 0.5rem; margin-left: 0.5rem" href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+  <a style="margin-right: 0.5rem; margin-left: 0.5rem"
+    href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
 </div>
 <div style="float: right">
   <a href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
+  <button id="copy-button" class="copy-button">
+    Copy
+  </button>
 </div>
 <br>
 <div class="code-container">
-  <a role="button" id="copy-button" class="copy-button">
-    Copy
-  </a>
   <div style="clear: both;">
     {% if args.highlightsyntax %}
     <pre><code id="code">{{pasta.content_syntax_highlighted()}}</code></pre>
@@ -44,48 +46,51 @@
 </script>
 
 <style>
-code-line {
-  counter-increment: listing;
-  text-align: right;
-  float: left;
-  clear: left;
-}
+  code-line {
+    counter-increment: listing;
+    text-align: right;
+    float: left;
+    clear: left;
+  }
 
-code-line::before {
-  content: counter(listing);
-  display: inline-block;
-  float: left;
-  padding-left: auto;
-  margin-left: auto;
-  text-align: left;
-  width: 1.6rem;
-  border-right: 1px solid lightgrey;
-  color: grey;
-  margin-right: 0.4rem;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
+  code-line::before {
+    content: counter(listing);
+    display: inline-block;
+    float: left;
+    padding-left: auto;
+    margin-left: auto;
+    text-align: left;
+    width: 1.6rem;
+    border-right: 1px solid lightgrey;
+    color: grey;
+    margin-right: 0.4rem;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
 
-.code-container {
-  position: relative;
-}
+  #code {
+    min-height: 2rem;
+  }
 
-.hidden {
-  display: none;
-}
+  .code-container {
+    position: relative;
+  }
 
-.copy-button {
-  position: absolute;
-  background: transparent;
-  top: 0;
-  right: 0;
-  padding: 3px;
-  margin: 3px;
-  cursor:  pointer;
-}
+  .hidden {
+    display: none;
+  }
 
+  .copy-button {
+    font-size: small;
+    background-color: var(--links);
+    color: var(--background-body);
+    margin-right: 0.5rem;
+    margin-left: 0.5rem;
+    padding: 4px;
+    width: 4rem;
+  }
 </style>
 
 {% include "footer.html" %}

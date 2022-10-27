@@ -63,7 +63,9 @@
         <div>
             <label>File attachment</label>
             <br>
-            <input style="width: 100%;" type="file" id="file" name="file">
+            <div id="input-bg">
+                <input style="width: 100%;" type="file" id="file" name="file">
+            </div>
         </div>
         {% endif %}
     </div>
@@ -90,12 +92,33 @@
     </div>
 
     {% if args.readonly %}
-    <input style="width: 140px; background-color: limegreen" disabled type="submit" value="Read Only"/>
+    <input style="width: 140px; background-color: limegreen" disabled type="submit" value="Read Only" />
     {%- else %}
-    <input style="width: 140px; background-color: limegreen" type="submit" value="Save"/>
+    <input style="width: 140px; background-color: limegreen" type="submit" value="Save" />
     {%- endif %}
     </td>
 
     <br>
 </form>
+
+<style>
+    select {
+        height: 3rem;
+    }
+
+    #file {
+        /* max-height: 22px; */
+        padding-top: 7px;
+        padding-bottom: 13px;
+        background: none;
+    }
+
+    #input-bg {
+        background: var(--background);
+        overflow: hidden;
+        height: 3rem;
+        border-radius: 6px;
+    }
+</style>
+
 {% include "footer.html" %}
