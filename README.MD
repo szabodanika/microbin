@@ -334,9 +334,13 @@ Changes the maximum width of the UI from 720 pixels to 1080 pixels.
 
 Add the given public path prefix to all urls.
 
+The URL copy feature will only copy the entire URL if this is provided. Otherwise only the path (eg. `/url/dog-cat-bat`) will be copied to your clipboard!
+
 This allows you to host MicroBin behind a reverse proxy on a subpath.
 Note that MicroBin itself still expects all routes to be as without this option, and thus is unsuited
 if you are running MicroBin directly.
+
+Example: `--public-path https://myserver.com` or `--public-path http://localhost:8080`
 
 #### Example Usage (caddy)
 
