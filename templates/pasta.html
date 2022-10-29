@@ -1,26 +1,39 @@
 {% include "header.html" %}
 <div style="float: left">
-  <a style="margin-right: 0.5rem" href="{{ args.public_path }}/raw/{{pasta.id_as_animals()}}">Raw Text Content</a>
-  {% if pasta.file.is_some() %}
-  <a style="margin-right: 0.5rem; margin-left: 0.5rem"
-    href="{{ args.public_path }}/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name()}}">
-    Attached file'{{pasta.file.as_ref().unwrap().name()}}' [{{pasta.file.as_ref().unwrap().size}}]
-  </a>
+  {% if pasta.content != "No Text Content" %}
+  <button id="copy-text-button" class="copy-text-button" style="margin-right: 0.5rem">
+    Copy Text
+  </button>
+  <a style="margin-right: 1rem" href="{{ args.public_path }}/raw/{{pasta.id_as_animals()}}">Raw Text
+    Content</a>
+  {%- endif %}
+  {% if args.qr && args.public_path.to_string() != "" %}
+  <a style="margin-right: 1rem" href="{{ args.public_path }}/qr/{{pasta.id_as_animals()}}">QR</a>
   {%- endif %}
   {% if pasta.editable %}
-  <a style="margin-right: 0.5rem; margin-left: 0.5rem"
-    href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
+  <a style="margin-right: 1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
   {%- endif %}
-  <a style="margin-right: 0.5rem; margin-left: 0.5rem"
-    href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+  <a style="margin-right: 1rem" href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
 </div>
 <div style="float: right">
-  <a href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
-  <button id="copy-button" class="copy-button">
-    Copy
+  <a style="margin-right: 0.5rem"
+    href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
+  {% if args.public_path.to_string() != "" %}
+  <button id="copy-url-button" class="copy-url-button" style="margin-right: 0">
+    Copy URL
   </button>
+  {%- endif %}
 </div>
+{% if pasta.file.is_some() %}
 <br>
+<br>
+<a href="{{ args.public_path }}/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name()}}" download>
+  Download attached file: '{{pasta.file.as_ref().unwrap().name()}}' [{{pasta.file.as_ref().unwrap().size}}]
+</a>
+{%- endif %}
+<br>
+<br>
+{% if pasta.content != "No Text Content" %}
 <div class="code-container">
   <div style="clear: both;">
     {% if args.highlightsyntax %}
@@ -30,16 +43,33 @@
     {%- endif %}
   </div>
 </div>
+{%- endif %}
+<div>
+  <p style="font-size: small">Read {{pasta.read_count}} times, last {{pasta.last_read_time_ago_as_string()}}</p>
+</div>
+
+<br>
+
 
 <script>
-  const btn = document.getElementById("copy-button")
+  const copyURLBtn = document.getElementById("copy-url-button")
+  const copyTextBtn = document.getElementById("copy-text-button")
   const content = `{{ pasta.content_escaped() }}`
+  const url = `{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}`
 
-  btn.addEventListener("click", () => {
-    navigator.clipboard.writeText(content)
-    btn.innerHTML = "Copied"
+  copyURLBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(url)
+    copyURLBtn.innerHTML = "Copied"
     setTimeout(() => {
-      btn.innerHTML = "Copy"
+      copyURLBtn.innerHTML = "Copy URL"
+    }, 1000)
+  })
+
+  copyTextBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(content)
+    copyTextBtn.innerHTML = "Copied"
+    setTimeout(() => {
+      copyTextBtn.innerHTML = "Copy Text"
     }, 1000)
   })
 
@@ -82,14 +112,11 @@
     display: none;
   }
 
-  .copy-button {
+  .copy-text-button,
+  .copy-url-button {
     font-size: small;
-    background-color: var(--links);
-    color: var(--background-body);
-    margin-right: 0.5rem;
-    margin-left: 0.5rem;
     padding: 4px;
-    width: 4rem;
+    width: 6rem;
   }
 </style>
 

@@ -54,6 +54,9 @@ pub async fn create(
         private: false,
         editable: false,
         created: timenow,
+        read_count: 0,
+        burn_after_reads: 0,
+        last_read: timenow,
         pasta_type: String::from(""),
         expiration: 0,
     };
@@ -78,9 +81,34 @@ pub async fn create(
                         "1hour" => timenow + 60 * 60,
                         "24hour" => timenow + 60 * 60 * 24,
                         "1week" => timenow + 60 * 60 * 24 * 7,
-                        "never" => 0,
+                        "never" => {
+                            if ARGS.no_eternal_pasta {
+                                timenow + 60 * 60 * 24 * 7
+                            } else {
+                                0
+                            }
+                        }
                         _ => {
                             log::error!("{}", "Unexpected expiration time!");
+                            timenow + 60 * 60 * 24 * 7
+                        }
+                    };
+                }
+
+                continue;
+            }
+            "burn_after" => {
+                while let Some(chunk) = field.try_next().await? {
+                    new_pasta.burn_after_reads = match std::str::from_utf8(&chunk).unwrap() {
+                        // give an extra read because the user will be redirected to the pasta page automatically
+                        "1" => 2,
+                        "10" => 10,
+                        "100" => 100,
+                        "1000" => 1000,
+                        "10000" => 10000,
+                        "0" => 0,
+                        _ => {
+                            log::error!("{}", "Unexpected burn after value!");
                             0
                         }
                     };
@@ -126,8 +154,11 @@ pub async fn create(
                     }
                 };
 
-                std::fs::create_dir_all(format!("./pasta_data/public/{}", &new_pasta.id_as_animals()))
-                    .unwrap();
+                std::fs::create_dir_all(format!(
+                    "./pasta_data/public/{}",
+                    &new_pasta.id_as_animals()
+                ))
+                .unwrap();
 
                 let filepath = format!(
                     "./pasta_data/public/{}/{}",
@@ -158,6 +189,9 @@ pub async fn create(
     save_to_file(&pastas);
 
     Ok(HttpResponse::Found()
-        .append_header(("Location", format!("{}/pasta/{}", ARGS.public_path, to_animal_names(id))))
+        .append_header((
+            "Location",
+            format!("{}/pasta/{}", ARGS.public_path, to_animal_names(id)),
+        ))
         .finish())
 }

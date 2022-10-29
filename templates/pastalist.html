@@ -100,7 +100,7 @@
                     {{pasta.expiration_as_string()}}
                 </td>
                 <td>
-                    <a style="margin-right:1rem" id="copy-button"
+                    <a style="margin-right:1rem; cursor: pointer;" id="copy-button"
                         data-url="{{ args.public_path }}/url/{{pasta.id_as_animals()}}">Copy</a>
                     {% if pasta.editable %}
                     <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>

@@ -1,6 +1,8 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::args::ARGS;
 use linkify::{LinkFinder, LinkKind};
+use qrcode_generator::QrCodeEcc;
 use std::fs;
 
 use crate::{dbio, Pasta};
@@ -16,8 +18,16 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
     } as i64;
 
     pastas.retain(|p| {
-        // expiration is `never` or not reached
-        if p.expiration == 0 || p.expiration > timenow {
+        // keep if:
+        //  expiration is `never` or not reached
+        //  AND
+        //  read count is less than burn limit, or no limit set
+        //  AND
+        //  has been read in the last N days where N is the arg --gc-days OR N is 0 (no GC)
+        if (p.expiration == 0 || p.expiration > timenow)
+            && (p.read_count < p.burn_after_reads || p.burn_after_reads == 0)
+            && (p.last_read_days_ago() < ARGS.gc_days || ARGS.gc_days == 0)
+        {
             // keep
             true
         } else {
@@ -43,6 +53,10 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
     });
 
     dbio::save_to_file(pastas);
+}
+
+pub fn string_to_qr_svg(str: &str) -> String {
+    qrcode_generator::to_svg_to_string(str, QrCodeEcc::Low, 512, None::<&str>).unwrap()
 }
 
 pub fn is_valid_url(url: &str) -> bool {

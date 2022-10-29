@@ -255,6 +255,24 @@ Require username for HTTP Basic Authentication when visiting the service. If `--
 
 Require password for HTTP Basic Authentication when visiting the service. Will not have any affect unless `--auth-username` is also set. If `--auth-username` is set but `--auth-password ` is not, just leave the password field empty when logging in. You can also just go to https://username:password@yourserver.net or https://username@yourserver.net if password is not set instead of typing into the password prompt.
 
+### -b, --bind [ADDRESS]
+
+Default value: `0.0.0.0`
+
+Sets the bind address for the server will be listening on. Both ipv4 and ipv6 are supported.
+
+### --default-expiry [EXPIRY]
+
+Default value: `24hour`
+
+Selects the default expiry time in the dropdown list.
+
+Options: `1min`, `10min`, `1hour`, `24hour` and `1week`
+
+### --no-eternal-pasta
+
+Disables the option to create never expiring pastas. 
+
 ### --editable
 
 Enables editable pastas. You will still be able to make finalised pastas but there will be an extra checkbox to make your new pasta editable from the pasta list or the pasta view page.
@@ -293,20 +311,25 @@ Default value: 8080
 
 Sets the port for the server will be listening on.
 
+### --public-path [PUBLIC_PATH]
 
-### -b, --bind [ADDRESS]
+Add the given public path prefix to all urls.
 
-Default value: 0.0.0.0
+The URL copy feature will only copy the entire URL if this is provided. Otherwise only the path (eg. `/url/dog-cat-bat`) will be copied to your clipboard!
 
-Sets the bind address for the server will be listening on. Both ipv4 and ipv6 are supported.
+This allows you to host MicroBin behind a reverse proxy on a subpath.
+Note that MicroBin itself still expects all routes to be as without this option, and thus is unsuited
+if you are running MicroBin directly.
 
-### --private
-
-Enables private pastas. Adds a new checkbox to make your pasta private, which then won't show up on the pastalist page. With the URL to your pasta, it will still be accessible.
+Example: `--public-path https://myserver.com` or `--public-path http://localhost:8080`
 
 ### --pure-html
 
 Disables main CSS styling, just uses a few in-line stylings for the layout. With this option you will lose dark-mode support.
+
+### --private
+
+Enables private pastas. Adds a new checkbox to make your pasta private, which then won't show up on the pastalist page. With the URL to your pasta, it will still be accessible.
 
 ### --readonly
 
@@ -329,18 +352,6 @@ Displays your MicroBin's version information.
 ### --wide
 
 Changes the maximum width of the UI from 720 pixels to 1080 pixels.
-
-### --public-path [PUBLIC_PATH]
-
-Add the given public path prefix to all urls.
-
-The URL copy feature will only copy the entire URL if this is provided. Otherwise only the path (eg. `/url/dog-cat-bat`) will be copied to your clipboard!
-
-This allows you to host MicroBin behind a reverse proxy on a subpath.
-Note that MicroBin itself still expects all routes to be as without this option, and thus is unsuited
-if you are running MicroBin directly.
-
-Example: `--public-path https://myserver.com` or `--public-path http://localhost:8080`
 
 #### Example Usage (caddy)
 

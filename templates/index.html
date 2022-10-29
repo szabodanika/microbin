@@ -1,26 +1,108 @@
 {% include "header.html" %}
+
 <form action="upload" method="POST" enctype="multipart/form-data">
     <br>
-    <div style="display: grid;
-        grid-gap: 4px;
-        grid-template-columns: repeat(auto-fit, 234px);
-        grid-template-rows: repeat(1, 100px);  ">
+    <div id="settings">
         <div>
             <label for="expiration">Expiration</label><br>
             <select style="width: 100%;" name="expiration" id="expiration">
-                <optgroup label="Expire">
-                    <option value="1min">1 minute</option>
-                    <option value="10min">10 minutes</option>
-                    <option value="1hour">1 hour</option>
-                    <option selected value="24hour">24 hours</option>
-                    <option value="1week">1 week</option>
+                <optgroup label="Expire after">
+                    {% if args.default_expiry == "1min" %}
+                    <option selected value="1min">
+                        {%- else %}
+                    <option value="1min">
+                        {%- endif %}
+                        1 minute
+                    </option>
+                    {% if args.default_expiry == "10min" %}
+                    <option selected value="10min">
+                        {%- else %}
+                    <option value="10min">
+                        {%- endif %}
+                        10 minutes
+                    </option>
+                    {% if args.default_expiry == "1hour" %}
+                    <option selected value="1hour">
+                        {%- else %}
+                    <option value="1hour">
+                        {%- endif %}
+                        1 hour
+                    </option>
+                    {% if args.default_expiry == "24hour" %}
+                    <option selected value="24hour">
+                        {%- else %}
+                    <option value="24hour">
+                        {%- endif %}
+                        24 hours
+                    </option>
+                    {% if args.default_expiry == "1week" %}
+                    <option selected value="1week">
+                        {%- else %}
+                    <option value="1week">
+                        {%- endif %}
+                        1 week
+                    </option>
                 </optgroup>
+                {% if !args.no_eternal_pasta %}
                 <option value="never">Never Expire</option>
+                {%- endif %}
             </select>
         </div>
+        {% if args.enable_burn_after %}
+        <div>
+            <label for="expiration">Burn After</label><br>
+            <select style="width: 100%;" name="burn_after" id="burn_after">
+                <optgroup label="Burn after">
+                    {% if args.default_burn_after == 1 %}
+                    <option selected value="1">
+                        {%- else %}
+                    <option value="1">
+                        {%- endif %}
+                        First Read
+                    </option>
+                    {% if args.default_burn_after == 10 %}
+                    <option selected value="10">
+                        {%- else %}
+                    <option value="10">
+                        {%- endif %}
+                        10th Read
+                    </option>
+                    {% if args.default_burn_after == 100 %}
+                    <option selected value="100">
+                        {%- else %}
+                    <option value="100">
+                        {%- endif %}
+                        100th Read
+                    </option>
+                    {% if args.default_burn_after == 1000 %}
+                    <option selected value="1000">
+                        {%- else %}
+                    <option value="1000">
+                        {%- endif %}
+                        1000th Read
+                    </option>
+                    {% if args.default_burn_after == 10000 %}
+                    <option selected value="10000">
+                        {%- else %}
+                    <option value="10000">
+                        {%- endif %}
+                        10000th Read
+                    </option>
+                </optgroup>
+                {% if args.default_burn_after == 0 %}
+                <option selected value="0">
+                    {%- else %}
+                <option value="0">
+                    {%- endif %}
+                    No Limit
+                </option>
+            </select>
+        </div>
+        {%- endif %}
+
         {% if args.highlightsyntax %}
         <div>
-            <label for="syntax-highlight">Syntax Highlighting</label><br>
+            <label for="syntax-highlight">Syntax</label><br>
             <select style="width: 100%;" name="syntax-highlight" id="syntax-highlight">
                 <option value="none">None</option>
                 <optgroup label="Source Code">
@@ -59,38 +141,38 @@
         <input type="hidden" name="syntax-highlight" value="none">
         {%- endif %}
 
-        {% if !args.no_file_upload %}
         <div>
-            <label>File attachment</label>
-            <br>
-            <div id="input-bg">
-                <input style="width: 100%;" type="file" id="file" name="file">
+            {% if args.editable || args.private %}
+            <label>Other</label>
+            {%- endif %}
+            {% if args.editable %}
+            <div>
+                <input type="checkbox" id="editable" name="editable" value="editable">
+                <label for="editable">Editable</label>
             </div>
+            {%- endif %}
+            {% if args.private %}
+            <div>
+                <input type="checkbox" id="private" name="private" value="private">
+                <label for="private">Private</label>
+            </div>
+            {%- endif %}
         </div>
-        {% endif %}
+
+
+
+
     </div>
     <label>Content</label>
     <br>
     <textarea style="width: 100%; min-height: 100px" name="content" autofocus></textarea>
-    <br>
-    <div style="display: grid;
-        grid-gap: 4px;
-        grid-template-columns: repeat(auto-fit, 120px);
-        grid-template-rows: repeat(1, 50px);  ">
-        {% if args.editable %}
-        <div>
-            <input type="checkbox" id="editable" name="editable" value="editable">
-            <label for="editable">Editable</label>
-        </div>
-        {%- endif %}
-        {% if args.private %}
-        <div>
-            <input type="checkbox" id="private" name="private" value="private">
-            <label for="private">Private</label>
-        </div>
-        {%- endif %}
+    {% if !args.no_file_upload %}
+    <div>
+        <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">Attach File</a></label>
+        <br>
+        <input type="file" id="file" name="file" />
     </div>
-
+    {% endif %}
     {% if args.readonly %}
     <input style="width: 140px; background-color: limegreen" disabled type="submit" value="Read Only" />
     {%- else %}
@@ -101,23 +183,40 @@
     <br>
 </form>
 
+<script>
+    const hiddenFileButton = document.getElementById('file');
+    const attachFileButton = document.getElementById('attach-file-button');
+
+    hiddenFileButton.addEventListener('change', function () {
+        attachFileButton.textContent = "Attached: " + this.files[0].name;
+    })
+</script>
+
 <style>
+    input::file-selector-button {
+        display: none;
+    }
+
+    #settings {
+        display: grid;
+        grid-gap: 4px;
+        grid-template-columns: repeat(auto-fit, 150px);
+        grid-template-rows: repeat(1, 90px);
+        margin-bottom: 0.5rem;
+    }
+
     select {
         height: 3rem;
     }
 
-    #file {
-        /* max-height: 22px; */
-        padding-top: 7px;
-        padding-bottom: 13px;
-        background: none;
+    #attach-file-button-label {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        cursor: pointer;
     }
 
-    #input-bg {
-        background: var(--background);
-        overflow: hidden;
-        height: 3rem;
-        border-radius: 6px;
+    #file {
+        display: none;
     }
 </style>
 

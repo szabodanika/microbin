@@ -12,13 +12,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     {% if !args.pure_html %}
+    {% if args.custom_css.as_ref().is_none() %}
     <link rel="stylesheet" href="{{ args.public_path }}/static/water.css">
+    {%- else %}
+    <link rel="stylesheet" href="{{ args.custom_css.as_ref().unwrap() }}">
     {%- endif %}
+    {%- endif %}
+
 </head>
 {% if args.wide %}
 
 <body style="
-    max-width: 720px;
+    max-width: 1080px;
         margin: auto;
         padding-left:0.5rem;
         padding-right:0.5rem;
@@ -28,7 +33,7 @@
     {%- else %}
 
     <body style="
-    max-width: 720px;
+    max-width: 800px;
         margin: auto;
         padding-left:0.5rem;
         padding-right:0.5rem;
@@ -53,11 +58,12 @@
             {%- endif %}
         </b>
 
-        <a href="{{ args.public_path }}/" style="margin-right: 0.5rem; margin-left: 0.5rem">New Pasta</a>
+        <a href="{{ args.public_path }}/" style="margin-right: 0.5rem; margin-left: 0.5rem">New
+            Pasta</a>
 
         <a href="{{ args.public_path }}/pastalist" style="margin-right: 0.5rem; margin-left: 0.5rem">Pasta List</a>
 
-        <a href="{{ args.public_path }}/help" style="margin-right: 0.5rem; margin-left: 0.5rem">Help</a>
+        <a href="{{ args.public_path }}/info" style="margin-right: 0.5rem; margin-left: 0.5rem">Info</a>
 
         <hr>
 
