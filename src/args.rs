@@ -68,6 +68,9 @@ pub struct Args {
 
     #[clap(short, long, env = "MICROBIN_NO_FILE_UPLOAD")]
     pub no_file_upload: bool,
+
+    #[clap(long, env = "MICROBIN_HASH_IDS")]
+    pub hash_ids: bool,
 }
 
 #[derive(Debug, Clone)]

@@ -5,6 +5,7 @@ use crate::args::{Args, ARGS};
 use crate::endpoints::errors::ErrorTemplate;
 use crate::pasta::Pasta;
 use crate::util::animalnumbers::to_u64;
+use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::remove_expired;
 use crate::AppState;
 
@@ -19,7 +20,13 @@ struct PastaTemplate<'a> {
 pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = to_u64(&*id.into_inner()).unwrap_or(0);
+    println!("{}", id);
+
+    let id = if ARGS.hash_ids {
+        hashid_to_u64(&*id).unwrap_or(0)
+    } else {
+        to_u64(&*id.into_inner()).unwrap_or(0)
+    };
 
     println!("{}", id);
 
@@ -47,7 +54,11 @@ pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
 pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = to_u64(&*id.into_inner()).unwrap_or(0);
+    let id = if ARGS.hash_ids {
+        hashid_to_u64(&*id).unwrap_or(0)
+    } else {
+        to_u64(&*id.into_inner()).unwrap_or(0)
+    };
 
     remove_expired(&mut pastas);
 
@@ -74,7 +85,11 @@ pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Ht
 pub async fn getrawpasta(data: web::Data<AppState>, id: web::Path<String>) -> String {
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = to_u64(&*id.into_inner()).unwrap_or(0);
+    let id = if ARGS.hash_ids {
+        hashid_to_u64(&*id).unwrap_or(0)
+    } else {
+        to_u64(&*id.into_inner()).unwrap_or(0)
+    };
 
     remove_expired(&mut pastas);
 
