@@ -164,23 +164,27 @@
 
     </div>
     <label>Content</label>
-    <br>
-    <textarea style="width: 100%; min-height: 100px" name="content" autofocus></textarea>
-    {% if !args.no_file_upload %}
-    <div>
-        <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">Attach File</a></label>
-        <br>
-        <input type="file" id="file" name="file" />
+    <textarea style="width: 100%; min-height: 100px; margin-bottom: 2em" name="content" autofocus></textarea>
+    <div style="overflow:auto;">
+        {% if !args.no_file_upload %}
+        <div style="float: left">
+            <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">Attach
+                    File</a></label>
+            <br>
+            <input type="file" id="file" name="file" />
+        </div>
+        {% endif %}
+        {% if args.readonly %}
+        <b>
+            <input style="width: 140px; float: right; background-color: #0076d18f;" disabled type="submit"
+                value="Read Only" /></b>
+        {%- else %}
+        <b>
+            <input style="width: 140px; float: right; background-color: #0076d18f;" type="submit" value="Save" />
+        </b>
+        {%- endif %}
     </div>
-    {% endif %}
-    {% if args.readonly %}
-    <input style="width: 140px; background-color: limegreen" disabled type="submit" value="Read Only" />
-    {%- else %}
-    <input style="width: 140px; background-color: limegreen" type="submit" value="Save" />
-    {%- endif %}
-    </td>
 
-    <br>
 </form>
 
 <script>
@@ -199,7 +203,7 @@
 
     #settings {
         display: grid;
-        grid-gap: 4px;
+        grid-gap: 6px;
         grid-template-columns: repeat(auto-fit, 150px);
         grid-template-rows: repeat(1, 90px);
         margin-bottom: 0.5rem;

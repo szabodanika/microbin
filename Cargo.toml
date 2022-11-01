@@ -32,6 +32,8 @@ actix-web-httpauth = "0.6.0"
 lazy_static = "1.4.0"
 syntect = "5.0"
 qrcode-generator = "4.1.6"
+rust-embed = "6.4.2"
+mime_guess = "2.0.4"
 
 [profile.release]
 lto = true

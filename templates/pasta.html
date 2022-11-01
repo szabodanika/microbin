@@ -45,7 +45,12 @@
 </div>
 {%- endif %}
 <div>
+  {% if pasta.read_count == 1 %}
+  <p style="font-size: small">Read {{pasta.read_count}} time, last {{pasta.last_read_time_ago_as_string()}}</p>
+  {%- else %}
   <p style="font-size: small">Read {{pasta.read_count}} times, last {{pasta.last_read_time_ago_as_string()}}</p>
+  {%- endif %}
+
 </div>
 
 <br>
@@ -86,7 +91,6 @@
   code-line::before {
     content: counter(listing);
     display: inline-block;
-    float: left;
     padding-left: auto;
     margin-left: auto;
     text-align: left;

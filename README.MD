@@ -18,7 +18,7 @@ Or install from Cargo:
 
 And run with your custom configuration:
 
-`microbin --port 8080 --highlightsyntax --editable`
+`microbin --port 8080 --public-path https://myserver.net --highlightsyntax --editable`
 
 ### Features
 - Is very small

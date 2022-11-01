@@ -10,7 +10,7 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="{{ args.public_path }}/static/favicon.svg">
     {% if !args.pure_html %}
     {% if args.custom_css.as_ref().is_none() %}
     <link rel="stylesheet" href="{{ args.public_path }}/static/water.css">
@@ -48,20 +48,17 @@
         <b style="margin-right: 0.5rem">
 
             {% if !args.hide_logo %}
-            <i><span style="font-size:2.2rem; margin-right:1rem">μ</span></i>
-            {%- endif %}
-
-            {% if args.title.as_ref().is_none() %}
-            MicroBin
-            {%- else %}
-            {{ args.title.as_ref().unwrap() }}
-            {%- endif %}
+            <!-- <i><span style="font-size:2.2rem; margin-right:1rem">μ</span></i> -->
+            <img width=26 style="margin-bottom: -6px; margin-right: 0.5rem;"
+                src="{{ args.public_path }}/static/logo.png">
+            {%- endif %} {% if args.title.as_ref().is_none() %}
+            MicroBin {%- else %} {{ args.title.as_ref().unwrap() }} {%- endif %}
         </b>
 
         <a href="{{ args.public_path }}/" style="margin-right: 0.5rem; margin-left: 0.5rem">New
-            Pasta</a>
+        </a>
 
-        <a href="{{ args.public_path }}/pastalist" style="margin-right: 0.5rem; margin-left: 0.5rem">Pasta List</a>
+        <a href="{{ args.public_path }}/pastalist" style="margin-right: 0.5rem; margin-left: 0.5rem">List</a>
 
         <a href="{{ args.public_path }}/info" style="margin-right: 0.5rem; margin-left: 0.5rem">Info</a>
 
