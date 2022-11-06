@@ -34,6 +34,7 @@ syntect = "5.0"
 qrcode-generator = "4.1.6"
 rust-embed = "6.4.2"
 mime_guess = "2.0.4"
+harsh = "0.2"
 
 [profile.release]
 lto = true

@@ -23,6 +23,7 @@ pub mod util {
     pub mod animalnumbers;
     pub mod auth;
     pub mod dbio;
+    pub mod hashids;
     pub mod misc;
     pub mod syntaxhighlighter;
 }

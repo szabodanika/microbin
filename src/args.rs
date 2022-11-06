@@ -89,6 +89,9 @@ pub struct Args {
 
     #[clap(long, env = "MICROBIN_CUSTOM_CSS")]
     pub custom_css: Option<String>,
+
+    #[clap(long, env = "MICROBIN_HASH_IDS")]
+    pub hash_ids: bool,
 }
 
 #[derive(Debug, Clone)]

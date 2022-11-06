@@ -3,6 +3,7 @@ use crate::dbio::save_to_file;
 use crate::endpoints::errors::ErrorTemplate;
 use crate::pasta::Pasta;
 use crate::util::animalnumbers::to_u64;
+use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::remove_expired;
 use crate::AppState;
 use actix_web::rt::time;
@@ -22,8 +23,11 @@ pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    // get the u64 id from the animal names in the path
-    let id = to_u64(&*id.into_inner()).unwrap_or(0);
+    let id = if ARGS.hash_ids {
+        hashid_to_u64(&*id).unwrap_or(0)
+    } else {
+        to_u64(&*id.into_inner()).unwrap_or(0)
+    };
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -83,8 +87,11 @@ pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Ht
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    // get the u64 id from the animal names in the path
-    let id = to_u64(&*id.into_inner()).unwrap_or(0);
+    let id = if ARGS.hash_ids {
+        hashid_to_u64(&*id).unwrap_or(0)
+    } else {
+        to_u64(&*id.into_inner()).unwrap_or(0)
+    };
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -92,6 +99,7 @@ pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Ht
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
     let mut found: bool = false;
+
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
             index = i;
@@ -146,8 +154,11 @@ pub async fn getrawpasta(data: web::Data<AppState>, id: web::Path<String>) -> St
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    // get the u64 id from the animal names in the path
-    let id = to_u64(&*id.into_inner()).unwrap_or(0);
+    let id = if ARGS.hash_ids {
+        hashid_to_u64(&*id).unwrap_or(0)
+    } else {
+        to_u64(&*id.into_inner()).unwrap_or(0)
+    };
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);

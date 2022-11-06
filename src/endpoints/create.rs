@@ -1,6 +1,7 @@
 use crate::dbio::save_to_file;
 use crate::pasta::PastaFile;
 use crate::util::animalnumbers::to_animal_names;
+use crate::util::hashids::to_hashids;
 use crate::util::misc::is_valid_url;
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
@@ -188,10 +189,12 @@ pub async fn create(
 
     save_to_file(&pastas);
 
+    let slug = if ARGS.hash_ids {
+        to_hashids(id)
+    } else {
+        to_animal_names(id)
+    };
     Ok(HttpResponse::Found()
-        .append_header((
-            "Location",
-            format!("{}/pasta/{}", ARGS.public_path, to_animal_names(id)),
-        ))
+        .append_header(("Location", format!("{}/pasta/{}", ARGS.public_path, slug)))
         .finish())
 }
