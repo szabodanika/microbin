@@ -118,14 +118,16 @@ pub async fn create(
                 continue;
             }
             "content" => {
+                let mut content = String::from("");
                 while let Some(chunk) = field.try_next().await? {
-                    new_pasta.content = std::str::from_utf8(&chunk).unwrap().to_string();
+                    content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
                     new_pasta.pasta_type = if is_valid_url(new_pasta.content.as_str()) {
                         String::from("url")
                     } else {
                         String::from("text")
                     };
                 }
+                new_pasta.content = content;
                 continue;
             }
             "syntax-highlight" => {
@@ -179,7 +181,9 @@ pub async fn create(
                 new_pasta.file = Some(file);
                 new_pasta.pasta_type = String::from("text");
             }
-            _ => {}
+            field => {
+                log::error!("Unexpected multipart field:  {}", field);
+            }
         }
     }
 
