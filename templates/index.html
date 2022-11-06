@@ -1,6 +1,6 @@
 {% include "header.html" %}
 
-<form action="upload" method="POST" enctype="multipart/form-data">
+<form id="pasta-form" action="upload" method="POST" enctype="multipart/form-data">
     <br>
     <div id="settings">
         <div>
@@ -158,18 +158,14 @@
             </div>
             {%- endif %}
         </div>
-
-
-
-
     </div>
     <label>Content</label>
     <textarea style="width: 100%; min-height: 100px; margin-bottom: 2em" name="content" autofocus></textarea>
     <div style="overflow:auto;">
         {% if !args.no_file_upload %}
         <div style="float: left">
-            <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">Attach
-                    File</a></label>
+            <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">Select or drop
+                    file attachment</a></label>
             <br>
             <input type="file" id="file" name="file" />
         </div>
@@ -190,10 +186,29 @@
 <script>
     const hiddenFileButton = document.getElementById('file');
     const attachFileButton = document.getElementById('attach-file-button');
+    const dropContainer = document.getElementById('pasta-form');
 
     hiddenFileButton.addEventListener('change', function () {
         attachFileButton.textContent = "Attached: " + this.files[0].name;
-    })
+    });
+
+    dropContainer.ondragover = dropContainer.ondragenter = function (evt) {
+        evt.preventDefault();
+        if (hiddenFileButton.files.length == 0) {
+            attachFileButton.textContent = "Drop your file here";
+        } else {
+            attachFileButton.textContent = "Drop your file here to replace " + hiddenFileButton.files[0].name;
+        }
+    };
+
+    dropContainer.ondrop = function (evt) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(evt.dataTransfer.files[0]);
+        hiddenFileButton.files = dataTransfer.files;
+        attachFileButton.textContent = "Attached: " + hiddenFileButton.files[0].name;
+        evt.preventDefault();
+    };
+
 </script>
 
 <style>
