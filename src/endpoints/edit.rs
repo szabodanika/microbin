@@ -2,6 +2,7 @@ use crate::args::Args;
 use crate::dbio::save_to_file;
 use crate::endpoints::errors::ErrorTemplate;
 use crate::util::animalnumbers::to_u64;
+use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::remove_expired;
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
@@ -20,7 +21,11 @@ struct EditTemplate<'a> {
 pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = to_u64(&*id.into_inner()).unwrap_or(0);
+    let id = if ARGS.hash_ids {
+        hashid_to_u64(&*id).unwrap_or(0)
+    } else {
+        to_u64(&*id.into_inner()).unwrap_or(0)
+    };
 
     remove_expired(&mut pastas);
 
@@ -59,7 +64,11 @@ pub async fn post_edit(
             .finish());
     }
 
-    let id = to_u64(&*id.into_inner()).unwrap_or(0);
+    let id = if ARGS.hash_ids {
+        hashid_to_u64(&*id).unwrap_or(0)
+    } else {
+        to_u64(&*id.into_inner()).unwrap_or(0)
+    };
 
     let mut pastas = data.pastas.lock().unwrap();
 
@@ -85,7 +94,10 @@ pub async fn post_edit(
                 save_to_file(&pastas);
 
                 return Ok(HttpResponse::Found()
-                    .append_header(("Location", format!("{}/pasta/{}", ARGS.public_path, pastas[i].id_as_animals())))
+                    .append_header((
+                        "Location",
+                        format!("{}/pasta/{}", ARGS.public_path, pastas[i].id_as_animals()),
+                    ))
                     .finish());
             } else {
                 break;

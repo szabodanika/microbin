@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::path::Path;
 
+use crate::args::ARGS;
 use crate::util::animalnumbers::to_animal_names;
+use crate::util::hashids::to_hashids;
 use crate::util::syntaxhighlighter::html_highlight;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq)]
@@ -44,7 +46,11 @@ pub struct Pasta {
 
 impl Pasta {
     pub fn id_as_animals(&self) -> String {
-        to_animal_names(self.id)
+        if ARGS.hash_ids {
+            to_hashids(self.id)
+        } else {
+            to_animal_names(self.id)
+        }
     }
 
     pub fn created_as_string(&self) -> String {

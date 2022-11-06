@@ -23,6 +23,7 @@ pub mod util {
     pub mod animalnumbers;
     pub mod auth;
     pub mod dbio;
+    pub mod hashids;
     pub mod misc;
     pub mod syntaxhighlighter;
 }
@@ -66,8 +67,14 @@ async fn main() -> std::io::Result<()> {
     match fs::create_dir_all("./pasta_data/public") {
         Ok(dir) => dir,
         Err(error) => {
-            log::error!("Couldn't create data directory ./pasta_data/public/: {:?}", error);
-            panic!("Couldn't create data directory ./pasta_data/public/: {:?}", error);
+            log::error!(
+                "Couldn't create data directory ./pasta_data/public/: {:?}",
+                error
+            );
+            panic!(
+                "Couldn't create data directory ./pasta_data/public/: {:?}",
+                error
+            );
         }
     };
 
