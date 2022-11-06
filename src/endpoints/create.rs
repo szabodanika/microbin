@@ -127,7 +127,9 @@ pub async fn create(
                         String::from("text")
                     };
                 }
-                new_pasta.content = content;
+                if content.len() > 0 {
+                    new_pasta.content = content;
+                }
                 continue;
             }
             "syntax-highlight" => {
