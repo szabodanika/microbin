@@ -1,17 +1,17 @@
-
 {% if !args.hide_footer %}
 
 <hr>
 <p style="font-size: smaller">
     {% if args.footer_text.as_ref().is_none() %}
-        MicroBin by Dániel Szabó. Fork me on <a href="https://github.com/szabodanika/microbin">GitHub</a>!
-        Let's keep the Web <b>compact</b>, <b>accessible</b> and <b>humane</b>!
+    <a href="https://microbin.eu">MicroBin</a> by Dániel Szabó and the FOSS Community.
+    Let's keep the Web <b>compact</b>, <b>accessible</b> and <b>humane</b>!
     {%- else %}
-        {{ args.footer_text.as_ref().unwrap() }}
+    {{ args.footer_text.as_ref().unwrap() }}
     {%- endif %}
 </p>
 
 {%- endif %}
 
 </body>
+
 </html>

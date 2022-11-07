@@ -2,7 +2,7 @@ extern crate core;
 
 use crate::args::ARGS;
 use crate::endpoints::{
-    create, edit, errors, help, pasta as pasta_endpoint, pastalist, remove, static_resources,
+    create, edit, errors, info, pasta as pasta_endpoint, pastalist, qr, remove, static_resources,
 };
 use crate::pasta::Pasta;
 use crate::util::dbio;
@@ -32,9 +32,10 @@ pub mod endpoints {
     pub mod create;
     pub mod edit;
     pub mod errors;
-    pub mod help;
+    pub mod info;
     pub mod pasta;
     pub mod pastalist;
+    pub mod qr;
     pub mod remove;
     pub mod static_resources;
 }
@@ -87,13 +88,14 @@ async fn main() -> std::io::Result<()> {
             .app_data(data.clone())
             .wrap(middleware::NormalizePath::trim())
             .service(create::index)
-            .service(help::help)
+            .service(info::info)
             .service(pasta_endpoint::getpasta)
             .service(pasta_endpoint::getrawpasta)
             .service(pasta_endpoint::redirecturl)
             .service(edit::get_edit)
             .service(edit::post_edit)
             .service(static_resources::static_resources)
+            .service(qr::getqr)
             .service(actix_files::Files::new("/file", "./pasta_data/public/"))
             .service(web::resource("/upload").route(web::post().to(create::create)))
             .default_service(web::route().to(errors::not_found))

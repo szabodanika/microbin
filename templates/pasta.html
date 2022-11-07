@@ -1,25 +1,45 @@
 {% include "header.html" %}
 <div style="float: left">
-  <a style="margin-right: 0.5rem" href="{{ args.public_path }}/raw/{{pasta.id_as_animals()}}">Raw Text Content</a>
-  {% if pasta.file.is_some() %}
-  <a style="margin-right: 0.5rem; margin-left: 0.5rem"
-    href="{{ args.public_path }}/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name()}}">
-    Attached file'{{pasta.file.as_ref().unwrap().name()}}' [{{pasta.file.as_ref().unwrap().size}}]
-  </a>
+  {% if pasta.content != "No Text Content" %}
+  <button id="copy-text-button" class="copy-button" style="margin-right: 0.5rem">
+    Copy Text
+  </button>
+  {% if args.public_path.to_string() != "" && pasta.pasta_type == "url" %}
+  <button id="copy-redirect-button" class="copy-button" style="margin-right: 0.5rem">
+    Copy Redirect
+  </button>
+  {%- endif %}
+  <a style="margin-right: 1rem" href="{{ args.public_path }}/raw/{{pasta.id_as_animals()}}">Raw Text
+    Content</a>
+  {%- endif %}
+  {% if args.qr && args.public_path.to_string() != "" %}
+  <a style="margin-right: 1rem" href="{{ args.public_path }}/qr/{{pasta.id_as_animals()}}">QR</a>
   {%- endif %}
   {% if pasta.editable %}
-  <a style="margin-right: 0.5rem; margin-left: 0.5rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
+  <a style="margin-right: 1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
   {%- endif %}
-  <a style="margin-right: 0.5rem; margin-left: 0.5rem" href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+  <a style="margin-right: 1rem" href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
 </div>
 <div style="float: right">
-  <a href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
+  <a style="margin-right: 0.5rem"
+    href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
+  {% if args.public_path.to_string() != "" %}
+  <button id="copy-url-button" class="copy-button" style="margin-right: 0">
+    Copy URL
+  </button>
+  {%- endif %}
 </div>
+{% if pasta.file.is_some() %}
 <br>
+<br>
+<a href="{{ args.public_path }}/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name()}}" download>
+  Download attached file: '{{pasta.file.as_ref().unwrap().name()}}' [{{pasta.file.as_ref().unwrap().size}}]
+</a>
+{%- endif %}
+<br>
+<br>
+{% if pasta.content != "No Text Content" %}
 <div class="code-container">
-  <a role="button" id="copy-button" class="copy-button">
-    Copy
-  </a>
   <div style="clear: both;">
     {% if args.highlightsyntax %}
     <pre><code id="code">{{pasta.content_syntax_highlighted()}}</code></pre>
@@ -28,64 +48,98 @@
     {%- endif %}
   </div>
 </div>
+{%- endif %}
+<div>
+  {% if pasta.read_count == 1 %}
+  <p style="font-size: small">Read {{pasta.read_count}} time, last {{pasta.last_read_time_ago_as_string()}}</p>
+  {%- else %}
+  <p style="font-size: small">Read {{pasta.read_count}} times, last {{pasta.last_read_time_ago_as_string()}}</p>
+  {%- endif %}
+
+</div>
+
+<br>
+
 
 <script>
-  const btn = document.getElementById("copy-button")
+  const copyURLBtn = document.getElementById("copy-url-button")
+  const copyTextBtn = document.getElementById("copy-text-button")
+  const copyRedirectBtn = document.getElementById("copy-redirect-button")
   const content = `{{ pasta.content_escaped() }}`
+  const url = `{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}`
+  const redirect_url = `{{ args.public_path }}/url/{{pasta.id_as_animals()}}`
 
-  btn.addEventListener("click", () => {
-    navigator.clipboard.writeText(content)
-    btn.innerHTML = "Copied"
+  copyURLBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(url)
+    copyURLBtn.innerHTML = "Copied"
     setTimeout(() => {
-      btn.innerHTML = "Copy"
+      copyURLBtn.innerHTML = "Copy URL"
+    }, 1000)
+  })
+
+  // it will be undefined when the element does not exist on non-url pastas
+  if (copyRedirectBtn) {
+    copyRedirectBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(redirect_url)
+      copyRedirectBtn.innerHTML = "Copied"
+      setTimeout(() => {
+        copyRedirectBtn.innerHTML = "Copy Redirect"
+      }, 1000)
+    })
+  }
+
+  copyTextBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(content)
+    copyTextBtn.innerHTML = "Copied"
+    setTimeout(() => {
+      copyTextBtn.innerHTML = "Copy Text"
     }, 1000)
   })
 
 </script>
 
 <style>
-code-line {
-  counter-increment: listing;
-  text-align: right;
-  float: left;
-  clear: left;
-}
+  code-line {
+    counter-increment: listing;
+    text-align: right;
+    float: left;
+    clear: left;
+  }
 
-code-line::before {
-  content: counter(listing);
-  display: inline-block;
-  float: left;
-  padding-left: auto;
-  margin-left: auto;
-  text-align: left;
-  width: 1.6rem;
-  border-right: 1px solid lightgrey;
-  color: grey;
-  margin-right: 0.4rem;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
+  code-line::before {
+    content: counter(listing);
+    display: inline-block;
+    padding-left: auto;
+    margin-left: auto;
+    text-align: left;
+    width: 1.6rem;
+    border-right: 1px solid lightgrey;
+    color: grey;
+    margin-right: 0.4rem;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
 
-.code-container {
-  position: relative;
-}
+  #code {
+    min-height: 2rem;
+  }
 
-.hidden {
-  display: none;
-}
+  .code-container {
+    position: relative;
+  }
 
-.copy-button {
-  position: absolute;
-  background: transparent;
-  top: 0;
-  right: 0;
-  padding: 3px;
-  margin: 3px;
-  cursor:  pointer;
-}
+  .hidden {
+    display: none;
+  }
 
+  .copy-button {
+    font-size: small;
+    padding: 4px;
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
+  }
 </style>
 
 {% include "footer.html" %}

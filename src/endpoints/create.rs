@@ -55,6 +55,9 @@ pub async fn create(
         private: false,
         editable: false,
         created: timenow,
+        read_count: 0,
+        burn_after_reads: 0,
+        last_read: timenow,
         pasta_type: String::from(""),
         expiration: 0,
     };
@@ -79,9 +82,34 @@ pub async fn create(
                         "1hour" => timenow + 60 * 60,
                         "24hour" => timenow + 60 * 60 * 24,
                         "1week" => timenow + 60 * 60 * 24 * 7,
-                        "never" => 0,
+                        "never" => {
+                            if ARGS.no_eternal_pasta {
+                                timenow + 60 * 60 * 24 * 7
+                            } else {
+                                0
+                            }
+                        }
                         _ => {
                             log::error!("{}", "Unexpected expiration time!");
+                            timenow + 60 * 60 * 24 * 7
+                        }
+                    };
+                }
+
+                continue;
+            }
+            "burn_after" => {
+                while let Some(chunk) = field.try_next().await? {
+                    new_pasta.burn_after_reads = match std::str::from_utf8(&chunk).unwrap() {
+                        // give an extra read because the user will be redirected to the pasta page automatically
+                        "1" => 2,
+                        "10" => 10,
+                        "100" => 100,
+                        "1000" => 1000,
+                        "10000" => 10000,
+                        "0" => 0,
+                        _ => {
+                            log::error!("{}", "Unexpected burn after value!");
                             0
                         }
                     };
@@ -90,8 +118,13 @@ pub async fn create(
                 continue;
             }
             "content" => {
+                let mut content = String::from("");
                 while let Some(chunk) = field.try_next().await? {
-                    new_pasta.content = std::str::from_utf8(&chunk).unwrap().to_string();
+                    content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
+                }
+                if content.len() > 0 {
+                    new_pasta.content = content;
+
                     new_pasta.pasta_type = if is_valid_url(new_pasta.content.as_str()) {
                         String::from("url")
                     } else {
@@ -151,7 +184,9 @@ pub async fn create(
                 new_pasta.file = Some(file);
                 new_pasta.pasta_type = String::from("text");
             }
-            _ => {}
+            field => {
+                log::error!("Unexpected multipart field:  {}", field);
+            }
         }
     }
 

@@ -8,108 +8,114 @@
 </p>
 <br>
 {%- else %}
-<br>
+<h3>Pastas</h3>
 {% if args.pure_html %}
-<table border="1" style="width: 100%">
-{% else %}
-<table style="width: 100%">
-    {% endif %}
-    <thead>
-    <tr>
-        <th colspan="4">Pastas</th>
-    </tr>
-    <tr>
-        <th>
-            Key
-        </th>
-        <th>
-            Created
-        </th>
-        <th>
-            Expiration
-        </th>
-        <th>
+<table border="1" style="width: 100%; white-space: nowrap;">
+    {% else %}
+    <table style="width: 100%">
+        {% endif %}
+        <thead>
+            <th style="width: 30%">
+                Key
+            </th>
+            <th style="width: 20%">
+                Created
+            </th>
+            <th style="width: 20%">
+                Expiration
+            </th>
+            <th style="width: 30%">
+            </th>
+        </thead>
+        <tbody>
+            {% for pasta in pastas %}
+            {% if pasta.pasta_type == "text" && !pasta.private %}
+            <tr>
+                <td>
+                    <a href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+                </td>
+                <td>
+                    {{pasta.created_as_string()}}
+                </td>
+                <td>
+                    {{pasta.expiration_as_string()}}
+                </td>
+                <td>
+                    <a style="margin-right:1rem" href="{{ args.public_path }}/raw/{{pasta.id_as_animals()}}">Raw</a>
+                    {% if pasta.file.is_some() %}
+                    <a style="margin-right:1rem"
+                        href="{{ args.public_path }}/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name()}}">File</a>
+                    {%- endif %}
+                    {% if pasta.editable %}
+                    <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
+                    {%- endif %}
+                    <a href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+                </td>
+            </tr>
+            {%- endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <h3>URL Redirects</h3>
+    {% if args.pure_html %}
+    <table border="1" style="width: 100%">
+        {% else %}
+        <table style="width: 100%">
+            {% endif %}
+            <thead>
+                <th style="width: 30%">
+                    Key
+                </th>
+                <th style="width: 20%">
+                    Created
+                </th>
+                <th style="width: 20%">
+                    Expiration
+                </th>
+                <th style="width: 30%">
+                </th>
+            </thead>
+            {% for pasta in pastas %}
+            {% if pasta.pasta_type == "url" && !pasta.private %}
+            <tr>
+                <td>
+                    <a href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+                </td>
+                <td>
+                    {{pasta.created_as_string()}}
+                </td>
+                <td>
+                    {{pasta.expiration_as_string()}}
+                </td>
+                <td>
+                    <a style="margin-right:1rem" href="{{ args.public_path }}/url/{{pasta.id_as_animals()}}">Open</a>
+                    <a style="margin-right:1rem; cursor: pointer;" id="copy-button"
+                        data-url="{{ args.public_path }}/url/{{pasta.id_as_animals()}}">Copy</a>
+                    {% if pasta.editable %}
+                    <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
+                    {%- endif %}
+                    <a href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+                </td>
+            </tr>
+            {%- endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        {%- endif %}
 
-        </th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for pasta in pastas %}
-    {% if pasta.pasta_type == "text"  && !pasta.private %}
-    <tr>
-        <td>
-            <a href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
-        </td>
-        <td>
-            {{pasta.created_as_string()}}
-        </td>
-        <td>
-            {{pasta.expiration_as_string()}}
-        </td>
-        <td>
-            <a style="margin-right:1rem" href="{{ args.public_path }}/raw/{{pasta.id_as_animals()}}">Raw</a>
-            {% if pasta.file.is_some() %}
-            <a style="margin-right:1rem" href="{{ args.public_path }}/file/{{pasta.id_as_animals()}}/{{pasta.file.as_ref().unwrap().name()}}">File</a>
-            {%- endif %}
-            {% if pasta.editable %}
-            <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
-            {%- endif %}
-            <a href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
-        </td>
-    </tr>
-    {%- endif %}
-    {% endfor %}
-    </tbody>
-</table>
-<br>
-{% if args.pure_html %}
-<table border="1" style="width: 100%">
-{% else %}
-<table style="width: 100%">
-{% endif %}
-    <thead>
-    <tr>
-        <th colspan="4">URL Redirects</th>
-    </tr>
-    <tr>
-        <th>
-            Key
-        </th>
-        <th>
-            Created
-        </th>
-        <th>
-            Expiration
-        </th>
-        <th>
+        <script>
+            // const btn = document.getElementById("copy-button")
+            const btn = document.querySelector("#copy-button");
+            btn.addEventListener("click", () => {
+                navigator.clipboard.writeText(btn.dataset.url)
+                btn.innerHTML = "Copied"
+                setTimeout(() => {
+                    btn.innerHTML = "Copy"
+                }, 1000)
+            })
 
-        </th>
-    </tr>
-    </thead>
-    {% for pasta in pastas %}
-    {% if pasta.pasta_type == "url" && !pasta.private %}
-    <tr>
-        <td>
-            <a href="{{ args.public_path }}/url/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
-        </td>
-        <td>
-            {{pasta.created_as_string()}}
-        </td>
-        <td>
-            {{pasta.expiration_as_string()}}
-        </td>
-        <td>
-            <a style="margin-right:1rem" href="{{ args.public_path }}raw/{{pasta.id_as_animals()}}">Raw</a>
-            {% if pasta.editable %}
-            <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
-            {%- endif %}
-            <a href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
-        </td>
-    </tr>
-    {%- endif %}
-    {% endfor %}
-    </tbody>
-</table>
-<br>
-{%- endif %}
-{% include "footer.html" %}
+        </script>
+
+        {% include "footer.html" %}

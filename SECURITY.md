@@ -1,19 +1,12 @@
 # Security Policy
 
-## Supported Versions
+## Version Support
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
-
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.1.*   | :white_check_mark: |
-| < 1.1.0 | :x:                |
+Currently we only have capacity to support the latest version of MicroBin. We recommend that you always update to the newest one and check our pages regularly for announcements.
 
 ## Reporting a Vulnerability
 
-Security vulnerabilities can be reported directly to 
-the developer/maintainer at d@szab.eu.
+Security vulnerabilities can be reported directly to the developer/maintainer at d@szab.eu.
 
 Sensitive information may be GPG encrypted with my public key available at 
 https://szab.eu/assets/files/daniel-szabo-pub.asc.

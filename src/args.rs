@@ -63,11 +63,32 @@ pub struct Args {
     #[clap(short, long, env = "MICROBIN_THREADS", default_value_t = 1)]
     pub threads: u8,
 
+    #[clap(short, long, env = "MICROBIN_GC_DAYS", default_value_t = 90)]
+    pub gc_days: u16,
+
+    #[clap(long, env = "MICROBIN_ENABLE_BURN_AFTER")]
+    pub enable_burn_after: bool,
+
+    #[clap(short, long, env = "MICROBIN_DEFAULT_BURN_AFTER", default_value_t = 0)]
+    pub default_burn_after: u16,
+
     #[clap(long, env = "MICROBIN_WIDE")]
     pub wide: bool,
 
+    #[clap(long, env = "MICROBIN_QR")]
+    pub qr: bool,
+
+    #[clap(long, env = "MICROBIN_NO_ETERNAL_PASTA")]
+    pub no_eternal_pasta: bool,
+
+    #[clap(long, env = "MICROBIN_DEFAULT_EXPIRY", default_value = "24hour")]
+    pub default_expiry: String,
+
     #[clap(short, long, env = "MICROBIN_NO_FILE_UPLOAD")]
     pub no_file_upload: bool,
+
+    #[clap(long, env = "MICROBIN_CUSTOM_CSS")]
+    pub custom_css: Option<String>,
 
     #[clap(long, env = "MICROBIN_HASH_IDS")]
     pub hash_ids: bool,

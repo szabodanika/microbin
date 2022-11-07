@@ -1,6 +1,6 @@
 [package]
 name = "microbin"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2021"
 authors = ["Daniel Szabo <daniel.szabo99@outlook.com>"]
 license = "BSD-3-Clause"
@@ -31,6 +31,9 @@ env_logger = "0.9.0"
 actix-web-httpauth = "0.6.0"
 lazy_static = "1.4.0"
 syntect = "5.0"
+qrcode-generator = "4.1.6"
+rust-embed = "6.4.2"
+mime_guess = "2.0.4"
 harsh = "0.2"
 
 [profile.release]
