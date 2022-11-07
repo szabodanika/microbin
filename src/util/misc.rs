@@ -56,7 +56,7 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
 }
 
 pub fn string_to_qr_svg(str: &str) -> String {
-    qrcode_generator::to_svg_to_string(str, QrCodeEcc::Low, 512, None::<&str>).unwrap()
+    qrcode_generator::to_svg_to_string(str, QrCodeEcc::Low, 256, None::<&str>).unwrap()
 }
 
 pub fn is_valid_url(url: &str) -> bool {
