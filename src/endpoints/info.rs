@@ -33,7 +33,7 @@ pub async fn info(data: web::Data<AppState>) -> HttpResponse {
             args: &ARGS,
             pastas: &pastas,
             status: &String::from(status),
-            version_string: &String::from("1.2.0-20221101"),
+            version_string: &String::from("1.2.0-20221107"),
             message: &String::from(message),
         }
         .render()
