@@ -2,13 +2,8 @@ name: Docker Image
 
 on:
   push:
-    branches:
-      - "master"
     tags:
-      - "v*"
-  pull_request:
-    branches:
-      - "master"
+    - v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
   docker_image:
