@@ -1,7 +1,29 @@
 {% include "header.html" %}
 
-<div style="text-align: center">
-  {{qr}}
+<div style="float: left">
+  <a href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}">Back to Pasta</a>
 </div>
+
+
+<div style="text-align: center; padding: 3rem;">
+  {% if pasta.pasta_type == "url" %}
+  <a href="{{ args.public_path }}/url/{{pasta.id_as_animals()}}">
+    {{qr}}
+  </a>
+  {% else %}
+  <a href="{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}">
+    {{qr}}
+  </a>
+  {% endif %}
+</div>
+
+<style>
+  .copy-text-button,
+  .copy-url-button {
+    font-size: small;
+    padding: 4px;
+    width: 6rem;
+  }
+</style>
 
 {% include "footer.html" %}
