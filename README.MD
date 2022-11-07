@@ -1,13 +1,7 @@
 
 ![Screenshot](.github/index.png)
 
-<h1 style="text-align: center;" >
-  <img class="me-1" style="height: 1.2em;" src=".github/logo.png" />
-  <b>
-    MicroBin
-  </b>
-</h1>
-
+# MicroBin
 
 ![Build](https://github.com/szabodanika/microbin/actions/workflows/rust.yml/badge.svg)
 ![crates.io](https://img.shields.io/crates/v/microbin.svg)
