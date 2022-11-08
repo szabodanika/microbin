@@ -6,7 +6,7 @@ use crate::util::animalnumbers::to_u64;
 use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::remove_expired;
 use crate::AppState;
-use actix_web::rt::time;
+
 use actix_web::{get, web, HttpResponse};
 use askama::Template;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -24,9 +24,9 @@ pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
     let mut pastas = data.pastas.lock().unwrap();
 
     let id = if ARGS.hash_ids {
-        hashid_to_u64(&*id).unwrap_or(0)
+        hashid_to_u64(&id).unwrap_or(0)
     } else {
-        to_u64(&*id.into_inner()).unwrap_or(0)
+        to_u64(&id.into_inner()).unwrap_or(0)
     };
 
     // remove expired pastas (including this one if needed)
@@ -45,7 +45,7 @@ pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
 
     if found {
         // increment read count
-        pastas[index].read_count = pastas[index].read_count + 1;
+        pastas[index].read_count += 1;
 
         // save the updated read count
         save_to_file(&pastas);
@@ -88,9 +88,9 @@ pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Ht
     let mut pastas = data.pastas.lock().unwrap();
 
     let id = if ARGS.hash_ids {
-        hashid_to_u64(&*id).unwrap_or(0)
+        hashid_to_u64(&id).unwrap_or(0)
     } else {
-        to_u64(&*id.into_inner()).unwrap_or(0)
+        to_u64(&id.into_inner()).unwrap_or(0)
     };
 
     // remove expired pastas (including this one if needed)
@@ -110,7 +110,7 @@ pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Ht
 
     if found {
         // increment read count
-        pastas[index].read_count = pastas[index].read_count + 1;
+        pastas[index].read_count += 1;
 
         // save the updated read count
         save_to_file(&pastas);
@@ -155,9 +155,9 @@ pub async fn getrawpasta(data: web::Data<AppState>, id: web::Path<String>) -> St
     let mut pastas = data.pastas.lock().unwrap();
 
     let id = if ARGS.hash_ids {
-        hashid_to_u64(&*id).unwrap_or(0)
+        hashid_to_u64(&id).unwrap_or(0)
     } else {
-        to_u64(&*id.into_inner()).unwrap_or(0)
+        to_u64(&id.into_inner()).unwrap_or(0)
     };
 
     // remove expired pastas (including this one if needed)
@@ -176,7 +176,7 @@ pub async fn getrawpasta(data: web::Data<AppState>, id: web::Path<String>) -> St
 
     if found {
         // increment read count
-        pastas[index].read_count = pastas[index].read_count + 1;
+        pastas[index].read_count += 1;
 
         // get current unix time in seconds
         let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {

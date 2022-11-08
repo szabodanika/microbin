@@ -4,7 +4,7 @@ use std::io::{BufReader, BufWriter};
 
 use crate::Pasta;
 
-static DATABASE_PATH: &'static str = "pasta_data/database.json";
+static DATABASE_PATH: &str = "pasta_data/database.json";
 
 pub fn save_to_file(pasta_data: &Vec<Pasta>) {
     let mut file = File::create(DATABASE_PATH);

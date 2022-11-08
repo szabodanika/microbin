@@ -17,7 +17,7 @@ struct Info<'a> {
 #[get("/info")]
 pub async fn info(data: web::Data<AppState>) -> HttpResponse {
     // get access to the pasta collection
-    let mut pastas = data.pastas.lock().unwrap();
+    let pastas = data.pastas.lock().unwrap();
 
     // todo status report more sophisticated
     let mut status = "OK";
