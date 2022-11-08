@@ -36,14 +36,9 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
                     .append_header(("Location", format!("{}/", ARGS.public_path)))
                     .finish();
             }
-            return HttpResponse::Ok().content_type("text/html").body(
-                EditTemplate {
-                    pasta,
-                    args: &ARGS,
-                }
-                .render()
-                .unwrap(),
-            );
+            return HttpResponse::Ok()
+                .content_type("text/html")
+                .body(EditTemplate { pasta, args: &ARGS }.render().unwrap());
         }
     }
 

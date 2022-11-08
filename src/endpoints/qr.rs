@@ -8,8 +8,6 @@ use crate::AppState;
 use actix_web::{get, web, HttpResponse};
 use askama::Template;
 
-
-
 #[derive(Template)]
 #[template(path = "qr.html", escape = "none")]
 struct QRTemplate<'a> {
