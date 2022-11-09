@@ -24,7 +24,7 @@ On our website [microbin.eu](https://microbin.eu) you will find the following:
 - [Screenshots](https://microbin.eu/screenshots/)
 - [Quickstart Guide](https://microbin.eu/quickstart/)
 - [Documentation](https://microbin.eu/documentation/)
-- [Donations and Sponsorhip](https://microbin.eu/donate/)
+- [Donations and Sponsorships](https://microbin.eu/donate/)
 - [Community](https://microbin.eu/community/)
 
 ### Features

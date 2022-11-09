@@ -26,7 +26,7 @@ COPY --from=build \
   /etc/ssl/certs/ca-certificates.crt \
   /etc/ssl/certs/ca-certificates.crt
 
-# copy built exacutable
+# copy built executable
 COPY --from=build \
   /app/target/release/microbin \
   /usr/bin/microbin
