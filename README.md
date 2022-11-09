@@ -19,7 +19,7 @@ And run with your custom configuration:
 
 Or get the Docker image from [Dockerhub: danielszabo99/microbin](https://hub.docker.com/r/danielszabo99/microbin)
 
-On our website [microbin.eu](microbin.eu) you will find the following:
+On our website [microbin.eu](https://microbin.eu) you will find the following:
 
 - [Screenshots](https://microbin.eu/screenshots/)
 - [Quickstart Guide](https://microbin.eu/quickstart/)
