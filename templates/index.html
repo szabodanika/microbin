@@ -35,6 +35,13 @@
                         {%- endif %}
                         24 hours
                     </option>
+                    {% if args.default_expiry == "3days" %}
+                    <option selected value="3days">
+                        {%- else %}
+                    <option value="3days">
+                        {%- endif %}
+                        3 days
+                    </option>
                     {% if args.default_expiry == "1week" %}
                     <option selected value="1week">
                         {%- else %}
