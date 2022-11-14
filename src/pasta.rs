@@ -118,7 +118,7 @@ impl Pasta {
         };
 
         // it's less than 1 second?????
-        return String::from("just now");
+        String::from("just now")
     }
 
     pub fn last_read_days_ago(&self) -> u16 {
@@ -132,7 +132,7 @@ impl Pasta {
         } as i64;
 
         // get seconds since last read and convert it to days
-        return ((timenow - self.last_read) / 86400) as u16;
+        ((timenow - self.last_read) / 86400) as u16
     }
 
     pub fn content_syntax_highlighted(&self) -> String {
@@ -144,7 +144,7 @@ impl Pasta {
     }
 
     pub fn content_escaped(&self) -> String {
-        self.content.replace("`", "\\`").replace("$", "\\$")
+        self.content.replace('`', "\\`").replace('$', "\\$")
     }
 }
 

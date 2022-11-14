@@ -11,7 +11,7 @@ pub fn html_highlight(text: &str, extension: &str) -> String {
 
     let syntax = ps
         .find_syntax_by_extension(extension)
-        .or(Option::from(ps.find_syntax_plain_text()))
+        .or_else(|| Option::from(ps.find_syntax_plain_text()))
         .unwrap();
     let mut h = HighlightLines::new(syntax, &ts.themes["InspiredGitHub"]);
 
@@ -33,5 +33,5 @@ pub fn html_highlight(text: &str, extension: &str) -> String {
     highlighted_content2 =
         highlighted_content2.replace("style=\"color:#183691;\"", "style=\"color:blue;\"");
 
-    return highlighted_content2;
+    highlighted_content2
 }

@@ -13,6 +13,6 @@ pub fn to_u64(hash_id: &str) -> Result<u64, &str> {
     let ids = HARSH
         .decode(hash_id)
         .map_err(|_e| "Failed to decode hash ID")?;
-    let id = ids.get(0).ok_or("No ID found in hash ID")?;
+    let id = ids.first().ok_or("No ID found in hash ID")?;
     Ok(*id)
 }

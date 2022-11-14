@@ -8,6 +8,7 @@ RUN \
   DEBIAN_FRONTEND=noninteractive \
   apt-get update &&\
   apt-get -y install ca-certificates tzdata &&\
+  CARGO_NET_GIT_FETCH_WITH_CLI=true \
   cargo build --release
 
 # https://hub.docker.com/r/bitnami/minideb
@@ -25,7 +26,7 @@ COPY --from=build \
   /etc/ssl/certs/ca-certificates.crt \
   /etc/ssl/certs/ca-certificates.crt
 
-# copy built exacutable
+# copy built executable
 COPY --from=build \
   /app/target/release/microbin \
   /usr/bin/microbin
