@@ -6,6 +6,8 @@
 ![Build](https://github.com/szabodanika/microbin/actions/workflows/rust.yml/badge.svg)
 ![crates.io](https://img.shields.io/crates/v/microbin.svg)
 [![Docker Image](https://github.com/szabodanika/microbin/actions/workflows/docker.yml/badge.svg)](https://hub.docker.com/r/danielszabo99/microbin)
+[![Docker Pulls](https://img.shields.io/docker/pulls/danielszabo99/microbin?label=Docker%20pulls)](https://img.shields.io/docker/pulls/danielszabo99/microbin?label=Docker%20pulls)
+[![Support Server](https://img.shields.io/discord/662017309162078267.svg?color=7289da&label=Discord&logo=discord&style=flat-square)](https://discord.gg/3DsyTN7T)
 
 MicroBin is a super tiny, feature rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
@@ -61,7 +63,6 @@ You can use MicroBin
 - To take notes! Simply create an editable pasta.
 
 ...and many other things, why not get creative?
-
 
 ### License 
 
