@@ -49,10 +49,16 @@
                         {%- endif %}
                         1 week
                     </option>
+                    {% if !args.no_eternal_pasta %}
+                        {% if args.default_expiry == "never" %}
+                        <option selected value="never">
+                            {%- else %}
+                        <option value="never">
+                            {%- endif %}
+                            Never Expire
+                        </option>
+                    {%- endif %}
                 </optgroup>
-                {% if !args.no_eternal_pasta %}
-                <option value="never">Never Expire</option>
-                {%- endif %}
             </select>
         </div>
         {% if args.enable_burn_after %}
