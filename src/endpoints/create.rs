@@ -54,6 +54,7 @@ pub async fn create(
         extension: String::from(""),
         private: false,
         editable: false,
+        non_removable: false,
         created: timenow,
         read_count: 0,
         burn_after_reads: 0,

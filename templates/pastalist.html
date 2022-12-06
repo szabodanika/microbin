@@ -49,7 +49,10 @@
                     {% if pasta.editable %}
                     <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
                     {%- endif %}
+
+                    {% if args.non_removable == false %}
                     <a href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+                    {%- endif %}
                 </td>
             </tr>
             {%- endif %}
@@ -95,7 +98,10 @@
                     {% if pasta.editable %}
                     <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
                     {%- endif %}
+
+                    {% if args.non_removable == false %}
                     <a href="{{ args.public_path }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+                    {%- endif %}
                 </td>
             </tr>
             {%- endif %}

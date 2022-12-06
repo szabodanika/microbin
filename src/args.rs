@@ -21,6 +21,9 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_EDITABLE")]
     pub editable: bool,
 
+    #[clap(long, env = "MICROBIN_NON_REMOVABLE")]
+    pub non_removable: bool,
+
     #[clap(long, env = "MICROBIN_FOOTER_TEXT")]
     pub footer_text: Option<String>,
 
