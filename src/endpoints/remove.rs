@@ -17,6 +17,12 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
             .append_header(("Location", format!("{}/", ARGS.public_path)))
             .finish();
     }
+    
+    if ARGS.non_removable {
+        return HttpResponse::Found()
+        .append_header(("Location", format!("{}/", ARGS.public_path)))
+        .finish();
+    }
 
     let mut pastas = data.pastas.lock().unwrap();
 
