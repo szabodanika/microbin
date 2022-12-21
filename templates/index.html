@@ -154,7 +154,7 @@
             {%- endif %}
             {% if args.editable %}
             <div>
-                <input type="checkbox" id="editable" name="editable" value="editable">
+                <input type="checkbox" id="editable" name="editable" value="editable" checked>
                 <label for="editable">Editable</label>
             </div>
             {%- endif %}
@@ -189,6 +189,14 @@
     </div>
 
 </form>
+<script >
+    document.onkeyup = function(e) {
+            if (e.ctrlKey && e.which == 13) {
+            document.theForm.submit();
+        } 
+    };
+</script>
+
 
 <script>
     const hiddenFileButton = document.getElementById('file');
