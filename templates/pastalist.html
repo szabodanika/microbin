@@ -1,5 +1,5 @@
 {% include "header.html" %}
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
 
 {% if pastas.is_empty() %}
 <br>
@@ -104,7 +104,15 @@
         </table>
         <br>
         {%- endif %}
-
+        <script>
+            $(function(){
+                    $("tbody").each(function(elem,index){
+                      var arr = $.makeArray($("tr",this).detach());
+                      arr.reverse();
+                        $(this).append(arr);
+                    });
+                });
+        </script>
         <script>
             // const btn = document.getElementById("copy-button")
             const btn = document.querySelector("#copy-button");
