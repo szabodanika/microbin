@@ -40,7 +40,6 @@ pub struct Pasta {
     pub extension: String,
     pub private: bool,
     pub editable: bool,
-    pub non_removable: bool,
     pub created: i64,
     pub expiration: i64,
     pub last_read: i64,
