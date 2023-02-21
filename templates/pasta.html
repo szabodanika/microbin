@@ -69,13 +69,21 @@
   const url = `{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}`
   const redirect_url = `{{ args.public_path }}/url/{{pasta.id_as_animals()}}`
 
-  copyURLBtn.addEventListener("click", () => {
-    navigator.clipboard.writeText(url)
-    copyURLBtn.innerHTML = "Copied"
-    setTimeout(() => {
-      copyURLBtn.innerHTML = "Copy URL"
-    }, 1000)
-  })
+  const decodeEntity = (inputStr) => {
+    var textarea = document.createElement("textarea");
+    textarea.innerHTML = inputStr;
+    return textarea.value;
+  }
+
+  if (copyURLBtn) {
+    copyURLBtn.addEventListener("click", () => {
+      navigator.clipboard.writeText(url)
+      copyURLBtn.innerHTML = "Copied"
+      setTimeout(() => {
+        copyURLBtn.innerHTML = "Copy URL"
+      }, 1000)
+    })
+  }
 
   // it will be undefined when the element does not exist on non-url pastas
   if (copyRedirectBtn) {
@@ -89,7 +97,8 @@
   }
 
   copyTextBtn.addEventListener("click", () => {
-    navigator.clipboard.writeText(content)
+    const decodeContent = decodeEntity(content)
+    navigator.clipboard.writeText(decodeContent)
     copyTextBtn.innerHTML = "Copied"
     setTimeout(() => {
       copyTextBtn.innerHTML = "Copy Text"
