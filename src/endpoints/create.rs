@@ -27,6 +27,28 @@ pub async fn index() -> impl Responder {
         .body(IndexTemplate { args: &ARGS }.render().unwrap())
 }
 
+pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
+    match expiration {
+        "1min" => timenow + 60,
+        "10min" => timenow + 60 * 10,
+        "1hour" => timenow + 60 * 60,
+        "24hour" => timenow + 60 * 60 * 24,
+        "3days" => timenow + 60 * 60 * 24 * 3,
+        "1week" => timenow + 60 * 60 * 24 * 7,
+        "never" => {
+            if ARGS.no_eternal_pasta {
+                timenow + 60 * 60 * 24 * 7
+            } else {
+                0
+            }
+        }
+        _ => {
+            log::error!("{}", "Unexpected expiration time!");
+            timenow + 60 * 60 * 24 * 7
+        }
+    }
+}
+
 pub async fn create(
     data: web::Data<AppState>,
     mut payload: Multipart,
@@ -59,7 +81,7 @@ pub async fn create(
         burn_after_reads: 0,
         last_read: timenow,
         pasta_type: String::from(""),
-        expiration: if ARGS.no_eternal_pasta { timenow + 60 * 60 * 24 * 7 } else { 0 },
+        expiration: expiration_to_timestamp(&ARGS.default_expiry, timenow),
     };
 
     while let Some(mut field) = payload.try_next().await? {
@@ -76,25 +98,7 @@ pub async fn create(
             }
             "expiration" => {
                 while let Some(chunk) = field.try_next().await? {
-                    new_pasta.expiration = match std::str::from_utf8(&chunk).unwrap() {
-                        "1min" => timenow + 60,
-                        "10min" => timenow + 60 * 10,
-                        "1hour" => timenow + 60 * 60,
-                        "24hour" => timenow + 60 * 60 * 24,
-                        "3days" => timenow + 60 * 60 * 24 * 3,
-                        "1week" => timenow + 60 * 60 * 24 * 7,
-                        "never" => {
-                            if ARGS.no_eternal_pasta {
-                                timenow + 60 * 60 * 24 * 7
-                            } else {
-                                0
-                            }
-                        }
-                        _ => {
-                            log::error!("{}", "Unexpected expiration time!");
-                            timenow + 60 * 60 * 24 * 7
-                        }
-                    };
+                    new_pasta.expiration = expiration_to_timestamp(std::str::from_utf8(&chunk).unwrap(), timenow);
                 }
 
                 continue;
