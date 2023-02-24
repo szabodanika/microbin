@@ -59,7 +59,7 @@ pub async fn create(
         burn_after_reads: 0,
         last_read: timenow,
         pasta_type: String::from(""),
-        expiration: 0,
+        expiration: if ARGS.no_eternal_pasta { timenow + 60 * 60 * 24 * 7 } else { 0 },
     };
 
     while let Some(mut field) = payload.try_next().await? {
