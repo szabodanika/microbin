@@ -166,6 +166,10 @@
             {%- endif %}
         </div>
     </div>
+    {% if args.slugs %}
+    <label>Slug</label>
+    <input type="text" style="width: 100%" name="slug" autofocus>
+    {%- endif %}
     <label>Content</label>
     <textarea style="width: 100%; min-height: 100px; margin-bottom: 2em" name="content" autofocus></textarea>
     <div style="overflow:auto;">

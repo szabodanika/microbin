@@ -7,7 +7,10 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::args::ARGS;
 use crate::util::animalnumbers::to_animal_names;
+use crate::util::animalnumbers::to_u64;
 use crate::util::hashids::to_hashids;
+use crate::util::hashids::to_u64 as hashid_to_u64;
+use crate::util::misc::remove_expired;
 use crate::util::syntaxhighlighter::html_highlight;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq)]
@@ -35,6 +38,7 @@ impl PastaFile {
 #[derive(Serialize, Deserialize)]
 pub struct Pasta {
     pub id: u64,
+    pub slug: Option<String>,
     pub content: String,
     pub file: Option<PastaFile>,
     pub extension: String,
@@ -52,6 +56,8 @@ impl Pasta {
     pub fn id_as_animals(&self) -> String {
         if ARGS.hash_ids {
             to_hashids(self.id)
+        } else if ARGS.slugs && self.slug.is_some() {
+            self.slug.as_ref().unwrap().to_owned()
         } else {
             to_animal_names(self.id)
         }
@@ -145,6 +151,40 @@ impl Pasta {
 
     pub fn content_escaped(&self) -> String {
         self.content.replace('`', "\\`").replace('$', "\\$")
+    }
+
+    pub fn get_index(slug: &str, pastas: &mut Vec<Pasta>) -> (usize, bool) {
+        let id = if ARGS.hash_ids {
+            hashid_to_u64(slug).unwrap_or(0)
+        } else {
+            to_u64(slug).unwrap_or(0)
+        };
+
+        // remove expired pastas (including this one if needed)
+        remove_expired(pastas);
+
+        // find the index of the pasta in the collection based on u64 id
+        let mut index: usize = 0;
+        let mut found: bool = false;
+        for (i, pasta) in pastas.iter().enumerate() {
+            match pasta.slug {
+                Some(ref s) if ARGS.slugs => {
+                    if s == slug {
+                        index = i;
+                        found = true;
+                        break;
+                    }
+                }
+                _ => {
+                    if pasta.id == id {
+                        index = i;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+        (index, found)
     }
 }
 

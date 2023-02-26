@@ -92,6 +92,9 @@ pub struct Args {
 
     #[clap(long, env = "MICROBIN_HASH_IDS")]
     pub hash_ids: bool,
+
+    #[clap(long, env = "MICROBIN_SLUGS")]
+    pub slugs: bool,
 }
 
 #[derive(Debug, Clone)]
