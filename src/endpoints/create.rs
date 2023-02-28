@@ -37,7 +37,6 @@ pub async fn create(
             .finish());
     }
 
-
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
         Err(_) => {
@@ -203,6 +202,17 @@ pub async fn create(
 
     let id = new_pasta.id;
 
+    let mut pastas = data.pastas.lock().unwrap();
+
+    if let Some(slug) = &new_pasta.slug {
+        let pasta = pastas
+            .iter()
+            .find(|p| p.slug.is_some() && p.slug.as_ref().unwrap() == slug);
+        if pasta.is_some() {
+            new_pasta.slug = Some(format!("{}-{}", slug, to_animal_names(id)));
+        }
+    }
+
     let slug = if ARGS.hash_ids {
         to_hashids(id)
     } else if ARGS.slugs && new_pasta.slug.is_some() {
@@ -211,7 +221,6 @@ pub async fn create(
         to_animal_names(id)
     };
 
-    let mut pastas = data.pastas.lock().unwrap();
     pastas.push(new_pasta);
 
     save_to_file(&pastas);
