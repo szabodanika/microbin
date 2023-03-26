@@ -74,7 +74,7 @@ pub async fn post_edit(
     while let Some(mut field) = payload.try_next().await? {
         if field.name() == "content" {
             while let Some(chunk) = field.try_next().await? {
-                new_content = std::str::from_utf8(&chunk).unwrap().to_string();
+                new_content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
             }
         }
     }
