@@ -9,18 +9,12 @@ MicroBin是一个超小型、功能丰富、可配置、自包含和自托管的
 ## microbin汉化
 ### 说明
 简单部分汉化,仅供学习使用,随缘更新!
-下载地址:[microbin-zh_cn](https://alist.balabi.asia/d/%E4%B8%80%E8%88%AC%E6%96%87%E4%BB%B6/microbin-zh_cn.zip?sign=PAD0m6hnSZRYuUCBcztd76oIG3TgDrvirxwwDj2lm2g=:0)
 ## 演示:
 图片:
 ![](https://lsky.balabi.asia/i/2023/03/26/641ff7330d924.png)
-![102fd62123ac0d7c56b3fefc1b571ee6.png](:/b0d47137d62c4fcdbedae11fc58b5e8e)
-![2e4e576f1f57c72f6c015c0a39b28346.png](:/b14d55f0e466443098152421d68ce2fc)
 测试demo:[microbin中文测试](https://bin.alldreams.top/)
 
 ## 使用方法:
-搭建教程参考[gugu的microbin剪贴板搭建教程](https://blog.laoda.de/archives/docker-compose-install-microbin)
-搭建教程参考[gugu的microbin剪贴板搭建教程](https://blog.laoda.de/archives/docker-compose-install-microbin)
-搭建教程参考[gugu的microbin剪贴板搭建教程](https://blog.laoda.de/archives/docker-compose-install-microbin)
 
 zip包上传至服务器并解压
 `unzip [包名]`
