@@ -4,60 +4,53 @@
     <br>
     <div id="settings">
         <div>
-            <label for="expiration">Expiration</label><br>
+            <label for="expiration">保存时间</label><br>
             <select style="width: 100%;" name="expiration" id="expiration">
-                <optgroup label="Expire after">
+                <optgroup label="到期时间">
                     {% if args.default_expiry == "1min" %}
                     <option selected value="1min">
                         {%- else %}
                     <option value="1min">
                         {%- endif %}
-                        1 minute
+                        1 分钟
                     </option>
                     {% if args.default_expiry == "10min" %}
                     <option selected value="10min">
                         {%- else %}
                     <option value="10min">
                         {%- endif %}
-                        10 minutes
+                        10 分钟
                     </option>
                     {% if args.default_expiry == "1hour" %}
                     <option selected value="1hour">
                         {%- else %}
                     <option value="1hour">
                         {%- endif %}
-                        1 hour
+                        1 小时
                     </option>
                     {% if args.default_expiry == "24hour" %}
                     <option selected value="24hour">
                         {%- else %}
                     <option value="24hour">
                         {%- endif %}
-                        24 hours
-                    </option>
-                    {% if args.default_expiry == "3days" %}
-                    <option selected value="3days">
-                        {%- else %}
-                    <option value="3days">
-                        {%- endif %}
-                        3 days
+                        24 小时
                     </option>
                     {% if args.default_expiry == "1week" %}
                     <option selected value="1week">
                         {%- else %}
                     <option value="1week">
                         {%- endif %}
-                        1 week
+                        1 星期
                     </option>
                 </optgroup>
                 {% if !args.no_eternal_pasta %}
-                <option value="never">Never Expire</option>
+                <option value="never">永不到期</option>
                 {%- endif %}
             </select>
         </div>
         {% if args.enable_burn_after %}
         <div>
-            <label for="expiration">Burn After</label><br>
+            <label for="expiration">之后销毁</label><br>
             <select style="width: 100%;" name="burn_after" id="burn_after">
                 <optgroup label="Burn after">
                     {% if args.default_burn_after == 1 %}
@@ -65,35 +58,35 @@
                         {%- else %}
                     <option value="1">
                         {%- endif %}
-                        First Read
+                        阅读 1 次
                     </option>
                     {% if args.default_burn_after == 10 %}
                     <option selected value="10">
                         {%- else %}
                     <option value="10">
                         {%- endif %}
-                        10th Read
+                        阅读 10 次
                     </option>
                     {% if args.default_burn_after == 100 %}
                     <option selected value="100">
                         {%- else %}
                     <option value="100">
                         {%- endif %}
-                        100th Read
+                        阅读 100 次
                     </option>
                     {% if args.default_burn_after == 1000 %}
                     <option selected value="1000">
                         {%- else %}
                     <option value="1000">
                         {%- endif %}
-                        1000th Read
+                        阅读 1000 次
                     </option>
                     {% if args.default_burn_after == 10000 %}
                     <option selected value="10000">
                         {%- else %}
                     <option value="10000">
                         {%- endif %}
-                        10000th Read
+                        阅读 10000 次
                     </option>
                 </optgroup>
                 {% if args.default_burn_after == 0 %}
@@ -101,7 +94,7 @@
                     {%- else %}
                 <option value="0">
                     {%- endif %}
-                    No Limit
+                    没有限制
                 </option>
             </select>
         </div>
@@ -109,10 +102,10 @@
 
         {% if args.highlightsyntax %}
         <div>
-            <label for="syntax-highlight">Syntax</label><br>
+            <label for="syntax-highlight">语法</label><br>
             <select style="width: 100%;" name="syntax-highlight" id="syntax-highlight">
-                <option value="none">None</option>
-                <optgroup label="Source Code">
+                <option value="none">无</option>
+                <optgroup label="代码">
                     <option value="sh">Bash Shell</option>
                     <option value="c">C</option>
                     <option value="cpp">C++</option>
@@ -135,7 +128,7 @@
                     <option value="sc">Scala</option>
                     <option value="swift">Swift</option>
                 </optgroup>
-                <optgroup label="Descriptors">
+                <optgroup label="描述">
                     <!-- no toml support ;-( -->
                     <option value="json">TOML</option>
                     <option value="yaml">YAML</option>
@@ -150,29 +143,28 @@
 
         <div>
             {% if args.editable || args.private %}
-            <label>Other</label>
+            <label>其它</label>
             {%- endif %}
             {% if args.editable %}
             <div>
                 <input type="checkbox" id="editable" name="editable" value="editable">
-                <label for="editable">Editable</label>
+                <label for="editable">可编辑</label>
             </div>
             {%- endif %}
             {% if args.private %}
             <div>
                 <input type="checkbox" id="private" name="private" value="private">
-                <label for="private">Private</label>
+                <label for="private">私密</label>
             </div>
             {%- endif %}
         </div>
     </div>
-    <label>Content</label>
+    <label>内容</label>
     <textarea style="width: 100%; min-height: 100px; margin-bottom: 2em" name="content" autofocus></textarea>
     <div style="overflow:auto;">
         {% if !args.no_file_upload %}
         <div style="float: left">
-            <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">Select or drop
-                    file attachment</a></label>
+            <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">选择或投放一个文件</a></label>
             <br>
             <input type="file" id="file" name="file" />
         </div>
@@ -180,10 +172,10 @@
         {% if args.readonly %}
         <b>
             <input style="width: 140px; float: right; background-color: #0076d18f;" disabled type="submit"
-                value="Read Only" /></b>
+                value="只读" /></b>
         {%- else %}
         <b>
-            <input style="width: 140px; float: right; background-color: #0076d18f;" type="submit" value="Save" />
+            <input style="width: 140px; float: right; background-color: #0076d18f;" type="submit" value="保存" />
         </b>
         {%- endif %}
     </div>
@@ -196,15 +188,15 @@
     const dropContainer = document.getElementById('pasta-form');
 
     hiddenFileButton.addEventListener('change', function () {
-        attachFileButton.textContent = "Attached: " + this.files[0].name;
+        attachFileButton.textContent = "附件: " + this.files[0].name;
     });
 
     dropContainer.ondragover = dropContainer.ondragenter = function (evt) {
         evt.preventDefault();
         if (hiddenFileButton.files.length == 0) {
-            attachFileButton.textContent = "Drop your file here";
+            attachFileButton.textContent = "将您的文件放在此处";
         } else {
-            attachFileButton.textContent = "Drop your file here to replace " + hiddenFileButton.files[0].name;
+            attachFileButton.textContent = "将您的文件放在此处以替换" + hiddenFileButton.files[0].name;
         }
     };
 
@@ -212,7 +204,7 @@
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(evt.dataTransfer.files[0]);
         hiddenFileButton.files = dataTransfer.files;
-        attachFileButton.textContent = "Attached: " + hiddenFileButton.files[0].name;
+        attachFileButton.textContent = "附件: " + hiddenFileButton.files[0].name;
         evt.preventDefault();
     };
 

@@ -21,9 +21,9 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
     let mut pastas = data.pastas.lock().unwrap();
 
     let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
+        hashid_to_u64(&*id).unwrap_or(0)
     } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
+        to_u64(&*id.into_inner()).unwrap_or(0)
     };
 
     for (i, pasta) in pastas.iter().enumerate() {

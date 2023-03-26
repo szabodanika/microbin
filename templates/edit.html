@@ -1,17 +1,17 @@
 {% include "header.html" %}
 <form method="POST" enctype="multipart/form-data">
     <h4>
-        Editing pasta '{{ pasta.id_as_animals() }}'
+        编辑剪贴板 '{{ pasta.id_as_animals() }}'
     </h4>
-    <label>Content</label>
+    <label>内容</label>
     <br>
     <textarea style="width: 100%; min-height: 100px" name="content" id="content" autofocus>{{ pasta.content }}</textarea>
     <br>
 
     {% if args.readonly %}
-    <input style="width: 140px; background-color: limegreen" disabled type="submit" value="Read Only"/>
+    <input style="width: 140px; background-color: limegreen" disabled type="submit" value="只读"/>
     {%- else %}
-    <input style="width: 140px; background-color: limegreen" type="submit" value="Save"/>
+    <input style="width: 140px; background-color: limegreen" type="submit" value="保存"/>
     {%- endif %}
     </td>
 

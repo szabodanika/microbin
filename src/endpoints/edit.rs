@@ -22,9 +22,9 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
     let mut pastas = data.pastas.lock().unwrap();
 
     let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
+        hashid_to_u64(&*id).unwrap_or(0)
     } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
+        to_u64(&*id.into_inner()).unwrap_or(0)
     };
 
     remove_expired(&mut pastas);
@@ -36,9 +36,14 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
                     .append_header(("Location", format!("{}/", ARGS.public_path)))
                     .finish();
             }
-            return HttpResponse::Ok()
-                .content_type("text/html")
-                .body(EditTemplate { pasta, args: &ARGS }.render().unwrap());
+            return HttpResponse::Ok().content_type("text/html").body(
+                EditTemplate {
+                    pasta: &pasta,
+                    args: &ARGS,
+                }
+                .render()
+                .unwrap(),
+            );
         }
     }
 
@@ -60,9 +65,9 @@ pub async fn post_edit(
     }
 
     let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
+        hashid_to_u64(&*id).unwrap_or(0)
     } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
+        to_u64(&*id.into_inner()).unwrap_or(0)
     };
 
     let mut pastas = data.pastas.lock().unwrap();
@@ -72,17 +77,20 @@ pub async fn post_edit(
     let mut new_content = String::from("");
 
     while let Some(mut field) = payload.try_next().await? {
-        if field.name() == "content" {
-            while let Some(chunk) = field.try_next().await? {
-                new_content = std::str::from_utf8(&chunk).unwrap().to_string();
+        match field.name() {
+            "content" => {
+                while let Some(chunk) = field.try_next().await? {
+                    new_content = std::str::from_utf8(&chunk).unwrap().to_string();
+                }
             }
+            _ => {}
         }
     }
 
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
             if pasta.editable {
-                pastas[i].content.replace_range(.., &new_content);
+                pastas[i].content.replace_range(.., &*new_content);
                 save_to_file(&pastas);
 
                 return Ok(HttpResponse::Found()

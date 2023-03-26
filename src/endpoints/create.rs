@@ -81,7 +81,6 @@ pub async fn create(
                         "10min" => timenow + 60 * 10,
                         "1hour" => timenow + 60 * 60,
                         "24hour" => timenow + 60 * 60 * 24,
-                        "3days" => timenow + 60 * 60 * 24 * 3,
                         "1week" => timenow + 60 * 60 * 24 * 7,
                         "never" => {
                             if ARGS.no_eternal_pasta {
@@ -123,7 +122,7 @@ pub async fn create(
                 while let Some(chunk) = field.try_next().await? {
                     content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
                 }
-                if !content.is_empty() {
+                if content.len() > 0 {
                     new_pasta.content = content;
 
                     new_pasta.pasta_type = if is_valid_url(new_pasta.content.as_str()) {
@@ -153,7 +152,7 @@ pub async fn create(
                     None => continue,
                 };
 
-                let mut file = match PastaFile::from_unsanitized(path) {
+                let mut file = match PastaFile::from_unsanitized(&path) {
                     Ok(f) => f,
                     Err(e) => {
                         warn!("Unsafe file name: {e:?}");

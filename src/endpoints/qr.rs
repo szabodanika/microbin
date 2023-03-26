@@ -7,6 +7,8 @@ use crate::util::misc::{self, remove_expired};
 use crate::AppState;
 use actix_web::{get, web, HttpResponse};
 use askama::Template;
+use qrcode_generator::QrCodeEcc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Template)]
 #[template(path = "qr.html", escape = "none")]

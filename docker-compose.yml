@@ -1,0 +1,29 @@
+version: '3.5'
+
+services:
+  microbin:
+    image: microbin-zh_cn:v1
+    container_name: microbin
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      - MICROBIN_HIGHLIGHTSYNTAX=true
+      - MICROBIN_HASH_IDS=true
+      - MICROBIN_EDITABLE=true
+      - MICROBIN_PRIVATE=true
+      - MICROBIN_HIDE_FOOTER=false
+      - MICROBIN_HELP=true
+      - MICROBIN_FOOTER_TEXT=内容设置保存的最长时间只有一周,请及时将内容保存到本地!!!
+      - MICROBIN_HIDE_HEADER=false
+      - MICROBIN_HIDE_LOGO=false
+      - MICROBIN_NO_ETERNAL_PASTA=true
+      - MICROBIN_NO_FILE_UPLOAD=false
+      - MICROBIN_NO_LISTING=false
+      - MICROBIN_THREADS=2
+      - MICROBIN_TITLE=free-bin
+      - MICROBIN_PUBLIC_PATH=http://localhost:5423/
+      - MICROBIN_QR=true
+    ports:
+      - 5423:8080
+    volumes:
+      - ./microbin-data:/app/pasta_data
