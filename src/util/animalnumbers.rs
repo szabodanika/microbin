@@ -24,7 +24,7 @@ pub fn to_animal_names(mut number: u64) -> String {
         number -= digit * ANIMAL_NAMES.len().pow(power) as u64;
         if power > 0 {
             power -= 1;
-        } else if power == 0 || number == 0 {
+        } else if power <= 0 || number == 0 {
             break;
         }
     }
@@ -35,12 +35,12 @@ pub fn to_animal_names(mut number: u64) -> String {
 pub fn to_u64(animal_names: &str) -> Result<u64, &str> {
     let mut result: u64 = 0;
 
-    let animals: Vec<&str> = animal_names.split('-').collect();
+    let animals: Vec<&str> = animal_names.split("-").collect();
 
     let mut pow = animals.len();
-    for animal in animals {
+    for i in 0..animals.len() {
         pow -= 1;
-        let animal_index = ANIMAL_NAMES.iter().position(|&r| r == animal);
+        let animal_index = ANIMAL_NAMES.iter().position(|&r| r == animals[i]);
         match animal_index {
             None => return Err("Failed to convert animal name to u64!"),
             Some(_) => {
