@@ -31,7 +31,4 @@ COPY --from=build \
   /app/target/release/microbin \
   /usr/bin/microbin
 
-# Expose webport used for the webserver to the docker runtime
-EXPOSE 8080
-
 ENTRYPOINT ["microbin"]
