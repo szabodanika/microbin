@@ -18,8 +18,7 @@ struct PastaTemplate<'a> {
     args: &'a Args,
 }
 
-#[get("/pasta/{id}")]
-pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+fn pastaresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
@@ -82,8 +81,17 @@ pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
-#[get("/url/{id}")]
-pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+#[get("/pasta/{id}")]
+pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+    pastaresponse(data, id)
+}
+
+#[get("/p/{id}")]
+pub async fn getshortpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+    pastaresponse(data, id)
+}
+
+fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
@@ -147,6 +155,17 @@ pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Ht
     HttpResponse::Ok()
         .content_type("text/html")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
+}
+
+
+#[get("/url/{id}")]
+pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+    urlresponse(data, id)
+}
+
+#[get("/u/{id}")]
+pub async fn shortredirecturl(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+    urlresponse(data, id)
 }
 
 #[get("/raw/{id}")]
