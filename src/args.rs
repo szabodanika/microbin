@@ -54,6 +54,9 @@ pub struct Args {
     #[clap(long, env="MICROBIN_PUBLIC_PATH", default_value_t = PublicUrl(String::from("")))]
     pub public_path: PublicUrl,
 
+    #[clap(long, env="MICROBIN_SHORT_PATH", default_value_t = PublicUrl(String::from("")))]
+    pub short_path: PublicUrl,
+
     #[clap(long, env = "MICROBIN_READONLY")]
     pub readonly: bool,
 

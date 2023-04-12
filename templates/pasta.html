@@ -66,8 +66,8 @@
   const copyTextBtn = document.getElementById("copy-text-button")
   const copyRedirectBtn = document.getElementById("copy-redirect-button")
   const content = `{{ pasta.content_escaped() }}`
-  const url = `{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}`
-  const redirect_url = `{{ args.public_path }}/url/{{pasta.id_as_animals()}}`
+  const url = (`{{ args.short_path }}` === "") ? `{{ args.public_path }}/pasta/{{pasta.id_as_animals()}}` : `{{ args.short_path }}/p/{{pasta.id_as_animals()}}`
+  const redirect_url = (`{{ args.short_path }}` === "") ? `{{ args.public_path }}/url/{{pasta.id_as_animals()}}` : `{{ args.short_path }}/u/{{pasta.id_as_animals()}}`
 
   const decodeEntity = (inputStr) => {
     var textarea = document.createElement("textarea");
