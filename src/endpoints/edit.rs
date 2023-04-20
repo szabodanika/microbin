@@ -1,3 +1,5 @@
+use std::sync::MutexGuard;
+
 use crate::args::Args;
 use crate::dbio::save_to_file;
 use crate::endpoints::errors::ErrorTemplate;
@@ -17,28 +19,40 @@ struct EditTemplate<'a> {
     args: &'a Args,
 }
 
-#[get("/edit/{id}")]
-pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+#[get("/edit/{slug}")]
+pub async fn get_edit(data: web::Data<AppState>, slug: web::Path<String>) -> HttpResponse {
     let mut pastas = data.pastas.lock().unwrap();
 
     let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
+        hashid_to_u64(&slug).unwrap_or(0)
     } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
+        to_u64(&slug).unwrap_or(0)
     };
 
     remove_expired(&mut pastas);
 
-    for pasta in pastas.iter() {
-        if pasta.id == id {
-            if !pasta.editable {
-                return HttpResponse::Found()
-                    .append_header(("Location", format!("{}/", ARGS.public_path)))
-                    .finish();
-            }
+    let slug = slug.as_ref();
+    let response = |pasta: &Pasta| {
+        if pasta.editable {
             return HttpResponse::Ok()
                 .content_type("text/html")
                 .body(EditTemplate { pasta, args: &ARGS }.render().unwrap());
+        }
+        return HttpResponse::Found()
+            .append_header(("Location", format!("{}/", ARGS.public_path)))
+            .finish();
+    };
+    for pasta in pastas.iter() {
+        match pasta.slug {
+            Some(ref s) if ARGS.slugs && slug == s => {
+                return response(pasta);
+            }
+            None if pasta.id == id => {
+                return response(pasta);
+            }
+            _ => {
+                continue;
+            }
         }
     }
 
@@ -47,10 +61,10 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
-#[post("/edit/{id}")]
+#[post("/edit/{slug}")]
 pub async fn post_edit(
     data: web::Data<AppState>,
-    id: web::Path<String>,
+    slug: web::Path<String>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
     if ARGS.readonly {
@@ -60,14 +74,10 @@ pub async fn post_edit(
     }
 
     let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
+        hashid_to_u64(&slug).unwrap_or(0)
     } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
+        to_u64(&slug).unwrap_or(0)
     };
-
-    let mut pastas = data.pastas.lock().unwrap();
-
-    remove_expired(&mut pastas);
 
     let mut new_content = String::from("");
 
@@ -79,20 +89,36 @@ pub async fn post_edit(
         }
     }
 
-    for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
-            if pasta.editable {
-                pastas[i].content.replace_range(.., &new_content);
-                save_to_file(&pastas);
+    let mut pastas = data.pastas.lock().unwrap();
+    remove_expired(&mut pastas);
+    let slug = slug.as_ref();
+    let response = |pastas: &mut MutexGuard<Vec<Pasta>>, i: usize| {
+        pastas[i].content.replace_range(.., &new_content);
+        save_to_file(pastas);
+        return Ok(HttpResponse::Found()
+                  .append_header((
+                          "Location",
+                          format!("{}/pasta/{}", ARGS.public_path, pastas[i].id_as_animals()),
+                          ))
+                  .finish());
+    };
 
-                return Ok(HttpResponse::Found()
-                    .append_header((
-                        "Location",
-                        format!("{}/pasta/{}", ARGS.public_path, pastas[i].id_as_animals()),
-                    ))
-                    .finish());
-            } else {
+    for (i, pasta) in pastas.iter().enumerate() {
+        match pasta.slug {
+            Some(ref s) if ARGS.slugs && slug == s && pasta.editable => {
+                return response(&mut pastas, i);
+            }
+            Some(ref s) if ARGS.slugs && slug == s && !pasta.editable => {
                 break;
+            }
+            None if pasta.id == id && pasta.editable => {
+                return response(&mut pastas, i);
+            }
+            None if pasta.id == id && !pasta.editable => {
+                break;
+            }
+            _ => {
+                continue;
             }
         }
     }

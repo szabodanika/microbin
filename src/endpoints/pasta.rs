@@ -2,8 +2,6 @@ use crate::args::{Args, ARGS};
 use crate::dbio::save_to_file;
 use crate::endpoints::errors::ErrorTemplate;
 use crate::pasta::Pasta;
-use crate::util::animalnumbers::to_u64;
-use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::remove_expired;
 use crate::AppState;
 
@@ -22,25 +20,11 @@ fn pastaresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpRespon
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
-    };
-
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
 
     // find the index of the pasta in the collection based on u64 id
-    let mut index: usize = 0;
-    let mut found: bool = false;
-    for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
-            index = i;
-            found = true;
-            break;
-        }
-    }
+    let (index, found) = Pasta::get_index(id.as_ref(), &mut pastas);
 
     if found {
         // increment read count
@@ -95,26 +79,7 @@ fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
-    };
-
-    // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
-
-    // find the index of the pasta in the collection based on u64 id
-    let mut index: usize = 0;
-    let mut found: bool = false;
-
-    for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
-            index = i;
-            found = true;
-            break;
-        }
-    }
+    let (index, found) = Pasta::get_index(id.as_ref(), &mut pastas);
 
     if found {
         // increment read count
@@ -173,25 +138,7 @@ pub async fn getrawpasta(data: web::Data<AppState>, id: web::Path<String>) -> St
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
-    };
-
-    // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
-
-    // find the index of the pasta in the collection based on u64 id
-    let mut index: usize = 0;
-    let mut found: bool = false;
-    for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
-            index = i;
-            found = true;
-            break;
-        }
-    }
+    let (index, found) = Pasta::get_index(id.as_ref(), &mut pastas);
 
     if found {
         // increment read count

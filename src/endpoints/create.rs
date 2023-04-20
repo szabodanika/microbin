@@ -59,8 +59,6 @@ pub async fn create(
             .finish());
     }
 
-    let mut pastas = data.pastas.lock().unwrap();
-
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
         Err(_) => {
@@ -71,6 +69,7 @@ pub async fn create(
 
     let mut new_pasta = Pasta {
         id: rand::thread_rng().gen::<u16>() as u64,
+        slug: None,
         content: String::from("No Text Content"),
         file: None,
         extension: String::from(""),
@@ -118,6 +117,16 @@ pub async fn create(
                             0
                         }
                     };
+                }
+
+                continue;
+            }
+            "slug" => {
+                while let Some(chunk) = field.try_next().await? {
+                    let slug = std::str::from_utf8(&chunk).unwrap().to_string();
+                    if !slug.is_empty() {
+                        new_pasta.slug = Some(slug);
+                    }
                 }
 
                 continue;
@@ -197,15 +206,29 @@ pub async fn create(
 
     let id = new_pasta.id;
 
+    let mut pastas = data.pastas.lock().unwrap();
+
+    if let Some(slug) = &new_pasta.slug {
+        let pasta = pastas
+            .iter()
+            .find(|p| p.slug.is_some() && p.slug.as_ref().unwrap() == slug);
+        if pasta.is_some() {
+            new_pasta.slug = Some(format!("{}-{}", slug, to_animal_names(id)));
+        }
+    }
+
+    let slug = if ARGS.hash_ids {
+        to_hashids(id)
+    } else if ARGS.slugs && new_pasta.slug.is_some() {
+        new_pasta.slug.clone().unwrap()
+    } else {
+        to_animal_names(id)
+    };
+
     pastas.push(new_pasta);
 
     save_to_file(&pastas);
 
-    let slug = if ARGS.hash_ids {
-        to_hashids(id)
-    } else {
-        to_animal_names(id)
-    };
     Ok(HttpResponse::Found()
         .append_header(("Location", format!("{}/pasta/{}", ARGS.public_path, slug)))
         .finish())
