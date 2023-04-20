@@ -90,8 +90,13 @@
                 </td>
                 <td>
                     <a style="margin-right:1rem" href="{{ args.public_path }}/url/{{pasta.id_as_animals()}}">Open</a>
+                    {% if args.short_path.to_string() == "" %}
                     <a style="margin-right:1rem; cursor: pointer;" id="copy-button"
                         data-url="{{ args.public_path }}/url/{{pasta.id_as_animals()}}">Copy</a>
+                    {% else %}
+                    <a style="margin-right:1rem; cursor: pointer;" id="copy-button"
+                        data-url="{{ args.short_path }}/u/{{pasta.id_as_animals()}}">Copy</a>
+                    {% endif %}
                     {% if pasta.editable %}
                     <a style="margin-right:1rem" href="{{ args.public_path }}/edit/{{pasta.id_as_animals()}}">Edit</a>
                     {%- endif %}
