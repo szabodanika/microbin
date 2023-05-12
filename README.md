@@ -74,7 +74,7 @@ You can use MicroBin:
 ## How to deploy app into Fly.io server
 
 ### Step 1:
-Insatll the [Fly.io CLI](https://fly.io/docs/hands-on/install-flyctl/)
+Install the [Fly.io CLI](https://fly.io/docs/hands-on/install-flyctl/)
 
 ### Step 2:
 ```
