@@ -71,6 +71,18 @@ You can use MicroBin:
 
 ...and many other things, why not get creative?
 
+## How to deploy app into Fly.io server
+
+### Step 1:
+Insatll the [Fly.io CLI](https://fly.io/docs/hands-on/install-flyctl/)
+
+### Step 2:
+```
+git clone https://github.com/manjularajamani/microbin.git
+cd microbin/
+flyctl launch
+```
+
 MicroBin and MicroBin.eu are available under the [BSD 3-Clause License](LICENSE).
 
 © Dániel Szabó 2022
