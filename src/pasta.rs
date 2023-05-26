@@ -144,7 +144,7 @@ impl Pasta {
     }
 
     pub fn content_escaped(&self) -> String {
-        html_escape::encode_text(&self.content.replace('`', "\\`").replace('$', "\\$")).to_string()
+        html_escape::encode_text(&self.content.replace('\\', "\\\\").replace('`', "\\`").replace('$', "\\$")).to_string()
     }
 }
 
