@@ -49,6 +49,7 @@
   </div>
 </div>
 {%- endif %}
+{%- if ! pasta.hide_read_count %}
 <div>
   {% if pasta.read_count == 1 %}
   <p style="font-size: small">Read {{pasta.read_count}} time, last {{pasta.last_read_time_ago_as_string()}}</p>
@@ -57,6 +58,7 @@
   {%- endif %}
 
 </div>
+{%- endif %}
 
 <br>
 

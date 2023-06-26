@@ -76,6 +76,7 @@ pub async fn create(
         extension: String::from(""),
         private: false,
         editable: false,
+        hide_read_count: false,
         created: timenow,
         read_count: 0,
         burn_after_reads: 0,
@@ -94,6 +95,10 @@ pub async fn create(
             "private" => {
                 // while let Some(_chunk) = field.try_next().await? {}
                 new_pasta.private = true;
+                continue;
+            }
+            "hide_read_count" => {
+                new_pasta.hide_read_count = true;
                 continue;
             }
             "expiration" => {
