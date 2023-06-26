@@ -2,12 +2,14 @@ FROM rust:latest as build
 
 WORKDIR /app
 
-COPY . .
-
 RUN \
   DEBIAN_FRONTEND=noninteractive \
   apt-get update &&\
-  apt-get -y install ca-certificates tzdata &&\
+  apt-get -y install ca-certificates tzdata
+
+COPY . .
+
+RUN \
   CARGO_NET_GIT_FETCH_WITH_CLI=true \
   cargo build --release
 
