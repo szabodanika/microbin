@@ -142,8 +142,10 @@ impl Args {
     }
 
     pub fn short_path_as_str(&self) -> String {
-        if self.public_path.is_some() {
+        if self.short_path.is_some() {
             self.short_path.as_ref().unwrap().to_string()
+        } else if self.public_path.is_some() {
+            self.public_path.as_ref().unwrap().to_string()
         } else {
             String::from("")
         }
