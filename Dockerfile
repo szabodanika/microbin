@@ -19,10 +19,12 @@ FROM bitnami/minideb:latest
 # microbin will be in /app
 WORKDIR /app
 
+RUN mkdir -p /usr/share/zoneinfo
+
 # copy time zone info
 COPY --from=build \
   /usr/share/zoneinfo \
-  /usr/share/zoneinfo
+  /usr/share/
 
 COPY --from=build \
   /etc/ssl/certs/ca-certificates.crt \
