@@ -28,7 +28,7 @@ pub async fn auth_admin_with_status(param: web::Path<String>) -> HttpResponse {
     return HttpResponse::Ok().content_type("text/html").body(
         AuthAdmin {
             args: &ARGS,
-            status: String::from(status.to_owned()),
+            status,
         }
         .render()
         .unwrap(),

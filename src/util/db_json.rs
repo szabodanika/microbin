@@ -11,7 +11,7 @@ pub fn read_all() -> Vec<Pasta> {
 }
 
 pub fn update_all(pastas: &Vec<Pasta>) {
-    save_to_file(&pastas);
+    save_to_file(pastas);
 }
 
 fn save_to_file(pasta_data: &Vec<Pasta>) {

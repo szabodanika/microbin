@@ -20,7 +20,7 @@ struct AdminTemplate<'a> {
 #[get("/admin")]
 pub async fn get_admin() -> Result<HttpResponse, Error> {
     return Ok(HttpResponse::Found()
-        .append_header(("Location", format!("/auth_admin")))
+        .append_header(("Location", "/auth_admin"))
         .finish());
 }
 
@@ -46,7 +46,7 @@ pub async fn post_admin(
 
     if username != ARGS.auth_admin_username || password != ARGS.auth_admin_password {
         return Ok(HttpResponse::Found()
-            .append_header(("Location", format!("/auth_admin/incorrect")))
+            .append_header(("Location", "/auth_admin/incorrect"))
             .finish());
     }
 
@@ -61,7 +61,7 @@ pub async fn post_admin(
     let mut status = "OK";
     let mut message = "";
 
-    if !ARGS.public_path.is_some() {
+    if ARGS.public_path.is_none() {
         status = "WARNING";
         message = "Warning: No public URL set with --public-path parameter. QR code and URL Copying functions have been disabled"
     }

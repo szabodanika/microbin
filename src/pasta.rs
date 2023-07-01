@@ -94,15 +94,15 @@ impl Pasta {
         };
 
         if total_size_bytes < 1024 {
-            return format!("{} B", total_size_bytes);
+            format!("{} B", total_size_bytes)
         } else if total_size_bytes < 1024 * 1024 {
-            return format!("{} KB", total_size_bytes / 1024);
+            format!("{} KB", total_size_bytes / 1024)
         } else if total_size_bytes < 1024 * 1024 * 1024 {
-            return format!("{} MB", total_size_bytes / (1024 * 1024));
+            format!("{} MB", total_size_bytes / (1024 * 1024))
         } else if total_size_bytes < 1024 * 1024 * 1024 * 1024 {
-            return format!("{} GB", total_size_bytes / (1024 * 1024 * 1024));
+            format!("{} GB", total_size_bytes / (1024 * 1024 * 1024))
         } else {
-            return format!("{} TB", total_size_bytes / (1024 * 1024 * 1024 * 1024));
+            format!("{} TB", total_size_bytes / (1024 * 1024 * 1024 * 1024))
         }
     }
 

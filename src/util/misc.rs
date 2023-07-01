@@ -73,27 +73,23 @@ pub fn is_valid_url(url: &str) -> bool {
 }
 
 pub fn encrypt(text_str: &str, key_str: &str) -> String {
-    if text_str.len() == 0 {
+    if text_str.is_empty() {
         return String::from("");
     }
 
     let mc = new_magic_crypt!(key_str, 256);
 
-    let encrypted = mc.encrypt_str_to_base64(text_str);
-
-    encrypted
+    mc.encrypt_str_to_base64(text_str)
 }
 
 pub fn decrypt(text_str: &str, key_str: &str) -> Result<String, magic_crypt::MagicCryptError> {
-    if text_str.len() == 0 {
+    if text_str.is_empty() {
         return Ok(String::from(""));
     }
 
     let mc = new_magic_crypt!(key_str, 256);
 
-    let decrypted = mc.decrypt_base64_to_string(text_str);
-
-    decrypted
+    mc.decrypt_base64_to_string(text_str)
 }
 
 pub fn encrypt_file(
@@ -107,7 +103,7 @@ pub fn encrypt_file(
     reader.read_to_end(&mut input_data)?;
 
     // Create a MagicCrypt instance with the given passphrase
-    let mc = new_magic_crypt!(passphrase.to_owned(), 256);
+    let mc = new_magic_crypt!(passphrase, 256);
 
     // Encrypt the input data
     let ciphertext = mc.encrypt_bytes_to_bytes(&input_data[..]);
@@ -137,12 +133,12 @@ pub fn decrypt_file(
     reader.read_to_end(&mut ciphertext)?;
 
     // Create a MagicCrypt instance with the given passphrase
-    let mc = new_magic_crypt!(passphrase.to_owned(), 256);
+    let mc = new_magic_crypt!(passphrase, 256);
     // Encrypt the input data
     let res = mc.decrypt_bytes_to_bytes(&ciphertext[..]);
 
     if res.is_err() {
-        println!("{}", res.err().unwrap().to_string());
+        println!("{}", res.err().unwrap());
         return Err("Failed to decrypt file".into());
     }
 

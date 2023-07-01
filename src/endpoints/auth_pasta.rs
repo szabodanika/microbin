@@ -76,8 +76,8 @@ pub async fn auth_pasta_with_status(
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
-                    id: id,
-                    status: status.to_owned(),
+                    id,
+                    status,
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("pasta"),
@@ -151,8 +151,8 @@ pub async fn auth_raw_pasta_with_status(
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
-                    id: id,
-                    status: status.to_owned(),
+                    id,
+                    status,
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("raw"),
@@ -226,8 +226,8 @@ pub async fn auth_edit_private_with_status(
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
-                    id: id,
-                    status: status.to_owned(),
+                    id,
+                    status,
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("edit_private"),
@@ -301,8 +301,8 @@ pub async fn auth_file_with_status(
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
-                    id: id,
-                    status: status.to_owned(),
+                    id,
+                    status,
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("secure_file"),

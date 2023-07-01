@@ -49,7 +49,7 @@ fn pastaresponse(
     }
 
     if found {
-        if pastas[index].encrypt_server && password == String::from("") {
+        if pastas[index].encrypt_server && password == *"" {
             return HttpResponse::Found()
                 .append_header((
                     "Location",
@@ -67,9 +67,9 @@ fn pastaresponse(
         let original_content = pastas[index].content.to_owned();
 
         // decrypt content temporarily
-        if password != String::from("") && original_content.len() != 0 {
+        if password != *"" && !original_content.is_empty() {
             let res = decrypt(&original_content, &password);
-            if res.is_ok() {
+            if let Ok(..) = res {
                 pastas[index]
                     .content
                     .replace_range(.., res.unwrap().as_str());
@@ -94,7 +94,7 @@ fn pastaresponse(
         );
 
         if pastas[index].content != original_content {
-            pastas[index].content = String::from(original_content);
+            pastas[index].content = original_content;
         }
 
         // get current unix time in seconds
@@ -357,7 +357,7 @@ pub async fn postrawpasta(
     }
 
     if found {
-        if pastas[index].encrypt_server && password == String::from("") {
+        if pastas[index].encrypt_server && password == *"" {
             return Ok(HttpResponse::Found()
                 .append_header((
                     "Location",
@@ -375,7 +375,7 @@ pub async fn postrawpasta(
         let original_content = pastas[index].content.to_owned();
 
         // decrypt content temporarily
-        if password != String::from("") {
+        if password != *"" {
             let res = decrypt(&original_content, &password);
             if res.is_ok() {
                 pastas[index]
@@ -412,7 +412,7 @@ pub async fn postrawpasta(
             .body(pastas[index].content.to_owned()));
 
         if pastas[index].content != original_content {
-            pastas[index].content = String::from(original_content);
+            pastas[index].content = original_content;
         }
 
         return response;
@@ -427,7 +427,5 @@ pub async fn postrawpasta(
 fn decrypt(text_str: &str, key_str: &str) -> Result<String, magic_crypt::MagicCryptError> {
     let mc = new_magic_crypt!(key_str, 256);
 
-    let decrypted = mc.decrypt_base64_to_string(text_str);
-
-    decrypted
+    mc.decrypt_base64_to_string(text_str)
 }

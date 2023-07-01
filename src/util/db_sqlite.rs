@@ -9,11 +9,11 @@ pub fn read_all() -> Vec<Pasta> {
     select_all_from_db()
 }
 
-pub fn update_all(pastas: &Vec<Pasta>) {
-    rewrite_all_to_db(&pastas);
+pub fn update_all(pastas: &[Pasta]) {
+    rewrite_all_to_db(pastas);
 }
 
-pub fn rewrite_all_to_db(pasta_data: &Vec<Pasta>) {
+pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
     let conn = Connection::open(DATABASE_PATH).expect("Failed to open SQLite database!");
 
     conn.execute(
@@ -136,7 +136,7 @@ pub fn select_all_from_db() -> Vec<Pasta> {
                     if file_name != "" && file_size != 0 {
                         Some(PastaFile {
                             name: file_name,
-                            size: ByteSize::b(file_size as u64),
+                            size: ByteSize::b(file_size),
                         })
                     } else {
                         None

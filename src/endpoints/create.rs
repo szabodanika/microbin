@@ -244,11 +244,11 @@ pub async fn create(
 
     let id = new_pasta.id;
 
-    if plain_key != String::from("") && new_pasta.readonly {
+    if plain_key != *"" && new_pasta.readonly {
         new_pasta.encrypted_key = Some(encrypt(id.to_string().as_str(), &plain_key));
     }
 
-    if new_pasta.encrypt_server && !new_pasta.readonly && new_pasta.content != String::from("") {
+    if new_pasta.encrypt_server && !new_pasta.readonly && new_pasta.content != *"" {
         if new_pasta.encrypt_client {
             new_pasta.content = encrypt(&new_pasta.content, &random_key);
         } else {
@@ -273,7 +273,7 @@ pub async fn create(
 
     for (_, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
-            insert(Some(&pastas), Some(&pasta));
+            insert(Some(&pastas), Some(pasta));
         }
     }
 

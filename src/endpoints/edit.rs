@@ -49,7 +49,7 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
 
             return HttpResponse::Ok().content_type("text/html").body(
                 EditTemplate {
-                    pasta: pasta,
+                    pasta,
                     args: &ARGS,
                     path: &String::from("edit"),
                     status: &String::from(""),
@@ -101,10 +101,10 @@ pub async fn get_edit_with_status(
 
             return HttpResponse::Ok().content_type("text/html").body(
                 EditTemplate {
-                    pasta: pasta,
+                    pasta,
                     args: &ARGS,
                     path: &String::from("edit"),
-                    status: &String::from(status),
+                    status: &status,
                 }
                 .render()
                 .unwrap(),
@@ -160,7 +160,7 @@ pub async fn post_edit_private(
         let original_content = pastas[index].content.to_owned();
 
         // decrypt content temporarily
-        if password != String::from("") {
+        if password != *"" {
             let res = decrypt(&original_content, &password);
             if res.is_ok() {
                 pastas[index]
@@ -192,7 +192,7 @@ pub async fn post_edit_private(
         );
 
         if pastas[index].content != original_content {
-            pastas[index].content = String::from(original_content);
+            pastas[index].content = original_content;
         }
 
         return Ok(response);
@@ -247,52 +247,50 @@ pub async fn post_submit_edit_private(
         }
     }
 
-    if found {
-        if pastas[index].editable {
-            if pastas[index].readonly {
-                let res = decrypt(&pastas[index].encrypted_key.as_ref().unwrap(), &password);
-                if res.is_ok() {
-                    pastas[index]
-                        .content
-                        .replace_range(.., &encrypt(&new_content, &password));
-                } else {
-                    return Ok(HttpResponse::Found()
-                        .append_header((
-                            "Location",
-                            format!("/edit/{}/incorrect", pastas[index].id_as_animals()),
-                        ))
-                        .finish());
-                }
-            } else if pastas[index].private {
-                let res = decrypt(&pastas[index].content, &password);
-                if res.is_ok() {
-                    pastas[index]
-                        .content
-                        .replace_range(.., &encrypt(&new_content, &password));
-                } else {
-                    return Ok(HttpResponse::Found()
-                        .append_header((
-                            "Location",
-                            format!(
-                                "/auth_edit_private/{}/incorrect",
-                                pastas[index].id_as_animals()
-                            ),
-                        ))
-                        .finish());
-                }
+    if found && pastas[index].editable {
+        if pastas[index].readonly {
+            let res = decrypt(pastas[index].encrypted_key.as_ref().unwrap(), &password);
+            if res.is_ok() {
+                pastas[index]
+                    .content
+                    .replace_range(.., &encrypt(&new_content, &password));
+            } else {
+                return Ok(HttpResponse::Found()
+                    .append_header((
+                        "Location",
+                        format!("/edit/{}/incorrect", pastas[index].id_as_animals()),
+                    ))
+                    .finish());
             }
-
-            return Ok(HttpResponse::Found()
-                .append_header((
-                    "Location",
-                    format!(
-                        "{}/pasta/{}",
-                        ARGS.public_path_as_str(),
-                        pastas[index].id_as_animals()
-                    ),
-                ))
-                .finish());
+        } else if pastas[index].private {
+            let res = decrypt(&pastas[index].content, &password);
+            if res.is_ok() {
+                pastas[index]
+                    .content
+                    .replace_range(.., &encrypt(&new_content, &password));
+            } else {
+                return Ok(HttpResponse::Found()
+                    .append_header((
+                        "Location",
+                        format!(
+                            "/auth_edit_private/{}/incorrect",
+                            pastas[index].id_as_animals()
+                        ),
+                    ))
+                    .finish());
+            }
         }
+
+        return Ok(HttpResponse::Found()
+            .append_header((
+                "Location",
+                format!(
+                    "{}/pasta/{}",
+                    ARGS.public_path_as_str(),
+                    pastas[index].id_as_animals()
+                ),
+            ))
+            .finish());
     }
     Ok(HttpResponse::Ok()
         .content_type("text/html")
@@ -341,8 +339,8 @@ pub async fn post_edit(
         if pasta.id == id {
             if pasta.editable {
                 if pastas[i].readonly || pastas[i].private {
-                    if password != String::from("") {
-                        let res = decrypt(&pastas[i].encrypted_key.as_ref().unwrap(), &password);
+                    if password != *"" {
+                        let res = decrypt(pastas[i].encrypted_key.as_ref().unwrap(), &password);
                         if res.is_ok() {
                             pastas[i].content.replace_range(.., &new_content);
                         } else {

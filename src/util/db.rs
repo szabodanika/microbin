@@ -26,9 +26,9 @@ pub fn update(pastas: Option<&Vec<Pasta>>, pasta: Option<&Pasta>) {
 
 pub fn update_all(pastas: &Vec<Pasta>) {
     if ARGS.json_db {
-        super::db_json::update_all(&pastas);
+        super::db_json::update_all(pastas);
     } else {
-        super::db_sqlite::update_all(&pastas);
+        super::db_sqlite::update_all(pastas);
     }
 }
 

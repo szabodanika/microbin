@@ -74,7 +74,7 @@ pub async fn post_secure_file(
             return Ok(response);
         }
     }
-    return Ok(HttpResponse::NotFound().finish());
+    Ok(HttpResponse::NotFound().finish())
 }
 
 #[get("/file/{id}")]
@@ -149,5 +149,5 @@ pub async fn get_file(
         }
     }
 
-    return Ok(HttpResponse::NotFound().finish());
+    Ok(HttpResponse::NotFound().finish())
 }
