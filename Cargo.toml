@@ -36,6 +36,8 @@ rust-embed = "6.4.2"
 mime_guess = "2.0.4"
 harsh = "0.2"
 html-escape = "0.2.13"
+magic-crypt = "3.1.12"
+rusqlite = { version = "0.29.0", features = ["bundled"] }
 
 [profile.release]
 lto = true

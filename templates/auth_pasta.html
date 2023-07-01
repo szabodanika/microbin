@@ -1,0 +1,73 @@
+{% include "header.html" %}
+
+{% if encrypt_client %}
+
+<form id="auth-form" method="POST" action="/{{path}}/{{id}}" enctype="multipart/form-data">
+  <label for="password"> Please enter the password to open the upload. <sup>
+      <a href="/guide#encryption">﹖</a></sup></label>
+  <input id="password-field" placeholder="Password" type="password" autocomplete="off">
+  <input id="password-hidden" name="password" type="hidden">
+  <button>Open</button>
+</form>
+
+<script>
+
+  const form = document.getElementById("auth-form");
+  const passwordField = document.getElementById("password-field");
+  const passwordHiddenField = document.getElementById("password-hidden");
+
+  form.onsubmit = function () {
+    let key = decryptWithPassword(passwordField.value, "{{ encrypted_key }}");
+
+    if (key) {
+      passwordHiddenField.value = key;
+    }
+  };
+
+  function decryptWithPassword(password, encryptedHex) {
+    const passwordBytes = aesjs.utils.utf8.toBytes(password.padStart(32, "#"));
+    const encryptedBytes = aesjs.utils.hex.toBytes(encryptedHex);
+    const aesCtr = new aesjs.ModeOfOperation.ctr(passwordBytes);
+    const decryptedBytes = aesCtr.decrypt(encryptedBytes);
+    const res = aesjs.utils.utf8.fromBytes(decryptedBytes);
+
+    if (res.endsWith("!0K")) {
+      return res.substring(0, res.length - "!0K".length);
+    } else {
+      return null;
+    }
+  }
+</script>
+
+{% else %}
+
+<form id="auth-form" method="POST" action="/{{path}}/{{id}}" enctype="multipart/form-data">
+  <label for="password" style="margin-bottom: 0.5rem;"> Please enter the
+    password to access the upload. <sup>
+      <a href="/guide#encryption">﹖</a></sup></label>
+  <input id="password-field" placeholder="Password" name="password" type="password" autocomplete="off" />
+  <button>Okay</button>
+
+  {% if status == "incorrect" %}
+  <p>
+    Incorrect password.
+  </p>
+  {% endif %}
+
+</form>
+
+{% endif %}
+
+{% include "footer.html" %} {% if !args.pure_html %}
+<style>
+  #auth-form {
+    background-color: #f7f7f7;
+    border-radius: 6px;
+    padding: 10px;
+    width: fit-content;
+    margin: auto;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+</style>
+{% endif %}

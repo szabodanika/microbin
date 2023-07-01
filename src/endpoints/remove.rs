@@ -4,6 +4,7 @@ use crate::args::ARGS;
 use crate::endpoints::errors::ErrorTemplate;
 use crate::pasta::PastaFile;
 use crate::util::animalnumbers::to_u64;
+use crate::util::db::delete;
 use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::remove_expired;
 use crate::AppState;
@@ -14,7 +15,7 @@ use std::fs;
 pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     if ARGS.readonly {
         return HttpResponse::Found()
-            .append_header(("Location", format!("{}/", ARGS.public_path)))
+            .append_header(("Location", format!("{}/", ARGS.public_path_as_str())))
             .finish();
     }
 
@@ -31,7 +32,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
             // remove the file itself
             if let Some(PastaFile { name, .. }) = &pasta.file {
                 if fs::remove_file(format!(
-                    "./pasta_data/public/{}/{}",
+                    "./pasta_data/attachments/{}/{}",
                     pasta.id_as_animals(),
                     name
                 ))
@@ -41,16 +42,26 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
                 }
 
                 // and remove the containing directory
-                if fs::remove_dir(format!("./pasta_data/public/{}/", pasta.id_as_animals()))
-                    .is_err()
+                if fs::remove_dir(format!(
+                    "./pasta_data/attachments/{}/",
+                    pasta.id_as_animals()
+                ))
+                .is_err()
                 {
                     log::error!("Failed to delete directory {}!", name)
                 }
             }
+
             // remove it from in-memory pasta list
             pastas.remove(i);
+
+            delete(Some(&pastas), Some(id));
+
             return HttpResponse::Found()
-                .append_header(("Location", format!("{}/pastalist", ARGS.public_path)))
+                .append_header((
+                    "Location",
+                    format!("{}/pastalist", ARGS.public_path_as_str()),
+                ))
                 .finish();
         }
     }

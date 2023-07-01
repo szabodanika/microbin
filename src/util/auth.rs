@@ -9,8 +9,8 @@ pub async fn auth_validator(
     credentials: BasicAuth,
 ) -> Result<ServiceRequest, Error> {
     // check if username matches
-    if credentials.user_id().as_ref() == ARGS.auth_username.as_ref().unwrap() {
-        return match ARGS.auth_password.as_ref() {
+    if credentials.user_id().as_ref() == ARGS.auth_basic_username.as_ref().unwrap() {
+        return match ARGS.auth_basic_password.as_ref() {
             Some(cred_pass) => match credentials.password() {
                 None => Err(error::ErrorBadRequest("Invalid login details.")),
                 Some(arg_pass) => {

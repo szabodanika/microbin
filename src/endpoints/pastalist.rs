@@ -17,13 +17,16 @@ struct PastaListTemplate<'a> {
 pub async fn list(data: web::Data<AppState>) -> HttpResponse {
     if ARGS.no_listing {
         return HttpResponse::Found()
-            .append_header(("Location", format!("{}/", ARGS.public_path)))
+            .append_header(("Location", format!("{}/", ARGS.public_path_as_str())))
             .finish();
     }
 
     let mut pastas = data.pastas.lock().unwrap();
 
     remove_expired(&mut pastas);
+
+    // sort pastas in reverse-chronological order of creation time
+    pastas.sort_by(|a, b| b.created.cmp(&a.created));
 
     HttpResponse::Ok().content_type("text/html").body(
         PastaListTemplate {

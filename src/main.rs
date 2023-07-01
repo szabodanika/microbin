@@ -2,10 +2,11 @@ extern crate core;
 
 use crate::args::ARGS;
 use crate::endpoints::{
-    create, edit, errors, info, pasta as pasta_endpoint, pastalist, qr, remove, static_resources,
+    admin, auth_admin, auth_pasta, create, edit, errors, file, how_to_use, pasta as pasta_endpoint,
+    pastalist, qr, remove, static_resources,
 };
 use crate::pasta::Pasta;
-use crate::util::dbio;
+use crate::util::db::read_all;
 use actix_web::middleware::Condition;
 use actix_web::{middleware, web, App, HttpServer};
 use actix_web_httpauth::middleware::HttpAuthentication;
@@ -22,17 +23,23 @@ pub mod pasta;
 pub mod util {
     pub mod animalnumbers;
     pub mod auth;
-    pub mod dbio;
+    pub mod db;
+    pub mod db_json;
+    pub mod db_sqlite;
     pub mod hashids;
     pub mod misc;
     pub mod syntaxhighlighter;
 }
 
 pub mod endpoints {
+    pub mod admin;
+    pub mod auth_admin;
+    pub mod auth_pasta;
     pub mod create;
     pub mod edit;
     pub mod errors;
-    pub mod info;
+    pub mod file;
+    pub mod how_to_use;
     pub mod pasta;
     pub mod pastalist;
     pub mod qr;
@@ -69,18 +76,18 @@ async fn main() -> std::io::Result<()> {
         Ok(dir) => dir,
         Err(error) => {
             log::error!(
-                "Couldn't create data directory ./pasta_data/public/: {:?}",
+                "Couldn't create data directory ./pasta_data/attachments/: {:?}",
                 error
             );
             panic!(
-                "Couldn't create data directory ./pasta_data/public/: {:?}",
+                "Couldn't create data directory ./pasta_data/attachments/: {:?}",
                 error
             );
         }
     };
 
     let data = web::Data::new(AppState {
-        pastas: Mutex::new(dbio::load_from_file().unwrap()),
+        pastas: Mutex::new(read_all()),
     });
 
     HttpServer::new(move || {
@@ -88,24 +95,44 @@ async fn main() -> std::io::Result<()> {
             .app_data(data.clone())
             .wrap(middleware::NormalizePath::trim())
             .service(create::index)
-            .service(info::info)
+            .service(how_to_use::how_to_use)
+            .service(auth_admin::auth_admin)
+            .service(auth_admin::auth_admin_with_status)
+            .service(auth_pasta::auth_pasta_with_status)
+            .service(auth_pasta::auth_raw_pasta_with_status)
+            .service(auth_pasta::auth_edit_private_with_status)
+            .service(auth_pasta::auth_file)
+            .service(auth_pasta::auth_pasta)
+            .service(auth_pasta::auth_raw_pasta)
+            .service(auth_pasta::auth_edit_private)
+            .service(auth_pasta::auth_file_with_status)
             .service(pasta_endpoint::getpasta)
+            .service(pasta_endpoint::postpasta)
             .service(pasta_endpoint::getshortpasta)
+            .service(pasta_endpoint::postshortpasta)
             .service(pasta_endpoint::getrawpasta)
+            .service(pasta_endpoint::postrawpasta)
             .service(pasta_endpoint::redirecturl)
             .service(pasta_endpoint::shortredirecturl)
             .service(edit::get_edit)
+            .service(edit::get_edit_with_status)
             .service(edit::post_edit)
+            .service(edit::post_edit_private)
+            .service(edit::post_submit_edit_private)
+            .service(admin::get_admin)
+            .service(admin::post_admin)
             .service(static_resources::static_resources)
             .service(qr::getqr)
-            .service(actix_files::Files::new("/file", "./pasta_data/public/"))
+            .service(file::get_file)
+            .service(file::post_secure_file)
             .service(web::resource("/upload").route(web::post().to(create::create)))
             .default_service(web::route().to(errors::not_found))
             .wrap(middleware::Logger::default())
             .service(remove::remove)
             .service(pastalist::list)
             .wrap(Condition::new(
-                ARGS.auth_username.is_some(),
+                ARGS.auth_basic_username.is_some()
+                    && ARGS.auth_basic_username.as_ref().unwrap().trim() != "",
                 HttpAuthentication::basic(util::auth::auth_validator),
             ))
     })

@@ -30,6 +30,27 @@ impl PastaFile {
     pub fn name(&self) -> &str {
         &self.name
     }
+
+    pub fn is_image(&self) -> bool {
+        let lowercase_name = self.name.to_lowercase();
+        let extensions = [
+            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".ico", ".svg", ".tiff", ".tif",
+            ".jfif", ".pjpeg", ".pjp", ".avif", ".jxl", ".heif",
+        ];
+        extensions.iter().any(|&ext| lowercase_name.ends_with(ext))
+    }
+
+    pub fn is_video(&self) -> bool {
+        let lowercase_name = self.name.to_lowercase();
+        let extensions = [
+            ".mp4", ".mov", ".wmv", ".webm", ".avi", ".flv", ".mkv", ".mts",
+        ];
+        extensions.iter().any(|&ext| lowercase_name.ends_with(ext))
+    }
+
+    pub fn embeddable(&self) -> bool {
+        self.is_image() && !self.is_video()
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -39,7 +60,11 @@ pub struct Pasta {
     pub file: Option<PastaFile>,
     pub extension: String,
     pub private: bool,
+    pub readonly: bool,
     pub editable: bool,
+    pub encrypt_server: bool,
+    pub encrypt_client: bool,
+    pub encrypted_key: Option<String>,
     pub created: i64,
     pub expiration: i64,
     pub last_read: i64,
@@ -55,6 +80,36 @@ impl Pasta {
         } else {
             to_animal_names(self.id)
         }
+    }
+
+    pub fn has_file(&self) -> bool {
+        self.file.is_some()
+    }
+
+    pub fn total_size_as_string(&self) -> String {
+        let total_size_bytes = if self.has_file() {
+            self.file.as_ref().unwrap().size.as_u64() as usize + self.content.as_bytes().len()
+        } else {
+            self.content.as_bytes().len()
+        };
+
+        if total_size_bytes < 1024 {
+            return format!("{} B", total_size_bytes);
+        } else if total_size_bytes < 1024 * 1024 {
+            return format!("{} KB", total_size_bytes / 1024);
+        } else if total_size_bytes < 1024 * 1024 * 1024 {
+            return format!("{} MB", total_size_bytes / (1024 * 1024));
+        } else if total_size_bytes < 1024 * 1024 * 1024 * 1024 {
+            return format!("{} GB", total_size_bytes / (1024 * 1024 * 1024));
+        } else {
+            return format!("{} TB", total_size_bytes / (1024 * 1024 * 1024 * 1024));
+        }
+    }
+
+    pub fn file_embeddable(&self) -> bool {
+        return self.has_file()
+            && self.file.as_ref().unwrap().embeddable()
+            && !(self.encrypt_server || self.encrypt_client);
     }
 
     pub fn created_as_string(&self) -> String {
@@ -121,6 +176,44 @@ impl Pasta {
         String::from("just now")
     }
 
+    pub fn short_last_read_time_ago_as_string(&self) -> String {
+        // get current unix time in seconds
+        let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
+            Ok(n) => n.as_secs(),
+            Err(_) => {
+                log::error!("SystemTime before UNIX EPOCH!");
+                0
+            }
+        } as i64;
+
+        // get seconds since last read and convert it to days
+        let days = ((timenow - self.last_read) / 86400) as u16;
+        if days > 1 {
+            return format!("{} d ago", days);
+        };
+
+        // it's less than 1 day, let's do hours then
+        let hours = ((timenow - self.last_read) / 3600) as u16;
+        if hours > 1 {
+            return format!("{} h ago", hours);
+        };
+
+        // it's less than 1 hour, let's do minutes then
+        let minutes = ((timenow - self.last_read) / 60) as u16;
+        if minutes > 1 {
+            return format!("{} m ago", minutes);
+        };
+
+        // it's less than 1 minute, let's do seconds then
+        let seconds = (timenow - self.last_read) as u16;
+        if seconds > 1 {
+            return format!("{} s ago", seconds);
+        };
+
+        // it's less than 1 second?????
+        String::from("just now")
+    }
+
     pub fn last_read_days_ago(&self) -> u16 {
         // get current unix time in seconds
         let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -144,7 +237,14 @@ impl Pasta {
     }
 
     pub fn content_escaped(&self) -> String {
-        html_escape::encode_text(&self.content.replace('\\', "\\\\").replace('`', "\\`").replace('$', "\\$")).to_string()
+        html_escape::encode_text(
+            &self
+                .content
+                .replace('\\', "\\\\")
+                .replace('`', "\\`")
+                .replace('$', "\\$"),
+        )
+        .to_string()
     }
 }
 

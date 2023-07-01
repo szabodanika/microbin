@@ -1,11 +1,15 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use crate::args::ARGS;
 use linkify::{LinkFinder, LinkKind};
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use qrcode_generator::QrCodeEcc;
-use std::fs;
+use std::fs::{self, File};
+use std::io::{BufReader, Read, Write};
+use std::path::Path;
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::{dbio, Pasta};
+use crate::Pasta;
+
+use super::db::delete;
 
 pub fn remove_expired(pastas: &mut Vec<Pasta>) {
     // get current time - this will be needed to check which pastas have expired
@@ -31,10 +35,13 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             // keep
             true
         } else {
+            // remove from database
+            delete(None, Some(p.id));
+
             // remove the file itself
             if let Some(file) = &p.file {
                 if fs::remove_file(format!(
-                    "./pasta_data/public/{}/{}",
+                    "./pasta_data/attachments/{}/{}",
                     p.id_as_animals(),
                     file.name()
                 ))
@@ -44,15 +51,15 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
                 }
 
                 // and remove the containing directory
-                if fs::remove_dir(format!("./pasta_data/public/{}/", p.id_as_animals())).is_err() {
+                if fs::remove_dir(format!("./pasta_data/attachments/{}/", p.id_as_animals()))
+                    .is_err()
+                {
                     log::error!("Failed to delete directory {}!", file.name())
                 }
             }
             false
         }
     });
-
-    dbio::save_to_file(pastas);
 }
 
 pub fn string_to_qr_svg(str: &str) -> String {
@@ -63,4 +70,81 @@ pub fn is_valid_url(url: &str) -> bool {
     let finder = LinkFinder::new();
     let spans: Vec<_> = finder.spans(url).collect();
     spans[0].as_str() == url && Some(&LinkKind::Url) == spans[0].kind()
+}
+
+pub fn encrypt(text_str: &str, key_str: &str) -> String {
+    if text_str.len() == 0 {
+        return String::from("");
+    }
+
+    let mc = new_magic_crypt!(key_str, 256);
+
+    let encrypted = mc.encrypt_str_to_base64(text_str);
+
+    encrypted
+}
+
+pub fn decrypt(text_str: &str, key_str: &str) -> Result<String, magic_crypt::MagicCryptError> {
+    if text_str.len() == 0 {
+        return Ok(String::from(""));
+    }
+
+    let mc = new_magic_crypt!(key_str, 256);
+
+    let decrypted = mc.decrypt_base64_to_string(text_str);
+
+    decrypted
+}
+
+pub fn encrypt_file(
+    passphrase: &str,
+    input_file_path: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // Read the input file into memory
+    let file = File::open(input_file_path).expect("Tried to encrypt non-existent file");
+    let mut reader = BufReader::new(file);
+    let mut input_data = Vec::new();
+    reader.read_to_end(&mut input_data)?;
+
+    // Create a MagicCrypt instance with the given passphrase
+    let mc = new_magic_crypt!(passphrase.to_owned(), 256);
+
+    // Encrypt the input data
+    let ciphertext = mc.encrypt_bytes_to_bytes(&input_data[..]);
+
+    // Write the encrypted data to a new file with the .enc extension
+    let mut f = File::create(
+        Path::new(input_file_path)
+            .with_file_name("data")
+            .with_extension("enc"),
+    )?;
+    f.write_all(ciphertext.as_slice())?;
+
+    // Delete the original input file
+    // input_file.seek(SeekFrom::Start(0))?;
+    fs::remove_file(input_file_path)?;
+
+    Ok(())
+}
+
+pub fn decrypt_file(
+    passphrase: &str,
+    input_file: &File,
+) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    // Read the input file into memory
+    let mut reader = BufReader::new(input_file);
+    let mut ciphertext = Vec::new();
+    reader.read_to_end(&mut ciphertext)?;
+
+    // Create a MagicCrypt instance with the given passphrase
+    let mc = new_magic_crypt!(passphrase.to_owned(), 256);
+    // Encrypt the input data
+    let res = mc.decrypt_bytes_to_bytes(&ciphertext[..]);
+
+    if res.is_err() {
+        println!("{}", res.err().unwrap().to_string());
+        return Err("Failed to decrypt file".into());
+    }
+
+    Ok(res.unwrap())
 }

@@ -1,10 +1,11 @@
-use crate::dbio::save_to_file;
 use crate::pasta::PastaFile;
 use crate::util::animalnumbers::to_animal_names;
+use crate::util::db::insert;
 use crate::util::hashids::to_hashids;
-use crate::util::misc::is_valid_url;
+use crate::util::misc::{encrypt, encrypt_file, is_valid_url};
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
+use actix_web::error::ErrorBadRequest;
 use actix_web::{get, web, Error, HttpResponse, Responder};
 use askama::Template;
 use bytesize::ByteSize;
@@ -55,7 +56,7 @@ pub async fn create(
 ) -> Result<HttpResponse, Error> {
     if ARGS.readonly {
         return Ok(HttpResponse::Found()
-            .append_header(("Location", format!("{}/", ARGS.public_path)))
+            .append_header(("Location", format!("{}/", ARGS.public_path_as_str())))
             .finish());
     }
 
@@ -71,11 +72,15 @@ pub async fn create(
 
     let mut new_pasta = Pasta {
         id: rand::thread_rng().gen::<u16>() as u64,
-        content: String::from("No Text Content"),
+        content: String::from(""),
         file: None,
         extension: String::from(""),
         private: false,
-        editable: false,
+        readonly: false,
+        editable: true,
+        encrypt_server: false,
+        encrypted_key: Some(String::from("")),
+        encrypt_client: false,
         created: timenow,
         read_count: 0,
         burn_after_reads: 0,
@@ -84,21 +89,56 @@ pub async fn create(
         expiration: expiration_to_timestamp(&ARGS.default_expiry, timenow),
     };
 
+    let mut random_key: String = String::from("");
+    let mut plain_key: String = String::from("");
+
     while let Some(mut field) = payload.try_next().await? {
         match field.name() {
-            "editable" => {
-                // while let Some(_chunk) = field.try_next().await? {}
-                new_pasta.editable = true;
+            "random_key" => {
+                while let Some(chunk) = field.try_next().await? {
+                    random_key = std::str::from_utf8(&chunk).unwrap().to_string();
+                }
                 continue;
             }
-            "private" => {
-                // while let Some(_chunk) = field.try_next().await? {}
-                new_pasta.private = true;
+            "privacy" => {
+                while let Some(chunk) = field.try_next().await? {
+                    let privacy = std::str::from_utf8(&chunk).unwrap();
+                    new_pasta.private = match privacy {
+                        "public" => false,
+                        _ => true,
+                    };
+                    new_pasta.readonly = match privacy {
+                        "readonly" => true,
+                        _ => false,
+                    };
+                    new_pasta.encrypt_client = match privacy {
+                        "secret" => true,
+                        _ => false,
+                    };
+                    new_pasta.encrypt_server = match privacy {
+                        "private" => true,
+                        "secret" => true,
+                        _ => false,
+                    };
+                }
+            }
+            "plain_key" => {
+                while let Some(chunk) = field.try_next().await? {
+                    plain_key = std::str::from_utf8(&chunk).unwrap().to_string();
+                }
+                continue;
+            }
+            "encrypted_random_key" => {
+                while let Some(chunk) = field.try_next().await? {
+                    new_pasta.encrypted_key =
+                        Some(std::str::from_utf8(&chunk).unwrap().to_string());
+                }
                 continue;
             }
             "expiration" => {
                 while let Some(chunk) = field.try_next().await? {
-                    new_pasta.expiration = expiration_to_timestamp(std::str::from_utf8(&chunk).unwrap(), timenow);
+                    new_pasta.expiration =
+                        expiration_to_timestamp(std::str::from_utf8(&chunk).unwrap(), timenow);
                 }
 
                 continue;
@@ -106,7 +146,8 @@ pub async fn create(
             "burn_after" => {
                 while let Some(chunk) = field.try_next().await? {
                     new_pasta.burn_after_reads = match std::str::from_utf8(&chunk).unwrap() {
-                        // give an extra read because the user will be redirected to the pasta page automatically
+                        // give an extra read because the user will be
+                        // redirected to the pasta page automatically
                         "1" => 2,
                         "10" => 10,
                         "100" => 100,
@@ -166,13 +207,13 @@ pub async fn create(
                 };
 
                 std::fs::create_dir_all(format!(
-                    "./pasta_data/public/{}",
+                    "./pasta_data/attachments/{}",
                     &new_pasta.id_as_animals()
                 ))
                 .unwrap();
 
                 let filepath = format!(
-                    "./pasta_data/public/{}/{}",
+                    "./pasta_data/attachments/{}/{}",
                     &new_pasta.id_as_animals(),
                     &file.name()
                 );
@@ -181,6 +222,12 @@ pub async fn create(
                 let mut size = 0;
                 while let Some(chunk) = field.try_next().await? {
                     size += chunk.len();
+                    if (new_pasta.encrypt_server
+                        && size > ARGS.max_file_size_encrypted_mb * 1024 * 1024)
+                        || size > ARGS.max_file_size_unencrypted_mb * 1024 * 1024
+                    {
+                        return Err(ErrorBadRequest("File exceeded size limit."));
+                    }
                     f = web::block(move || f.write_all(&chunk).map(|_| f)).await??;
                 }
 
@@ -197,16 +244,49 @@ pub async fn create(
 
     let id = new_pasta.id;
 
+    if plain_key != String::from("") && new_pasta.readonly {
+        new_pasta.encrypted_key = Some(encrypt(id.to_string().as_str(), &plain_key));
+    }
+
+    if new_pasta.encrypt_server && !new_pasta.readonly && new_pasta.content != String::from("") {
+        if new_pasta.encrypt_client {
+            new_pasta.content = encrypt(&new_pasta.content, &random_key);
+        } else {
+            new_pasta.content = encrypt(&new_pasta.content, &plain_key);
+        }
+    }
+
+    if new_pasta.file.is_some() && new_pasta.encrypt_server && !new_pasta.readonly {
+        let filepath = format!(
+            "./pasta_data/attachments/{}/{}",
+            &new_pasta.id_as_animals(),
+            &new_pasta.file.as_ref().unwrap().name()
+        );
+        if new_pasta.encrypt_client {
+            encrypt_file(&random_key, &filepath).expect("Failed to encrypt file with random key")
+        } else {
+            encrypt_file(&plain_key, &filepath).expect("Failed to encrypt file with plain key")
+        }
+    }
+
     pastas.push(new_pasta);
 
-    save_to_file(&pastas);
+    for (_, pasta) in pastas.iter().enumerate() {
+        if pasta.id == id {
+            insert(Some(&pastas), Some(&pasta));
+        }
+    }
 
     let slug = if ARGS.hash_ids {
         to_hashids(id)
     } else {
         to_animal_names(id)
     };
+
     Ok(HttpResponse::Found()
-        .append_header(("Location", format!("{}/pasta/{}", ARGS.public_path, slug)))
+        .append_header((
+            "Location",
+            format!("{}/pasta/{}", ARGS.public_path_as_str(), slug),
+        ))
         .finish())
 }

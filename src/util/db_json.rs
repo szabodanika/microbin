@@ -6,7 +6,15 @@ use crate::Pasta;
 
 static DATABASE_PATH: &str = "pasta_data/database.json";
 
-pub fn save_to_file(pasta_data: &Vec<Pasta>) {
+pub fn read_all() -> Vec<Pasta> {
+    load_from_file().expect("Failed to load pastas from JSON")
+}
+
+pub fn update_all(pastas: &Vec<Pasta>) {
+    save_to_file(&pastas);
+}
+
+fn save_to_file(pasta_data: &Vec<Pasta>) {
     let mut file = File::create(DATABASE_PATH);
     match file {
         Ok(_) => {
@@ -34,7 +42,7 @@ pub fn save_to_file(pasta_data: &Vec<Pasta>) {
     }
 }
 
-pub fn load_from_file() -> io::Result<Vec<Pasta>> {
+fn load_from_file() -> io::Result<Vec<Pasta>> {
     let file = File::open(DATABASE_PATH);
     match file {
         Ok(_) => {

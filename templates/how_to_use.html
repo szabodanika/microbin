@@ -1,0 +1,97 @@
+{% include "header.html" %}
+<a id="options">
+  <h1>Options</h1>
+</a>
+
+<a id="expiration">
+  <h2>Option: Expiration</h2>
+</a>
+<p>
+  Use the expiration dropdown to choose how long you want your pasta to exist.
+  When the selected time has expired, it will be removed from the server.
+</p>
+
+{% if args.enable_burn_after %}
+<a id="burn-after">
+  <h2>Option: Burn After</h2>
+</a>
+<p>
+  Use the burn after dropdown to set a limit on how many times your data can be
+  accessed before it will be removed from the server. Set it to "First Read" to
+  instantly erase it once it has been opened, or "No Limit" to keep the data
+  until the time-based expiration.
+</p>
+{%- endif %}
+
+{% if args.highlightsyntax %}
+<a id="syntax">
+  <h2>Option: Syntax Highlighting</h2>
+</a>
+<p>
+  Use the syntax highlighting dropdown to select the language of your pasta.
+  This will enable syntax highlighting for your pasta, making it easier to read.
+  You may choose to have the syntax highlighting done by your browser, which
+  will also recognise the language automatically, however this will require
+  JavaScript to be enabled. You can select server-side highlighting, where you
+  need to select the language yourself, but the code will get highlighting
+  without javascript.
+</p>
+{%- endif %}
+
+{% if args.encryption_server_side %}
+<a id="password">
+  <h2>Option: Password</h2>
+</a>
+<p>
+  Use the password field to set a password for your pasta. This will encrypt
+  your data while stored on our server with your password, and you will need to
+  enter the password to access, modify or remove it. Unlike client-side
+  encryption, we encrypt and decrypt the data for you, so for a brief moment
+  we have your unencrypted data and your password, but we do not store your
+  password at all.
+
+  Leave this field empty for no protection on your pasta.
+</p>
+{%- endif %}
+
+{% if args.encryption_client_side %}
+<a id="encryption">
+  <h2>Option: In-Browser Encryption</h2>
+</a>
+<p>
+  Use this option to password-protect your data in your browser. This ensures
+  that we receieve already encrypted data, and we do not see your password
+  either.
+
+  Leave this box unchecked for no client-side encryption.
+
+  Note: You cannot use only in-browser encryption without server-side
+  protection.
+
+  Note: In-Browser Encryption requires JavaScript to be enabled in your browser.
+</p>
+{%- endif %}
+
+{% if args.editable %}
+<a id="editable">
+  <h2>Option: Editable</h2>
+</a>
+<p>
+  Tick the Editable checkbox to make your pasta editable. This will allow you to
+  modify your pasta after it has been created, even if it has already been
+  shared with others.
+</p>
+{%- endif %}
+
+{% if args.private %}
+<a id="private">
+  <h2>Option: Private</h2>
+</a>
+<p>
+  Tick the Private checkbox to make your pasta private. This will prevent it to
+  show up in the list of pastas stored on this server, essentially hiding it
+  from all other users unless they know the URL.
+</p>
+{%- endif %}
+
+{% include "footer.html" %}

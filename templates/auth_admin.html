@@ -1,0 +1,28 @@
+{% include "header.html" %}
+
+<form id="auth-form" method="POST" action="/admin/" enctype="multipart/form-data">
+  <label for="username"> Administrator username</label>
+  <input id="username-field" placeholder="Username" type="username" autocomplete="off" name="username">
+  <label for="password"> Administrator password.</label>
+  <input id="password-field" placeholder="Password" type="password" autocomplete="off" name="password">
+  <button>Sign in</button>
+  {% if status == "incorrect" %}
+  <p>
+    Incorrect username or password.
+  </p>
+  {% endif %}
+</form>
+
+{% include "footer.html" %} {% if !args.pure_html %}
+<style>
+  #auth-form {
+    background-color: #f7f7f7;
+    border-radius: 6px;
+    padding: 10px;
+    width: fit-content;
+    margin: auto;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+</style>
+{% endif %}

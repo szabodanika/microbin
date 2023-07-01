@@ -10,57 +10,56 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="{{ args.public_path }}/static/favicon.svg">
-    {% if !args.pure_html %}
-    {% if args.custom_css.as_ref().is_none() %}
-    <link rel="stylesheet" href="{{ args.public_path }}/static/water.css">
+    <link rel="icon" type="image/svg+xml" href="{{ args.public_path_as_str()    }}/static/favicon.svg">
+
+    <script type="text/javascript" src="{{ args.public_path_as_str() }}/static/aes.js"></script>
+    {% if !args.pure_html %} {% if args.custom_css.as_ref().is_none() ||
+    args.custom_css.as_ref().unwrap() == "" %}
+    <link rel="stylesheet" href="{{ args.public_path_as_str() }}/static/water.css">
     {%- else %}
     <link rel="stylesheet" href="{{ args.custom_css.as_ref().unwrap() }}">
-    {%- endif %}
-    {%- endif %}
+    {%- endif %} {%- endif %}
 
 </head>
 {% if args.wide %}
 
-<body style="
-    max-width: 1080px;
-        margin: auto;
-        padding-left:0.5rem;
-        padding-right:0.5rem;
-        line-height: 1.5;
-        font-size: 1.1em;
-        ">
+<body style="max-width: 1080px; margin: auto; padding-left:0.5rem;
+padding-right:0.5rem; line-height: 1.5; font-size: 1.1em; padding-top: 2rem;">
     {%- else %}
 
-    <body style="
-    max-width: 800px;
-        margin: auto;
-        padding-left:0.5rem;
-        padding-right:0.5rem;
-        line-height: 1.5;
-        font-size: 1.1em;
-        ">
+    <body style=" max-width: 800px; margin: auto; padding-left:0.5rem;
+    padding-right:0.5rem; padding-top: 2rem; line-height: 1.5; font-size: 1.1em; ">
         {%- endif %}
         <br>
-
         {% if !args.hide_header %}
 
-        <b style="margin-right: 0.5rem">
+        <div id="nav" style="margin-bottom: 1rem;">
+            <b style="margin-right: 0.5rem">
+                {% if !args.hide_logo %}
+                <!-- <i><span style="font-size:2.2rem;
+                margin-right:1rem">μ</span></i> -->
+                <a href="/"><img width=100 style="margin-bottom: -6px; margin-right:
+                0.5rem;" src="{{ args.public_path_as_str() }}/static/logo.png"></a>
+                {%- endif %} {% if args.title.as_ref().is_none() %} {%- else %} {{
+                args.title.as_ref().unwrap() }} {%- endif %}
+            </b>
 
-            {% if !args.hide_logo %}
-            <!-- <i><span style="font-size:2.2rem; margin-right:1rem">μ</span></i> -->
-            <img width=26 style="margin-bottom: -6px; margin-right: 0.5rem;"
-                src="{{ args.public_path }}/static/logo.png">
-            {%- endif %} {% if args.title.as_ref().is_none() %}
-            MicroBin {%- else %} {{ args.title.as_ref().unwrap() }} {%- endif %}
-        </b>
+            <a href="{{ args.public_path_as_str() }}/" style="margin-right: 0.5rem;
+            margin-left: 0.5rem">New</a>
 
-        <a href="{{ args.public_path }}/" style="margin-right: 0.5rem; margin-left: 0.5rem">New</a>
+            {% if !args.no_listing %}
+            <a href="{{ args.public_path_as_str() }}/pastalist"
+                style="margin-right: 0.5rem; margin-left: 0.5rem">List</a>
+            {%- endif %}
 
-        <a href="{{ args.public_path }}/pastalist" style="margin-right: 0.5rem; margin-left: 0.5rem">List</a>
+            <a href="{{ args.public_path_as_str() }}/guide" style="margin-right: 0.5rem;
+            margin-left: 0.5rem">Guide</a>
 
-        <a href="{{ args.public_path }}/info" style="margin-right: 0.5rem; margin-left: 0.5rem">Info</a>
+            <a href="{{ args.public_path_as_str() }}/about" style="margin-right: 0.5rem;
+            margin-left: 0.5rem">About</a>
 
-        <hr>
+        </div>
+
+        <!-- <hr> -->
 
         {%- endif %}

@@ -1,0 +1,431 @@
+{% include "header.html" %}
+
+<h2>Welcome to MicroBin</h2>
+<div style="height: 200px;">
+    <div style="float: left">
+        <h4>Links</h4>
+        <a href="https://microbin.eu/documentation" style="margin-right: 1rem">Documentation and Help</a>
+        <br>
+        <a href="https://github.com/szabodanika/microbin" style="margin-right: 1rem">Source Code</a>
+        <br>
+        <a href="https://github.com/szabodanika/microbin/issues" style="margin-right: 1rem">Feedback</a>
+        <br>
+        <a href="https://microbin.eu/donate">Donate and Sponsor</a>
+    </div>
+
+    <div style="float: right">
+        <h4>Info</h4>
+        <table style="width: 400px">
+            <tr>
+                <td><b>Version</b></td>
+                <td>{{version_string}} </td>
+            </tr>
+            <tr>
+                <td><b>Status</b></td>
+                <td>{{status}} </td>
+            </tr>
+            <tr>
+                <td><b>Pastas</b></td>
+                <td>{{pastas.len()}} </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+{% if message != "" %}
+<h4>Messages</h4>
+<p>{{message}}</p>
+{%- endif %}
+
+
+<h3>Uploads</h3>
+{% if args.pure_html %}
+<table border="1" style="width: 100%;">
+    {% else %}
+    <table style="width: 100%; font-size: smaller;">
+        {% endif %}
+        <thead>
+            <th style="width: 15%;">
+                Key
+            </th>
+            <th style="width: 15%;">
+                Valid
+            </th>
+            <th style="width: 8%;">
+                Size
+            </th>
+            <th>
+                Encryption
+            </th>
+            <th style="width: 5%;">
+                Priv.
+            </th>
+            <th style="width: 5%;">
+                Edit.
+            </th>
+            <th style="width: 8%;">
+                Content
+            </th>
+            <th>
+                Hits
+            </th>
+            <th style="width: 8%;">
+                <!-- Actions -->
+            </th>
+        </thead>
+        <tbody>
+            {% for pasta in pastas %}
+            {% if pasta.pasta_type == "text" %}
+            <tr>
+                <td>
+                    <a
+                        href="{{ args.public_path_as_str()}}/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+                </td>
+                <td>
+                    {{pasta.created_as_string()}}
+                    →
+                    {{pasta.expiration_as_string()}}
+                </td>
+                <td>
+                    {{pasta.total_size_as_string()}}
+                </td>
+                <td>
+                    {% if pasta.encrypt_client %}
+                    CLIENT
+                    {%- endif %}
+                    {% if pasta.encrypt_client && pasta.encrypt_server%}
+                    +
+                    {%- endif %}
+                    {% if pasta.encrypt_server %}
+                    SERVER
+                    {%- endif %}
+                </td>
+                <td>
+                    {% if pasta.private %}
+                    ✔️
+                    {%- endif %}
+                </td>
+                <td>
+                    {% if pasta.editable %}
+                    ✔️
+                    {%- endif %}
+                </td>
+                <td>
+                    {% if pasta.content != "" %}
+                    <a style="margin-right:1rem"
+                        href="{{ args.public_path_as_str()}}/raw/{{pasta.id_as_animals()}}">Text</a>
+                    {%- endif %}
+                    {% if pasta.file.is_some() %}
+                    <a style="margin-right:1rem" href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}">
+                        {% if pasta.file.as_ref().unwrap().is_image() %}
+                        Image
+                        {%- else if pasta.file.as_ref().unwrap().is_video() %}
+                        Video
+                        {%- else %}
+                        File
+                        {%- endif %}
+                    </a>
+                    {%- endif %}
+                </td>
+                <td>
+                    {% if args.show_read_stats %} {% if pasta.read_count == 1 %}
+                    <span style="font-size: small">{{pasta.read_count}} hits <br> last
+                        {{pasta.short_last_read_time_ago_as_string()}}</span>
+                    {%- else %}
+                    <span style="font-size: small">{{pasta.read_count}} hits <br> last
+                        {{pasta.short_last_read_time_ago_as_string()}}</span>
+                    {%- endif %} {%- endif %}
+                </td>
+                <td>
+                    {% if pasta.editable %}
+                    <a style="margin-right:1rem" href="{{ args.public_path_as_str()
+                    }}/edit/{{pasta.id_as_animals()}}">Edit</a>
+                    <br>
+                    {%- endif %}
+                    <a href="{{ args.public_path_as_str() }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+                </td>
+
+            </tr>
+            {%- endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <h3>URL Redirects</h3>
+    {% if args.pure_html %}
+    <table border="1" style="width: 100%;">
+        {% else %}
+        <table style="width: 100%; font-size: smaller;">
+            {% endif %}
+            <thead>
+                <th style="width: 15%;">
+                    Key
+                </th>
+                <th style="width: 15%;">
+                    Valid
+                </th>
+                <th>
+                    Encryption
+                </th>
+                <th style="width: 5%;">
+                    Priv.
+                </th>
+                <th style="width: 5%;">
+                    Edit.
+                </th>
+                <th style="width: 8%;">
+                    Content
+                </th>
+                <th>
+                    Hits
+                </th>
+                <th style="width: 8%;">
+                    <!-- Actions -->
+                </th>
+            </thead>
+            <tbody>
+                {% for pasta in pastas %}
+                {% if pasta.pasta_type == "url" %}
+                <tr>
+                    <td>
+                        <a
+                            href="{{ args.public_path_as_str()}}/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+                    </td>
+                    <td>
+                        {{pasta.created_as_string()}}
+                        →
+                        {{pasta.expiration_as_string()}}
+                    </td>
+                    <td>
+                        {% if pasta.encrypt_client %}
+                        CLIENT
+                        {%- endif %}
+                        {% if pasta.encrypt_client && pasta.encrypt_server%}
+                        +
+                        {%- endif %}
+                        {% if pasta.encrypt_server %}
+                        SERVER
+                        {%- endif %}
+                    </td>
+                    <td>
+                        {% if pasta.private %}
+                        ✔️
+                        {%- endif %}
+                    </td>
+                    <td>
+                        {% if pasta.editable %}
+                        ✔️
+                        {%- endif %}
+                    </td>
+                    <td>
+                        {% if pasta.content != "" %}
+                        <a style="margin-right:1rem"
+                            href="{{ args.public_path_as_str()}}/raw/{{pasta.id_as_animals()}}">Text</a>
+                        {%- endif %}
+                        {% if pasta.file.is_some() %}
+                        <a style="margin-right:1rem"
+                            href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}">
+                            {% if pasta.file.as_ref().unwrap().is_image() %}
+                            Image
+                            {%- else if pasta.file.as_ref().unwrap().is_video() %}
+                            Video
+                            {%- else %}
+                            File
+                            {%- endif %}
+                        </a>
+                        {%- endif %}
+                    </td>
+                    <td>
+                        {% if args.show_read_stats %} {% if pasta.read_count == 1 %}
+                        <span style="font-size: small">{{pasta.read_count}} hits <br> last
+                            {{pasta.short_last_read_time_ago_as_string()}}</span>
+                        {%- else %}
+                        <span style="font-size: small">{{pasta.read_count}} hits <br> last
+                            {{pasta.short_last_read_time_ago_as_string()}}</span>
+                        {%- endif %} {%- endif %}
+                    </td>
+                    <td>
+                        {% if pasta.editable %}
+                        <a style="margin-right:1rem" href="{{ args.public_path_as_str()
+                    }}/edit/{{pasta.id_as_animals()}}">Edit</a>
+                        <br>
+                        {%- endif %}
+                        <a href="{{ args.public_path_as_str() }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+                    </td>
+
+                </tr>
+                {%- endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+
+
+        <h3>Environmental Variables</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 35%">Argument</th>
+                    <th style="width: 15%">Value</th>
+                    <th style="width: 35%">Argument</th>
+                    <th style="width: 15%">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>auth_username</td>
+                    {% if args.auth_basic_username.as_ref().is_some() %}
+                    <td>set</td>
+                    {% else %}
+                    <td>unset</td>
+                    {% endif %}
+
+                    <td>auth_password</td>
+                    {% if args.auth_basic_password.as_ref().is_some() %}
+                    <td>set</td>
+                    {% else %}
+                    <td>unset</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <td>editable</td>
+                    <td>{{ args.editable }}</td>
+
+                    <td>footer_text</td>
+                    {% if args.footer_text.as_ref().is_some() %}
+                    <td>{{ args.footer_text.as_ref().unwrap() }}</td>
+                    {% else %}
+                    <td>unset</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <td>hide_footer</td>
+                    <td>{{ args.hide_footer }}</td>
+                    <td>hide_header</td>
+                    <td>{{ args.hide_header }}</td>
+                </tr>
+                <tr>
+                    <td>hide_logo</td>
+                    <td>{{ args.hide_logo }}</td>
+                    <td>no_listing</td>
+                    <td>{{ args.no_listing }}</td>
+                </tr>
+                <tr>
+                    <td>highlightsyntax</td>
+                    <td>{{ args.highlightsyntax }}</td>
+                    <td>port</td>
+                    <td>{{ args.port }}</td>
+                </tr>
+                <tr>
+                    <td>bind</td>
+                    <td>{{ args.bind }}</td>
+                    <td>private</td>
+                    <td>{{ args.private }}</td>
+                </tr>
+                <tr>
+                    <td>pure_html</td>
+                    <td>{{ args.pure_html }}</td>
+                    <td>json_db</td>
+                    <td>{{ args.json_db }}</td>
+                </tr>
+                <tr>
+                    <td>public_path</td>
+                    {% if args.public_path.as_ref().is_some() %}
+                    <td>{{ args.public_path_as_str() }}</td>
+                    {% else %}
+                    <td>unset</td>
+                    {% endif %}
+                    <td>short_path</td>
+                    {% if args.short_path.as_ref().is_some() %}
+                    <td>{{ args.short_path_as_str() }}</td>
+                    {% else %}
+                    <td>unset</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <td>readonly</td>
+                    <td>{{ args.readonly }}</td>
+                    <td>show_read_stats</td>
+                    <td>{{ args.show_read_stats }}</td>
+                </tr>
+                <tr>
+                    <td>title</td>
+                    {% if args.title.as_ref().is_some() %}
+                    <td>{{ args.title.as_ref().unwrap() }}</td>
+                    {% else %}
+                    <td>unset</td>
+                    {% endif %}
+                    <td>threads</td>
+                    <td>{{ args.threads }}</td>
+                </tr>
+                <tr>
+                    <td>gc_days</td>
+                    <td>{{ args.gc_days }}</td>
+                    <td>enable_burn_after</td>
+                    <td>{{ args.enable_burn_after }}</td>
+                </tr>
+                <tr>
+                    <td>default_burn_after</td>
+                    <td>{{ args.default_burn_after }}</td>
+                    <td>wide</td>
+                    <td>{{ args.wide }}</td>
+                </tr>
+                <tr>
+                    <td>qr</td>
+                    <td>{{ args.qr }}</td>
+                    <td>no_eternal_pasta</td>
+                    <td>{{ args.no_eternal_pasta }}</td>
+                </tr>
+                <tr>
+                    <td>enable_readonly</td>
+                    <td>{{ args.enable_readonly }}</td>
+                    <td>default_expiry</td>
+                    <td>{{ args.default_expiry }}</td>
+                </tr>
+                <tr>
+                    <td>no_file_upload</td>
+                    <td>{{ args.no_file_upload }}</td>
+                    <td>custom_css</td>
+                    {% if args.custom_css.as_ref().is_some() %}
+                    <td>{{ args.custom_css.as_ref().unwrap() }}</td>
+                    {% else %}
+                    <td>unset</td>
+                    {% endif %}
+                </tr>
+                <tr>
+                    <td>hash_ids</td>
+                    <td>{{ args.hash_ids }}</td>
+                    <td>encryption_client_side</td>
+                    <td>{{ args.encryption_client_side }}</td>
+                </tr>
+                <tr>
+                    <td>encryption_server_side</td>
+                    <td>{{ args.encryption_server_side }}</td>
+                    <td>max_file_size_encrypted_mb</td>
+                    <td>{{ args.max_file_size_encrypted_mb }} MB</td>
+                </tr>
+                <tr>
+                    <td>max_file_size_unencrypted_mb</td>
+                    <td>{{ args.max_file_size_unencrypted_mb }} MB</td>
+                </tr>
+            </tbody>
+        </table>
+        {% include "footer.html" %}
+        <script>
+            const copyURLBtns = document.getElementsByClassName("copy-button");
+
+            for (var i = 0; i < copyURLBtns.length; i++) {
+                copyURLBtns.item(i).addEventListener("click", event => {
+                    event.srcElement
+                    navigator.clipboard.writeText(event.srcElement.getAttribute("data-url"))
+                    event.srcElement.innerHTML = "Copied"
+                    setTimeout(() => {
+                        event.srcElement.innerHTML = "Copy"
+                    }, 1000)
+                })
+            }
+
+        </script>
+        <style>
+
+        </style>

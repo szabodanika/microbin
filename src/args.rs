@@ -12,11 +12,17 @@ lazy_static! {
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
 pub struct Args {
-    #[clap(long, env = "MICROBIN_AUTH_USERNAME")]
-    pub auth_username: Option<String>,
+    #[clap(long, env = "MICROBIN_BASIC_AUTH_USERNAME")]
+    pub auth_basic_username: Option<String>,
 
-    #[clap(long, env = "MICROBIN_AUTH_PASSWORD")]
-    pub auth_password: Option<String>,
+    #[clap(long, env = "MICROBIN_BASIC_AUTH_PASSWORD")]
+    pub auth_basic_password: Option<String>,
+
+    #[clap(long, env = "MICROBIN_ADMIN_USERNAME", default_value = "admin")]
+    pub auth_admin_username: String,
+
+    #[clap(long, env = "MICROBIN_ADMIN_PASSWORD", default_value = "m1cr0b1n")]
+    pub auth_admin_password: String,
 
     #[clap(long, env = "MICROBIN_EDITABLE")]
     pub editable: bool,
@@ -51,14 +57,20 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_PURE_HTML")]
     pub pure_html: bool,
 
-    #[clap(long, env="MICROBIN_PUBLIC_PATH", default_value_t = PublicUrl(String::from("")))]
-    pub public_path: PublicUrl,
+    #[clap(long, env = "MICROBIN_JSON_DB")]
+    pub json_db: bool,
 
-    #[clap(long, env="MICROBIN_SHORT_PATH", default_value_t = PublicUrl(String::from("")))]
-    pub short_path: PublicUrl,
+    #[clap(long, env = "MICROBIN_PUBLIC_PATH")]
+    pub public_path: Option<PublicUrl>,
+
+    #[clap(long, env = "MICROBIN_SHORT_PATH")]
+    pub short_path: Option<PublicUrl>,
 
     #[clap(long, env = "MICROBIN_READONLY")]
     pub readonly: bool,
+
+    #[clap(long, env = "MICROBIN_SHOW_READ_STATS")]
+    pub show_read_stats: bool,
 
     #[clap(long, env = "MICROBIN_TITLE")]
     pub title: Option<String>,
@@ -84,6 +96,9 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_NO_ETERNAL_PASTA")]
     pub no_eternal_pasta: bool,
 
+    #[clap(long, env = "MICROBIN_ENABLE_READONLY")]
+    pub enable_readonly: bool,
+
     #[clap(long, env = "MICROBIN_DEFAULT_EXPIRY", default_value = "24hour")]
     pub default_expiry: String,
 
@@ -95,6 +110,44 @@ pub struct Args {
 
     #[clap(long, env = "MICROBIN_HASH_IDS")]
     pub hash_ids: bool,
+
+    #[clap(long, env = "MICROBIN_ENCRYPTION_CLIENT_SIDE")]
+    pub encryption_client_side: bool,
+
+    #[clap(long, env = "MICROBIN_ENCRYPTION_SERVER_SIDE")]
+    pub encryption_server_side: bool,
+
+    #[clap(
+        long,
+        env = "MICROBIN_MAX_FILE_SIZE_ENCRYPTED_MB",
+        default_value_t = 256
+    )]
+    pub max_file_size_encrypted_mb: usize,
+
+    #[clap(
+        long,
+        env = "MICROBIN_MAX_FILE_SIZE_UNENCRYPTED_MB",
+        default_value_t = 2048
+    )]
+    pub max_file_size_unencrypted_mb: usize,
+}
+
+impl Args {
+    pub fn public_path_as_str(&self) -> String {
+        if self.public_path.is_some() {
+            self.public_path.as_ref().unwrap().to_string()
+        } else {
+            String::from("")
+        }
+    }
+
+    pub fn short_path_as_str(&self) -> String {
+        if self.public_path.is_some() {
+            self.short_path.as_ref().unwrap().to_string()
+        } else {
+            String::from("")
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
