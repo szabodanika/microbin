@@ -1,6 +1,6 @@
 [package]
 name = "microbin"
-version = "1.2.1"
+version = "2.0.0"
 edition = "2021"
 authors = ["Daniel Szabo <daniel.szabo99@outlook.com>"]
 license = "BSD-3-Clause"
