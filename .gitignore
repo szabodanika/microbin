@@ -10,3 +10,4 @@ target/
 *.pdb
 
 pasta_data/*
+*.env
