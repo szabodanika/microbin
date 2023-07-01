@@ -3,13 +3,13 @@ use actix_web::{get, HttpResponse};
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "how_to_use.html")]
+#[template(path = "guide.html")]
 struct Guide<'a> {
     args: &'a Args,
 }
 
 #[get("/guide")]
-pub async fn how_to_use() -> HttpResponse {
+pub async fn guide() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("text/html")
         .body(Guide { args: &ARGS }.render().unwrap())

@@ -2,7 +2,7 @@ extern crate core;
 
 use crate::args::ARGS;
 use crate::endpoints::{
-    admin, auth_admin, auth_pasta, create, edit, errors, file, how_to_use, pasta as pasta_endpoint,
+    admin, auth_admin, auth_pasta, create, edit, errors, file, guide, pasta as pasta_endpoint,
     pastalist, qr, remove, static_resources,
 };
 use crate::pasta::Pasta;
@@ -39,7 +39,7 @@ pub mod endpoints {
     pub mod edit;
     pub mod errors;
     pub mod file;
-    pub mod how_to_use;
+    pub mod guide;
     pub mod pasta;
     pub mod pastalist;
     pub mod qr;
@@ -95,7 +95,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(data.clone())
             .wrap(middleware::NormalizePath::trim())
             .service(create::index)
-            .service(how_to_use::how_to_use)
+            .service(guide::guide)
             .service(auth_admin::auth_admin)
             .service(auth_admin::auth_admin_with_status)
             .service(auth_pasta::auth_pasta_with_status)
