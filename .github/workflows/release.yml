@@ -1,4 +1,4 @@
-name: Docker Release
+name: GitHub and Docker Release
 
 on:
   push:
