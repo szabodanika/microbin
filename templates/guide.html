@@ -1,97 +1,82 @@
 {% include "header.html" %}
 <a id="options">
-  <h1>Options</h1>
+  <h2>Options</h2>
 </a>
 
 <a id="expiration">
-  <h2>Option: Expiration</h2>
+  <h3>Expiration</h3>
 </a>
 <p>
-  Use the expiration dropdown to choose how long you want your pasta to exist.
+  Use the expiration dropdown to choose how long you want your upload to exist.
   When the selected time has expired, it will be removed from the server.
 </p>
 
 {% if args.enable_burn_after %}
 <a id="burn-after">
-  <h2>Option: Burn After</h2>
+  <h3>Burn After</h3>
 </a>
 <p>
   Use the burn after dropdown to set a limit on how many times your data can be
-  accessed before it will be removed from the server. Set it to "First Read" to
-  instantly erase it once it has been opened, or "No Limit" to keep the data
-  until the time-based expiration.
+  accessed before it will be removed from the server.
 </p>
 {%- endif %}
 
 {% if args.highlightsyntax %}
 <a id="syntax">
-  <h2>Option: Syntax Highlighting</h2>
+  <h3>Syntax Highlighting</h3>
 </a>
 <p>
-  Use the syntax highlighting dropdown to select the language of your pasta.
-  This will enable syntax highlighting for your pasta, making it easier to read.
+  Use the syntax highlighting dropdown to enable syntax highlighting for your upload, making it easier to read.
   You may choose to have the syntax highlighting done by your browser, which
-  will also recognise the language automatically, however this will require
-  JavaScript to be enabled. You can select server-side highlighting, where you
-  need to select the language yourself, but the code will get highlighting
-  without javascript.
+  will also recognise the language automatically. You can select server-side
+  highlighting, where you need to select the language yourself, but the code
+  will get highlighting without javascript.
 </p>
 {%- endif %}
 
-{% if args.encryption_server_side %}
 <a id="password">
-  <h2>Option: Password</h2>
+  <h3>Password</h3>
 </a>
 <p>
-  Use the password field to set a password for your pasta. This will encrypt
+  Use the password field to set a password for your upload. This will encrypt
   your data while stored on our server with your password, and you will need to
-  enter the password to access, modify or remove it. Unlike client-side
-  encryption, we encrypt and decrypt the data for you, so for a brief moment
-  we have your unencrypted data and your password, but we do not store your
-  password at all.
-
-  Leave this field empty for no protection on your pasta.
+  enter the password to access (in case of private and secret uploads) or to
+  modify (in case of read-only uploads). Your password is encrypted, and in case
+  of secret uploads, we never even see it.
 </p>
-{%- endif %}
 
-{% if args.encryption_client_side %}
-<a id="encryption">
-  <h2>Option: In-Browser Encryption</h2>
+<a id="privacy">
+  <h3>Privacy</h3>
 </a>
 <p>
-  Use this option to password-protect your data in your browser. This ensures
-  that we receieve already encrypted data, and we do not see your password
-  either.
-
-  Leave this box unchecked for no client-side encryption.
-
-  Note: You cannot use only in-browser encryption without server-side
-  protection.
-
-  Note: In-Browser Encryption requires JavaScript to be enabled in your browser.
+  Use this dropdown to select the level of protection your upload needs. Use
+  lower privacy levels if you or your organisation host MicroBin, and higher
+  privacy levels if you are using a public MicroBin service.
 </p>
-{%- endif %}
-
-{% if args.editable %}
-<a id="editable">
-  <h2>Option: Editable</h2>
-</a>
-<p>
-  Tick the Editable checkbox to make your pasta editable. This will allow you to
-  modify your pasta after it has been created, even if it has already been
-  shared with others.
+<h4>Level 1: Public</h4>
+<p>This privacy level allows everyone to find, see, modify and remove your upload.</p>
+<h4>Level 2: Unlisted (recommended)</h4>
+<p>Unlisted uploads cannot be found unless someone knows its unique, random
+  identifier. If someone knows this identifier, they can see, modify and remove
+  the upload.</p>
+<h4>Level 3: Read-only</h4>
+<p>With this privacy setting, the upload cannot be found unless someone knows
+  its unique, random identifier. If someone knows this identifier, they can see
+  the contents but cannot modify or remove it without entering the password of
+  the upload.
 </p>
-{%- endif %}
+<h4>Level 4: Private</h4>
+<p>With this privacy setting, the upload cannot be found unless someone knows
+  its unique, random identifier. If someone knows this identifier, they cannot
+  see, modify or remove it without entering the password of the upload. Your
+  upload and its attachments are encrypted, so they are stored safely.</p>
+<h4>Level 5: Secret</h4>
+<p>With this privacy setting, the upload cannot be found unless someone knows
+  its unique, random identifier. If someone knows this identifier, they cannot
+  see, modify or remove it without entering the password of the upload. Your
+  browser sends us an already encrypted version, so the unencrypted data and
+  password never even leave your device. This option requires you to enter your
+  password many times when accessing your data, but is extremely safe.</p>
 
-{% if args.private %}
-<a id="private">
-  <h2>Option: Private</h2>
-</a>
-<p>
-  Tick the Private checkbox to make your pasta private. This will prevent it to
-  show up in the list of pastas stored on this server, essentially hiding it
-  from all other users unless they know the URL.
-</p>
-{%- endif %}
 
 {% include "footer.html" %}
