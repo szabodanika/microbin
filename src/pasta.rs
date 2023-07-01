@@ -99,10 +99,8 @@ impl Pasta {
             format!("{} KB", total_size_bytes / 1024)
         } else if total_size_bytes < 1024 * 1024 * 1024 {
             format!("{} MB", total_size_bytes / (1024 * 1024))
-        } else if total_size_bytes < 1024 * 1024 * 1024 * 1024 {
-            format!("{} GB", total_size_bytes / (1024 * 1024 * 1024))
         } else {
-            format!("{} TB", total_size_bytes / (1024 * 1024 * 1024 * 1024))
+            format!("{} GB", total_size_bytes / (1024 * 1024 * 1024))
         }
     }
 
