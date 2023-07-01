@@ -11,16 +11,25 @@
 
 MicroBin is a super tiny, feature rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
-Install from Cargo:
+Install it from Cargo:
 
 ```bash
 cargo install microbin
 ```
 
-And run with your custom configuration:
-
+Download the configuration file and edit it the way you see fit.
 ```bash
-microbin --port 8080 --public-path https://myserver.net --highlightsyntax --editable
+curl -L -O https://raw.githubusercontent.com/szabodanika/microbin/master/.env
+```
+
+Register your configuration:
+```bash
+source .env
+```
+
+And finally run MicroBin:
+```bash
+microbin
 ```
 
 Or get the Docker Image from [Dockerhub: danielszabo99/microbin](https://hub.docker.com/r/danielszabo99/microbin).
@@ -38,20 +47,21 @@ On our website [microbin.eu](https://microbin.eu) you will find the following:
 - Is very small
 - Entirely self-contained executable, MicroBin is a single file!
 - Animal names instead of random numbers for pasta identifiers (64 animals)
+- Server-side and client-side encryption
 - File uploads (eg. `server.com/file/pig-dog-cat`)
 - Raw text serving (eg. `server.com/raw/pig-dog-cat`)
 - URL shortening and redirection
 - QR code support
 - Very simple database (JSON + files) for portability, easy backups and integration
-- Listing and manually removing pastas (`/pastalist`)
-- Private and public, editable and final, automatically and never expiring pastas
+- SQLite support
+- Private and public, editable and final, automatically and never expiring uploads
 - Syntax highlighting
 - Automatic dark mode and custom styling support with very little CSS and only vanilla JS (see [`water.css`](https://github.com/kognise/water.css))
 - Most of the above can be toggled on and off!
 
-## What is a "pasta" anyway?
+## What is an upload?
 
-In MicroBin, a pasta can be:
+In MicroBin, an upload can be:
 
 - A text that you want to paste from one machine to another, eg. some code,
 - A file that you want to share, eg. a video that is too large for Discord, a zip with a code project in it or an image,
@@ -66,8 +76,8 @@ You can use MicroBin:
 - To send large files to other people,
 - To serve content on the web, eg. configuration files for testing, images, or any other file content using the Raw functionality,
 - To move files between your desktop and a server you access from the console,
-- As a "postbox" service where people can upload their files or texts, but they cannot see or remove what others sent you - just disable the pastalist page
-- To take notes! Simply create an editable pasta.
+- As a "postbox" service where people can upload their files or texts, but they cannot see or remove what others sent you - just disable the upload page
+- To take notes! Simply create an editable upload.
 
 ...and many other things, why not get creative?
 
