@@ -14,7 +14,7 @@ MicroBin is a super tiny, feature rich, configurable, self-contained and self-ho
 
 Run our quick docker setup script ([DockerHub](https://hub.docker.com/r/danielszabo99/microbin)):
 ```bash
-sudo sh -c 'curl -s https://raw.githubusercontent.com/szabodanika/microbin/master/docker-setup.sh | bash'
+bash <(curl -s https://microbin.eu/docker.sh)
 ```
 
 Or install it manually from [Cargo](https://crates.io/crates/microbin):
