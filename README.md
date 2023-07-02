@@ -11,28 +11,20 @@
 
 MicroBin is a super tiny, feature rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
-Install it from Cargo:
 
+Run our quick docker setup script ([DockerHub](https://hub.docker.com/r/danielszabo99/microbin)):
 ```bash
-cargo install microbin
+sudo sh -c 'curl -s https://raw.githubusercontent.com/szabodanika/microbin/master/docker-setup.sh | bash'
 ```
 
-Download the configuration file and edit it the way you see fit.
-```bash
-curl -L -O https://raw.githubusercontent.com/szabodanika/microbin/master/.env
-```
+Or install it manually from [Cargo](https://crates.io/crates/microbin):
 
-Register your configuration:
 ```bash
-source .env
-```
-
-And finally run MicroBin:
-```bash
+cargo install microbin;
+curl -L -O https://raw.githubusercontent.com/;szabodanika/microbin/master/.env;
+source .env;
 microbin
 ```
-
-Or get the Docker Image from [Dockerhub: danielszabo99/microbin](https://hub.docker.com/r/danielszabo99/microbin).
 
 On our website [microbin.eu](https://microbin.eu) you will find the following:
 

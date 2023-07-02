@@ -11,3 +11,4 @@ target/
 
 pasta_data/*
 *.env
+**/**/microbin-data
