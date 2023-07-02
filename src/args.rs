@@ -93,8 +93,8 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_QR")]
     pub qr: bool,
 
-    #[clap(long, env = "MICROBIN_NO_ETERNAL_PASTA")]
-    pub no_eternal_pasta: bool,
+    #[clap(long, env = "MICROBIN_ETERNAL_PASTA")]
+    pub eternal_pasta: bool,
 
     #[clap(long, env = "MICROBIN_ENABLE_READONLY")]
     pub enable_readonly: bool,
