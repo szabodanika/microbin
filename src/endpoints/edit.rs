@@ -1,6 +1,7 @@
 use crate::args::Args;
 use crate::endpoints::errors::ErrorTemplate;
 use crate::util::animalnumbers::to_u64;
+use crate::util::db::{update, update_all};
 use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::{decrypt, encrypt, remove_expired};
 use crate::{AppState, Pasta, ARGS};
@@ -166,6 +167,8 @@ pub async fn post_edit_private(
                 pastas[index]
                     .content
                     .replace_range(.., res.unwrap().as_str());
+                // save pasta in database
+                update(Some(&pastas), Some(&pastas[index]));
             } else {
                 return Ok(HttpResponse::Found()
                     .append_header((
@@ -268,6 +271,8 @@ pub async fn post_submit_edit_private(
                 pastas[index]
                     .content
                     .replace_range(.., &encrypt(&new_content, &password));
+                // save pasta in database
+                update(Some(&pastas), Some(&pastas[index]));
             } else {
                 return Ok(HttpResponse::Found()
                     .append_header((
@@ -338,11 +343,13 @@ pub async fn post_edit(
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
             if pasta.editable {
-                if pastas[i].readonly || pastas[i].private {
+                if pastas[i].readonly || pastas[i].encrypt_server {
                     if password != *"" {
                         let res = decrypt(pastas[i].encrypted_key.as_ref().unwrap(), &password);
                         if res.is_ok() {
                             pastas[i].content.replace_range(.., &new_content);
+                            // save pasta in database
+                            update(Some(&pastas), Some(&pastas[i]));
                         } else {
                             return Ok(HttpResponse::Found()
                                 .append_header((
@@ -359,6 +366,10 @@ pub async fn post_edit(
                             ))
                             .finish());
                     }
+                } else {
+                    pastas[i].content.replace_range(.., &new_content);
+                    // save pasta in database
+                    update(Some(&pastas), Some(&pastas[i]));
                 }
 
                 return Ok(HttpResponse::Found()
