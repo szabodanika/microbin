@@ -76,7 +76,7 @@ pub async fn post_admin(
             pastas: &pastas,
             args: &ARGS,
             status: &String::from(status),
-            version_string: &String::from("2.0.0-20230701"),
+            version_string: &String::from("2.0.1-20230704"),
             message: &String::from(message),
         }
         .render()

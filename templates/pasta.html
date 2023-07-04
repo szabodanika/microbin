@@ -217,8 +217,9 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     // Fetch encrypted file from server
     const formData = new FormData();
 
+    // {% if pasta.encrypted_key.is_some() %}
     let key = decryptWithPassword(passwordField.value.trim(), "{{ pasta.encrypted_key.as_ref().unwrap() }}");
-
+    // {%- endif %}
     formData.append('password', key);
 
     const response = await fetch('/secure_file/{{ pasta.id_as_animals() }}', {
@@ -226,6 +227,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
       body: formData,
     })
 
+    // {% if pasta.file.is_some() %}
     const encryptedFile = await response.text();
 
     // Decrypt file contents
@@ -246,8 +248,8 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     tempAnchorEl.click();
 
     // Remove temporary anchor element
-    // document.re(tempAnchorEl);
-
+    document.re(tempAnchorEl);
+    // {%- endif %}
   });
 
   decryptButton.addEventListener("click", () => {

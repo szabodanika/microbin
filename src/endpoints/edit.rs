@@ -1,7 +1,7 @@
 use crate::args::Args;
 use crate::endpoints::errors::ErrorTemplate;
 use crate::util::animalnumbers::to_u64;
-use crate::util::db::{update, update_all};
+use crate::util::db::update;
 use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::{decrypt, encrypt, remove_expired};
 use crate::{AppState, Pasta, ARGS};
