@@ -268,8 +268,37 @@
             return false;
         }
 
+        let showProgress = false;
 
-        form.submit();
+        submitButton.disabled = true;
+        submitButton.textContent = 'Uploading...';
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload', true);
+
+        xhr.upload.onprogress = function (event) {
+            if (showProgress) {
+                const progressPercent = Math.round((event.loaded / event.total) * 100);
+                submitButton.value = `${progressPercent}%`;
+            }
+        };
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200 || xhr.status === 302) {
+                    window.location.href = xhr.responseURL;
+                } else {
+                    console.log('Request failed with status:', xhr.status);
+                }
+            }
+        };
+
+        const formData = new FormData(form);
+        xhr.send(formData);
+
+        showProgressTimeout = setTimeout(() => {
+            showProgress = true;
+        }, 1000);
     };
 
     function encryptWithPassword(password, plaintext) {
