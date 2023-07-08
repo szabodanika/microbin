@@ -146,15 +146,25 @@
             <select style="width: 100%;" name="privacy" id="privacy">
                 <optgroup label="Unencrypted (no password)">
                     <option value="public">Public</option>
+                    {% if args.private %}
                     <option value="unlisted">Unlisted</option>
+                    {%- endif %}
                 </optgroup>
+                {% if args.enable_readonly %}
                 <optgroup label="Unencrypted (protected)">
                     <option value="readonly">Read-only</option>
                 </optgroup>
+                {%- endif %}
+                {% if args.encryption_client_side || args.encryption_server_side %}
                 <optgroup label="Encrypted">
+                    {% if args.encryption_server_side %}
                     <option value="private">Private</option>
+                    {%- endif %}
+                    {% if args.encryption_client_side%}
                     <option value="secret">Secret</option>
+                    {%- endif %}
                 </optgroup>
+                {%- endif %}
             </select>
         </div>
 
@@ -218,7 +228,6 @@
     form.onsubmit = async function (event) {
         event.preventDefault(); // prevent default form submission
 
-        // this if is not correct i fink
         // {% if args.encryption_client_side || args.encryption_server_side %}
         if (passwordField.value.trim() != "") {
             if (fileOversized()) return false;
@@ -249,13 +258,16 @@
             hiddenEncryptedClientSide.name = "";
             content.value = contentInput.value;
         }
-        // ????
+        // {%- else %}
+        hiddenEncryptedClientSide.name = "";
+        content.value = contentInput.value;
         // {%- endif %}
 
         if (contentInput.value.trim() == "" && hiddenFileButton.files.length == 0) {
             contentInput.focus();
             return false;
         }
+
 
         form.submit();
     };
