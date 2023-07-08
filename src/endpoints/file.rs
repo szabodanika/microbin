@@ -52,7 +52,8 @@ pub async fn post_secure_file(
     if found {
         if let Some(ref pasta_file) = pastas[index].file {
             let file = File::open(format!(
-                "./pasta_data/attachments/{}/data.enc",
+                "./{}/attachments/{}/data.enc",
+                ARGS.data_dir,
                 pastas[index].id_as_animals()
             ))?;
 
@@ -118,7 +119,8 @@ pub async fn get_file(
 
             // Construct the path to the file
             let file_path = format!(
-                "./pasta_data/attachments/{}/{}",
+                "./{}/attachments/{}/{}",
+                ARGS.data_dir,
                 pastas[index].id_as_animals(),
                 pasta_file.name()
             );

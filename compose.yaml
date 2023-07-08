@@ -5,7 +5,7 @@ services:
     ports:
      - "${MICROBIN_PORT}:8080"
     volumes:
-     - ./microbin-data:/app/pasta_data
+     - ./microbin-data:/app/microbin_data
     environment:
       MICROBIN_BASIC_AUTH_USERNAME: ${MICROBIN_BASIC_AUTH_USERNAME}
       MICROBIN_BASIC_AUTH_PASSWORD: ${MICROBIN_BASIC_AUTH_PASSWORD}
@@ -21,6 +21,7 @@ services:
       MICROBIN_BIND: ${MICROBIN_BIND}
       MICROBIN_PRIVATE: ${MICROBIN_PRIVATE}
       MICROBIN_PURE_HTML: ${MICROBIN_PURE_HTML}
+      MICROBIN_DATA_DIR: ${MICROBIN_DATA_DIR}
       MICROBIN_JSON_DB: ${MICROBIN_JSON_DB}
       MICROBIN_PUBLIC_PATH: ${MICROBIN_PUBLIC_PATH}
       MICROBIN_SHORT_PATH: ${MICROBIN_SHORT_PATH}

@@ -102,6 +102,9 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_DEFAULT_EXPIRY", default_value = "24hour")]
     pub default_expiry: String,
 
+    #[clap(long, env = "MICROBIN_DATA_DIR", default_value = "microbin_data")]
+    pub data_dir: String,
+
     #[clap(short, long, env = "MICROBIN_NO_FILE_UPLOAD")]
     pub no_file_upload: bool,
 

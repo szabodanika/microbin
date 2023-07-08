@@ -41,7 +41,8 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             // remove the file itself
             if let Some(file) = &p.file {
                 if fs::remove_file(format!(
-                    "./pasta_data/attachments/{}/{}",
+                    "./{}/attachments/{}/{}",
+                    ARGS.data_dir,
                     p.id_as_animals(),
                     file.name()
                 ))
@@ -51,8 +52,12 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
                 }
 
                 // and remove the containing directory
-                if fs::remove_dir(format!("./pasta_data/attachments/{}/", p.id_as_animals()))
-                    .is_err()
+                if fs::remove_dir(format!(
+                    "./{}/attachments/{}/",
+                    ARGS.data_dir,
+                    p.id_as_animals()
+                ))
+                .is_err()
                 {
                     log::error!("Failed to delete directory {}!", file.name())
                 }
