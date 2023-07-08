@@ -47,7 +47,7 @@
                 "never" %}
                 <option selected value="never">
                     {%- else %}
-                <option value="never">a {%- endif %} Never Expire
+                <option value="never">{%- endif %} Never Expire
                 </option>
                 {%- endif %}
             </select>
@@ -218,6 +218,8 @@
     form.onsubmit = async function (event) {
         event.preventDefault(); // prevent default form submission
 
+        // this if is not correct i fink
+        // {% if args.encryption_client_side || args.encryption_server_side %}
         if (passwordField.value.trim() != "") {
             if (fileOversized()) return false;
 
@@ -247,6 +249,8 @@
             hiddenEncryptedClientSide.name = "";
             content.value = contentInput.value;
         }
+        // ????
+        // {%- endif %}
 
         if (contentInput.value.trim() == "" && hiddenFileButton.files.length == 0) {
             contentInput.focus();
