@@ -264,6 +264,13 @@
         return aesjs.utils.hex.fromBytes(encryptedBytes);
     }
 
+    function encryptFileWithPassword(password, bytes) {
+        const passwordBytes = aesjs.utils.utf8.toBytes(password.padStart(32, "#"));
+        const aesCtr = new aesjs.ModeOfOperation.ctr(passwordBytes);
+        const encryptedBytes = aesCtr.encrypt(bytes);
+        return aesjs.utils.hex.fromBytes(encryptedBytes);
+    }
+
     function fileOversized() {
         if (hiddenFileButton.files.length > 0) {
             const fileSize = hiddenFileButton.files.item(0).size;
@@ -295,8 +302,7 @@
 
                 const reader = new FileReader();
                 reader.onload = function (event) {
-                    const fileContents = event.target.result;
-                    const encryptedContents = encryptWithPassword(passwordField.value.trim(), fileContents);
+                    const encryptedContents = encryptFileWithPassword(passwordField.value.trim(), new Uint8Array(event.target.result));
 
                     // Replace selected file with its encrypted version
                     const encryptedFile = new File([encryptedContents], file.name, { type: file.type });
@@ -306,7 +312,7 @@
                     hiddenFileButton.files = container.files;
                     resolve(encryptedFile);
                 };
-                reader.readAsText(file);
+                reader.readAsArrayBuffer(file);
             } else {
                 resolve();
             }

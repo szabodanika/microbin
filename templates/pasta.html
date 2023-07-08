@@ -33,23 +33,26 @@
 
 <br>
 <br>
-{% if pasta.encrypt_client && pasta.file.is_some() && !pasta.file_embeddable() %}
+{% if pasta.encrypt_client %}
 <span style="margin-left: auto; margin-right: auto; display: flex;
 justify-content: center; align-items: center;">
   <div id="decryption">
+    {% if pasta.encrypt_client %}
     <label for="password-field" style="margin-bottom: 0.5em;">
       Please enter your key to decrypt this upload. <sup> <a href="/guide#encryption">﹖</a></sup>
     </label>
     <input class="small-button" placeholder="Key" style="margin-right: 0.5rem" type="password" id="password-field"
       autocomplete="off" />
-
+    {% if pasta.content != "" %}
     <button class="small-button" id="decrypt-button" style="margin-right:
-  0.5rem">
+    0.5rem">
       <b>
         Decrypt text
       </b>
     </button>
-
+    {%- endif %}
+    {%- endif %}
+    {% if pasta.file.is_some() && !pasta.file_embeddable() %}
     <button class="small-button" id="download-button" style="margin-right:
   0.5rem">
       <b>
@@ -57,10 +60,11 @@ justify-content: center; align-items: center;">
         [{{pasta.file.as_ref().unwrap().size}}]
       </b>
     </button>
+    {%- endif %}
   </div>
 </span>
-
 {%- endif %}
+
 <br>
 
 {% if pasta.content != "" %}
@@ -75,6 +79,19 @@ justify-content: center; align-items: center;">
     {%- endif %}
   </div>
 </div>
+{%- endif %}
+
+{% if pasta.file.is_some() && !pasta.file_embeddable() && !pasta.encrypt_client %}
+<span style="margin-left: auto; margin-right: auto; display: flex;
+    justify-content: center; align-items: center;">
+  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
+    [{{pasta.file.as_ref().unwrap().size}}]</p>
+  <a href="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" id="download-link">
+    <button class="download-button" autofocus>
+      Download
+    </button>
+  </a>
+</span>
 {%- endif %}
 
 
@@ -205,6 +222,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
   const passwordField = document.getElementById("password-field");
   const downloadButton = document.getElementById('download-button');
 
+  // {% if pasta.file.is_some() %}
   // Set up event listener for download link click
   downloadButton.addEventListener('click', async (event) => {
     event.preventDefault(); // prevent default click behavior
@@ -231,26 +249,29 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     const encryptedFile = await response.text();
 
     // Decrypt file contents
-    const decryptedContents = decryptWithPassword(passwordField.value.trim(), encryptedFile);
+    const decryptedContents = decryptFileWithPassword(passwordField.value.trim(), encryptedFile);
     if (!decryptedContents) {
       throw new Error('Failed to decrypt file');
     }
 
+    // Create blob from decrypted file contents
+    const decryptedBlob = new Blob([decryptedContents], { type: 'application/octet-stream' });
+
     // Create data URI for decrypted file
-    const dataUri = `data:text/plain;charset=utf-8,${encodeURIComponent(decryptedContents)}`;
+    // const dataUri = `data:application/octet-stream;${encodeURIComponent(decryptedContents)}`;
 
     // Create temporary anchor element
     const tempAnchorEl = document.createElement('a');
-    tempAnchorEl.href = dataUri;
+    // tempAnchorEl.href = dataUri;
+    tempAnchorEl.href = URL.createObjectURL(decryptedBlob);
     tempAnchorEl.download = '{{pasta.file.as_ref().unwrap().name()}}';
 
     // Programmatically click anchor element to trigger download
     tempAnchorEl.click();
 
-    // Remove temporary anchor element
-    document.re(tempAnchorEl);
     // {%- endif %}
   });
+  // {% endif  %} 
 
   decryptButton.addEventListener("click", () => {
     password = passwordField.value;
@@ -272,11 +293,27 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     const aesCtr = new aesjs.ModeOfOperation.ctr(passwordBytes);
     const decryptedBytes = aesCtr.decrypt(encryptedBytes);
     const res = aesjs.utils.utf8.fromBytes(decryptedBytes);
+
     if (res.endsWith("!0K")) {
       return res.substring(0, res.length - "!0K".length);
     } else {
       return null;
     }
+  }
+
+  function decryptFileWithPassword(password, encryptedHex) {
+    const passwordBytes = aesjs.utils.utf8.toBytes(password.padStart(32, "#"));
+    const encryptedBytes = aesjs.utils.hex.toBytes(encryptedHex);
+    const aesCtr = new aesjs.ModeOfOperation.ctr(passwordBytes);
+    const decryptedBytes = aesCtr.decrypt(encryptedBytes);
+    return decryptedBytes;
+    // const res = aesjs.utils.hex.fromBytes(decryptedBytes);
+    // return res;
+    // if (res.endsWith("!0K")) {
+    //   return res.substring(0, res.length - "!0K".length);
+    // } else {
+    //   return null;
+    // }
   }
 // {% endif %}
 </script>
