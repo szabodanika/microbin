@@ -10,7 +10,7 @@ use crate::util::animalnumbers::to_animal_names;
 use crate::util::hashids::to_hashids;
 use crate::util::syntaxhighlighter::html_highlight;
 
-#[derive(Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Eq)]
 pub struct PastaFile {
     pub name: String,
     pub size: ByteSize,
@@ -49,11 +49,11 @@ impl PastaFile {
     }
 
     pub fn embeddable(&self) -> bool {
-        self.is_image() && !self.is_video()
+        self.is_image() || self.is_video()
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Pasta {
     pub id: u64,
     pub content: String,

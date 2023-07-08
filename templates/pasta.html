@@ -110,6 +110,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
 </span>
 {%- endif %}
 
+
 {% if pasta.file.is_some() && pasta.file.as_ref().unwrap().is_video() &&
 pasta.file_embeddable() && !pasta.encrypt_client %}
 <video id="embed" controls src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" height="300"></video>
@@ -307,13 +308,6 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     const aesCtr = new aesjs.ModeOfOperation.ctr(passwordBytes);
     const decryptedBytes = aesCtr.decrypt(encryptedBytes);
     return decryptedBytes;
-    // const res = aesjs.utils.hex.fromBytes(decryptedBytes);
-    // return res;
-    // if (res.endsWith("!0K")) {
-    //   return res.substring(0, res.length - "!0K".length);
-    // } else {
-    //   return null;
-    // }
   }
 // {% endif %}
 </script>
