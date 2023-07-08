@@ -8,6 +8,12 @@
   <input id="password-field" placeholder="Password" type="password" autocomplete="off">
   <input id="password-hidden" name="password" type="hidden">
   <button>Open</button>
+
+  {% if status == "incorrect" %}
+  <p>
+    Incorrect password.
+  </p>
+  {% endif %}
 </form>
 
 <script>
