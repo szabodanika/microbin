@@ -1,9 +1,7 @@
 use bytesize::ByteSize;
 use rusqlite::{params, Connection};
 
-use crate::{pasta::PastaFile, Pasta};
-
-static DATABASE_PATH: &str = "pasta_data/database.sqlite";
+use crate::{args::ARGS, pasta::PastaFile, Pasta};
 
 pub fn read_all() -> Vec<Pasta> {
     select_all_from_db()
@@ -14,7 +12,8 @@ pub fn update_all(pastas: &[Pasta]) {
 }
 
 pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
-    let conn = Connection::open(DATABASE_PATH).expect("Failed to open SQLite database!");
+    let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
+        .expect("Failed to open SQLite database!");
 
     conn.execute(
         "
@@ -95,7 +94,8 @@ pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
 }
 
 pub fn select_all_from_db() -> Vec<Pasta> {
-    let conn = Connection::open(DATABASE_PATH).expect("Failed to open SQLite database!");
+    let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
+        .expect("Failed to open SQLite database!");
 
     conn.execute(
         "
@@ -167,7 +167,8 @@ pub fn select_all_from_db() -> Vec<Pasta> {
 }
 
 pub fn insert(pasta: &Pasta) {
-    let conn = Connection::open(DATABASE_PATH).expect("Failed to open SQLite database!");
+    let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
+        .expect("Failed to open SQLite database!");
 
     conn.execute(
         "
@@ -238,7 +239,8 @@ pub fn insert(pasta: &Pasta) {
 }
 
 pub fn update(pasta: &Pasta) {
-    let conn = Connection::open(DATABASE_PATH).expect("Failed to open SQLite database!");
+    let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
+        .expect("Failed to open SQLite database!");
 
     conn.execute(
         "UPDATE pasta SET
@@ -283,7 +285,8 @@ pub fn update(pasta: &Pasta) {
 }
 
 pub fn delete_by_id(id: u64) {
-    let conn = Connection::open(DATABASE_PATH).expect("Failed to open SQLite database!");
+    let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
+        .expect("Failed to open SQLite database!");
 
     conn.execute(
         "DELETE FROM pasta 
