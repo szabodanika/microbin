@@ -25,12 +25,23 @@
                 <td>{{status}} </td>
             </tr>
             <tr>
-                <td><b>Pastas</b></td>
+                <td><b>Uploads</b></td>
                 <td>{{pastas.len()}} </td>
             </tr>
         </table>
     </div>
 </div>
+
+<h4>Update</h4>
+{% if update.is_some() %}
+<p><b>Update available</b> {{update.as_ref().unwrap().long_title}}</p>
+<p><b>Date</b> {{update.as_ref().unwrap().date}}</p>
+<p><b>Update type</b> {{update.as_ref().unwrap().update_type}}</p>
+<p><b>Description</b> {{update.as_ref().unwrap().description}}</p>
+{%- else %}
+<p>No updates available.</p>
+{%- endif %}
+
 
 {% if message != "" %}
 <h4>Messages</h4>

@@ -1,6 +1,7 @@
 use crate::args::{Args, ARGS};
 use crate::pasta::Pasta;
 use crate::util::misc::remove_expired;
+use crate::util::version::{fetch_latest_version, Version, CURRENT_VERSION};
 use crate::AppState;
 use actix_multipart::Multipart;
 use actix_web::{get, post, web, Error, HttpResponse};
@@ -15,6 +16,7 @@ struct AdminTemplate<'a> {
     status: &'a String,
     version_string: &'a String,
     message: &'a String,
+    update: &'a Option<Version>,
 }
 
 #[get("/admin")]
@@ -71,13 +73,30 @@ pub async fn post_admin(
         message = "Warning: You are using the default admin login details. This is a security risk, please change them."
     }
 
+    let latest_version_res = fetch_latest_version().await;
+
+    let update;
+    if latest_version_res.is_ok() {
+        let latest_version = latest_version_res.unwrap();
+        println!("{:#?}", latest_version);
+        if latest_version.newer_than_current() {
+            update = Some(latest_version);
+        } else {
+            update = None;
+        }
+    } else {
+        update = None;
+        println!("{:#?}", latest_version_res.err().unwrap());
+    }
+
     Ok(HttpResponse::Ok().content_type("text/html").body(
         AdminTemplate {
             pastas: &pastas,
             args: &ARGS,
             status: &String::from(status),
-            version_string: &String::from("2.0.2-20230708"),
+            version_string: &format!("{}", CURRENT_VERSION.long_title),
             message: &String::from(message),
+            update: &update,
         }
         .render()
         .unwrap(),

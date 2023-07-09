@@ -29,6 +29,7 @@ pub mod util {
     pub mod hashids;
     pub mod misc;
     pub mod syntaxhighlighter;
+    pub mod version;
 }
 
 pub mod endpoints {
