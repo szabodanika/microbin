@@ -289,11 +289,7 @@ pub async fn post_submit_edit_private(
         return Ok(HttpResponse::Found()
             .append_header((
                 "Location",
-                format!(
-                    "{}/pasta/{}",
-                    ARGS.public_path_as_str(),
-                    pastas[index].id_as_animals()
-                ),
+                format!("/auth/{}/success", pastas[index].id_as_animals()),
             ))
             .finish());
     }

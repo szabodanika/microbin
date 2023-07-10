@@ -3,16 +3,21 @@
 {% if encrypt_client %}
 
 <form id="auth-form" method="POST" action="/{{path}}/{{id}}" enctype="multipart/form-data">
+  {% if status == "success" %}
+  <b>
+    Success!
+  </b> <br>
+  {% endif %}
   <label for="password"> Please enter the password to open the upload. <sup>
       <a href="/guide#encryption">﹖</a></sup></label>
-  <input id="password-field" placeholder="Password" type="password" autocomplete="off">
+  <input id="password-field" required placeholder="Password" type="password" autocomplete="off">
   <input id="password-hidden" name="password" type="hidden">
   <button>Open</button>
 
   {% if status == "incorrect" %}
-  <p>
+  <b>
     Incorrect password.
-  </p>
+  </b>
   {% endif %}
 </form>
 
@@ -23,11 +28,18 @@
   const passwordHiddenField = document.getElementById("password-hidden");
 
   form.onsubmit = function () {
+
+    if (passwordField.value.trim() == "") {
+      passwordField.focus();
+      return false;
+    }
+
     let key = decryptWithPassword(passwordField.value, "{{ encrypted_key }}");
 
     if (key) {
       passwordHiddenField.value = key;
     }
+
   };
 
   function decryptWithPassword(password, encryptedHex) {
@@ -48,6 +60,11 @@
 {% else %}
 
 <form id="auth-form" method="POST" action="/{{path}}/{{id}}" enctype="multipart/form-data">
+  {% if status == "success" %}
+  <b>
+    Success!
+  </b> <br>
+  {% endif %}
   <label for="password" style="margin-bottom: 0.5rem;"> Please enter the
     password to access or modify this upload. <sup>
       <a href="/guide#encryption">﹖</a></sup></label>
@@ -55,12 +72,34 @@
   <button>Okay</button>
 
   {% if status == "incorrect" %}
-  <p>
+  <b>
     Incorrect password.
-  </p>
+  </b>
   {% endif %}
-
 </form>
+
+
+<script>
+
+  const form = document.getElementById("auth-form");
+  const passwordField = document.getElementById("password-field");
+
+  form.onsubmit = function () {
+
+    if (passwordField.value.trim() == "") {
+      passwordField.focus();
+      return false;
+    }
+
+    let key = decryptWithPassword(passwordField.value, "{{ encrypted_key }}");
+
+    if (key) {
+      passwordHiddenField.value = key;
+    }
+
+  };
+
+</script>
 
 {% endif %}
 

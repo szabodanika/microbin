@@ -168,7 +168,7 @@
             </select>
         </div>
 
-        {% if args.encryption_client_side || args.encryption_server_side %}
+        {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly %}
         <div>
             <label for="password_field">Password <sup><a href="/guide#password">﹖</a></sup></label><br>
             <input style="width: 130px; height: 28px;" type="password" id="password_field" autocomplete="off" />
@@ -201,8 +201,9 @@
     </div>
     <input type="hidden" name="content" id="content">
     <input type="hidden" name="encrypt_client" id="encrypt_client">
-    {% if args.encryption_server_side %}
-    <input name="encrypted_random_key" type="hidden" id="encrypted_random_key" autocomplete="off" /> {%- endif %}
+    {% if args.encryption_server_side || args.enable_readonly %}
+    <input name="encrypted_random_key" type="hidden" id="encrypted_random_key" autocomplete="off" />
+    {%- endif %}
     <input type="hidden" name="random_key" id="random_key">
     <input type="hidden" name="plain_key" id="plain_key">
 </form>
@@ -228,7 +229,7 @@
     form.onsubmit = async function (event) {
         event.preventDefault(); // prevent default form submission
 
-        // {% if args.encryption_client_side || args.encryption_server_side %}
+        // {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly %}
         if (passwordField.value.trim() != "") {
             if (fileOversized()) return false;
 

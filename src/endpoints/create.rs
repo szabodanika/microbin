@@ -272,6 +272,8 @@ pub async fn create(
         }
     }
 
+    let encrypt_server = new_pasta.encrypt_server;
+
     pastas.push(new_pasta);
 
     for (_, pasta) in pastas.iter().enumerate() {
@@ -286,10 +288,16 @@ pub async fn create(
         to_animal_names(id)
     };
 
-    Ok(HttpResponse::Found()
-        .append_header((
-            "Location",
-            format!("{}/pasta/{}", ARGS.public_path_as_str(), slug),
-        ))
-        .finish())
+    if encrypt_server {
+        Ok(HttpResponse::Found()
+            .append_header(("Location", format!("/auth/{}/success", slug)))
+            .finish())
+    } else {
+        Ok(HttpResponse::Found()
+            .append_header((
+                "Location",
+                format!("{}/pasta/{}", ARGS.public_path_as_str(), slug),
+            ))
+            .finish())
+    }
 }

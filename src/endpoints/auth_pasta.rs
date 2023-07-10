@@ -317,3 +317,78 @@ pub async fn auth_file_with_status(
         .content_type("text/html")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
+
+#[get("/auth_remove_private/{id}")]
+pub async fn auth_remove_private(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+    // get access to the pasta collection
+    let mut pastas = data.pastas.lock().unwrap();
+
+    remove_expired(&mut pastas);
+
+    let intern_id = if ARGS.hash_ids {
+        hashid_to_u64(&id).unwrap_or(0)
+    } else {
+        to_u64(&id).unwrap_or(0)
+    };
+
+    for (_, pasta) in pastas.iter().enumerate() {
+        if pasta.id == intern_id {
+            return HttpResponse::Ok().content_type("text/html").body(
+                AuthPasta {
+                    args: &ARGS,
+                    id: id.into_inner(),
+                    status: String::from(""),
+                    encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
+                    encrypt_client: pasta.encrypt_client,
+                    path: String::from("remove"),
+                }
+                .render()
+                .unwrap(),
+            );
+        }
+    }
+
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .body(ErrorTemplate { args: &ARGS }.render().unwrap())
+}
+
+#[get("/auth_remove_private/{id}/{status}")]
+pub async fn auth_remove_private_with_status(
+    data: web::Data<AppState>,
+    param: web::Path<(String, String)>,
+) -> HttpResponse {
+    // get access to the pasta collection
+    let mut pastas = data.pastas.lock().unwrap();
+
+    remove_expired(&mut pastas);
+
+    let (id, status) = param.into_inner();
+
+    let intern_id = if ARGS.hash_ids {
+        hashid_to_u64(&id).unwrap_or(0)
+    } else {
+        to_u64(&id).unwrap_or(0)
+    };
+
+    for (_i, pasta) in pastas.iter().enumerate() {
+        if pasta.id == intern_id {
+            return HttpResponse::Ok().content_type("text/html").body(
+                AuthPasta {
+                    args: &ARGS,
+                    id,
+                    status,
+                    encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
+                    encrypt_client: pasta.encrypt_client,
+                    path: String::from("remove"),
+                }
+                .render()
+                .unwrap(),
+            );
+        }
+    }
+
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .body(ErrorTemplate { args: &ARGS }.render().unwrap())
+}
