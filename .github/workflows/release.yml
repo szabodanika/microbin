@@ -93,6 +93,10 @@ jobs:
         target: ${{ matrix.target }}
         toolchain: stable
         profile: minimal # minimal component installation (ie, no documentation)
+        
+    - name: Install OpenSSL
+      if: runner.os == 'Linux'
+      run: sudo apt-get install -y libssl-dev
   
     - name: Show Version Information (Rust, cargo, GCC)
       shell: bash
