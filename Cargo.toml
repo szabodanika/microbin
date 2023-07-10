@@ -40,6 +40,10 @@ magic-crypt = "3.1.12"
 rusqlite = { version = "0.29.0", features = ["bundled"] }
 reqwest = { version = "0.11", features = ["json"] }
 
+[dependencies.openssl]
+version = "0.10.51"
+features = ["vendored"]
+
 [profile.release]
 lto = true
 strip = true
