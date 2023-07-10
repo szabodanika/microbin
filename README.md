@@ -39,20 +39,17 @@ On our website [microbin.eu](https://microbin.eu) you will find the following:
 
 ## Features
 
-- Is very small
 - Entirely self-contained executable, MicroBin is a single file!
-- Animal names instead of random numbers for pasta identifiers (64 animals)
 - Server-side and client-side encryption
 - File uploads (eg. `server.com/file/pig-dog-cat`)
 - Raw text serving (eg. `server.com/raw/pig-dog-cat`)
-- URL shortening and redirection
 - QR code support
-- Very simple database (JSON + files) for portability, easy backups and integration
-- SQLite support
-- Private and public, editable and final, automatically and never expiring uploads
-- Syntax highlighting
+- URL shortening and redirection
+- Animal names instead of random numbers for pasta identifiers (64 animals)
+- SQLite and JSON database support
+- Private and public, editable and uneditable, automatically and never expiring uploads
 - Automatic dark mode and custom styling support with very little CSS and only vanilla JS (see [`water.css`](https://github.com/kognise/water.css))
-- Most of the above can be toggled on and off!
+- And much more!
 
 ## What is an upload?
 
@@ -60,19 +57,20 @@ In MicroBin, an upload can be:
 
 - A text that you want to paste from one machine to another, eg. some code,
 - A file that you want to share, eg. a video that is too large for Discord, a zip with a code project in it or an image,
-- A URL redirect.
+- A URL redirection.
 
 ## When is MicroBin useful?
 
 You can use MicroBin:
 
-- As a URL shortener/redirect service,
 - To send long texts to other people,
 - To send large files to other people,
+- To share secrets or sensitive documents securely,
+- As a URL shortener/redirect service,
 - To serve content on the web, eg. configuration files for testing, images, or any other file content using the Raw functionality,
 - To move files between your desktop and a server you access from the console,
-- As a "postbox" service where people can upload their files or texts, but they cannot see or remove what others sent you - just disable the upload page
-- To take notes! Simply create an editable upload.
+- As a "postbox" service where people can upload their files or texts, but they cannot see or remove what others sent you,
+- Or even to take quick notes.
 
 ...and many other things, why not get creative?
 
