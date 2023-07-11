@@ -108,7 +108,7 @@ pub async fn post_remove(
         if pasta.id == id {
             if pastas[i].readonly || pastas[i].encrypt_server {
                 if password != *"" {
-                    let res = decrypt(pastas[i].encrypted_key.as_ref().unwrap(), &password);
+                    let res = decrypt(pastas[i].content.to_owned().as_str(), &password);
                     if res.is_ok() {
                         // remove the file itself
                         if let Some(PastaFile { name, .. }) = &pasta.file {
