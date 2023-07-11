@@ -24,7 +24,7 @@ Or install it manually from [Cargo](https://crates.io/crates/microbin):
 
 ```bash
 cargo install microbin;
-curl -L -O https://raw.githubusercontent.com/;szabodanika/microbin/master/.env;
+curl -L -O https://raw.githubusercontent.com/szabodanika/microbin/master/.env;
 source .env;
 microbin
 ```
