@@ -21,11 +21,11 @@ pub struct Version {
 pub static CURRENT_VERSION: Version = Version {
     major: 2,
     minor: 0,
-    patch: 3,
-    title: Cow::Borrowed("2.0.3-beta4"),
-    long_title: Cow::Borrowed("Version 2.0.3-beta4, Build 20230710"),
+    patch: 4,
+    title: Cow::Borrowed("2.0.4"),
+    long_title: Cow::Borrowed("Version 2.0.4, Build 20230711"),
     description: Cow::Borrowed("This version includes bug fixes and performance improvements."),
-    date: Cow::Borrowed("2023-07-10"),
+    date: Cow::Borrowed("2023-07-11"),
     update_type: Cow::Borrowed("beta"),
 };
 

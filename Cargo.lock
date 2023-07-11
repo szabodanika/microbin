@@ -1605,7 +1605,7 @@ dependencies = [
 
 [[package]]
 name = "microbin"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "actix-files",
  "actix-multipart",
