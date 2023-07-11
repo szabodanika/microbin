@@ -304,12 +304,6 @@ pub async fn post_edit(
     id: web::Path<String>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    if ARGS.readonly {
-        return Ok(HttpResponse::Found()
-            .append_header(("Location", format!("{}/", ARGS.public_path_as_str())))
-            .finish());
-    }
-
     let id = if ARGS.hash_ids {
         hashid_to_u64(&id).unwrap_or(0)
     } else {
@@ -372,7 +366,7 @@ pub async fn post_edit(
                     .append_header((
                         "Location",
                         format!(
-                            "{}/pasta/{}",
+                            "{}/upload/{}",
                             ARGS.public_path_as_str(),
                             pastas[i].id_as_animals()
                         ),

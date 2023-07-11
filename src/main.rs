@@ -2,8 +2,8 @@ extern crate core;
 
 use crate::args::ARGS;
 use crate::endpoints::{
-    admin, auth_admin, auth_pasta, create, edit, errors, file, guide, pasta as pasta_endpoint,
-    pastalist, qr, remove, static_resources,
+    admin, auth_admin, auth_upload, create, edit, errors, file, guide, list,
+    pasta as pasta_endpoint, qr, remove, static_resources,
 };
 use crate::pasta::Pasta;
 use crate::util::db::read_all;
@@ -37,14 +37,14 @@ pub mod util {
 pub mod endpoints {
     pub mod admin;
     pub mod auth_admin;
-    pub mod auth_pasta;
+    pub mod auth_upload;
     pub mod create;
     pub mod edit;
     pub mod errors;
     pub mod file;
     pub mod guide;
+    pub mod list;
     pub mod pasta;
-    pub mod pastalist;
     pub mod qr;
     pub mod remove;
     pub mod static_resources;
@@ -105,17 +105,17 @@ async fn main() -> std::io::Result<()> {
             .service(create::index)
             .service(guide::guide)
             .service(auth_admin::auth_admin)
-            .service(auth_pasta::auth_file_with_status)
+            .service(auth_upload::auth_file_with_status)
             .service(auth_admin::auth_admin_with_status)
-            .service(auth_pasta::auth_pasta_with_status)
-            .service(auth_pasta::auth_raw_pasta_with_status)
-            .service(auth_pasta::auth_edit_private_with_status)
-            .service(auth_pasta::auth_remove_private_with_status)
-            .service(auth_pasta::auth_file)
-            .service(auth_pasta::auth_pasta)
-            .service(auth_pasta::auth_raw_pasta)
-            .service(auth_pasta::auth_edit_private)
-            .service(auth_pasta::auth_remove_private)
+            .service(auth_upload::auth_upload_with_status)
+            .service(auth_upload::auth_raw_pasta_with_status)
+            .service(auth_upload::auth_edit_private_with_status)
+            .service(auth_upload::auth_remove_private_with_status)
+            .service(auth_upload::auth_file)
+            .service(auth_upload::auth_upload)
+            .service(auth_upload::auth_raw_pasta)
+            .service(auth_upload::auth_edit_private)
+            .service(auth_upload::auth_remove_private)
             .service(pasta_endpoint::getpasta)
             .service(pasta_endpoint::postpasta)
             .service(pasta_endpoint::getshortpasta)
@@ -140,7 +140,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .service(remove::remove)
             .service(remove::post_remove)
-            .service(pastalist::list)
+            .service(list::list)
             .service(create::index_with_status)
             .wrap(Condition::new(
                 ARGS.auth_basic_username.is_some()

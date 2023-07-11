@@ -14,7 +14,7 @@ use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Template)]
-#[template(path = "pasta.html", escape = "none")]
+#[template(path = "upload.html", escape = "none")]
 struct PastaTemplate<'a> {
     pasta: &'a Pasta,
     args: &'a Args,
@@ -121,7 +121,7 @@ fn pastaresponse(
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
-#[post("/pasta/{id}")]
+#[post("/upload/{id}")]
 pub async fn postpasta(
     data: web::Data<AppState>,
     id: web::Path<String>,
@@ -159,7 +159,7 @@ pub async fn postshortpasta(
     Ok(pastaresponse(data, id, password))
 }
 
-#[get("/pasta/{id}")]
+#[get("/upload/{id}")]
 pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     pastaresponse(data, id, String::from(""))
 }
@@ -314,7 +314,7 @@ pub async fn getrawpasta(
     // otherwise send pasta not found error as raw text
     Ok(HttpResponse::NotFound()
         .content_type("text/html")
-        .body(String::from("Pasta not found! :-(")))
+        .body(String::from("Upload not found! :-(")))
 }
 
 #[post("/raw/{id}")]
@@ -421,7 +421,7 @@ pub async fn postrawpasta(
     // otherwise send pasta not found error as raw text
     Ok(HttpResponse::NotFound()
         .content_type("text/html")
-        .body(String::from("Pasta not found! :-(")))
+        .body(String::from("Upload not found! :-(")))
 }
 
 fn decrypt(text_str: &str, key_str: &str) -> Result<String, magic_crypt::MagicCryptError> {

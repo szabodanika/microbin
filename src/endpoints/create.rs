@@ -326,7 +326,7 @@ pub async fn create(
         Ok(HttpResponse::Found()
             .append_header((
                 "Location",
-                format!("{}/pasta/{}", ARGS.public_path_as_str(), slug),
+                format!("{}/upload/{}", ARGS.public_path_as_str(), slug),
             ))
             .finish())
     }

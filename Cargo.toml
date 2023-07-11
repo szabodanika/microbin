@@ -8,7 +8,7 @@ description = "Simple, performant, configurable, entirely self-contained Pastebi
 readme = "README.md"
 homepage = "https://microbin.eu"
 repository = "https://github.com/szabodanika/microbin"
-keywords = ["pastebin", "pastabin", "microbin", "actix", "selfhosted"]
+keywords = ["pastebin", "filesharing", "microbin", "actix", "selfhosted"]
 categories = ["pastebins"]
 
 [dependencies]

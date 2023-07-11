@@ -42,13 +42,13 @@
                 <tr>
                     <td>
                         <a
-                            href="{{ args.public_path_as_str()}}/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+                            href="{{ args.public_path_as_str()}}/upload/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
                     </td>
                     <td>
                         {% if args.public_path_as_str() != "" %}
                         {% if args.short_path_as_str() == "" %}
                         <a style="margin-right:1rem; cursor: pointer;" class="copy-button" null
-                            data-url="{{ args.public_path_as_str()}}/pasta/{{pasta.id_as_animals()}}">Copy</a>
+                            data-url="{{ args.public_path_as_str()}}/upload/{{pasta.id_as_animals()}}">Copy</a>
                         {% else %}
                         <a style="margin-right:1rem; cursor: pointer;" class="copy-button" data-url="{{ args.short_path_as_str()
                         }}/p/{{pasta.id_as_animals()}}">Copy</a>
@@ -125,7 +125,7 @@
                 <tr>
                     <td>
                         <a
-                            href="{{ args.public_path_as_str() }}/pasta/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
+                            href="{{ args.public_path_as_str() }}/upload/{{pasta.id_as_animals()}}">{{pasta.id_as_animals()}}</a>
                     </td>
                     <td>
                         {% if args.short_path_as_str() == "" %}

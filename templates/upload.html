@@ -23,7 +23,7 @@
 </div>
 <div style="float: right">
   <a style="margin-right: 0.5rem"
-    href="{{ args.public_path_as_str()  }}/pasta/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
+    href="{{ args.public_path_as_str()  }}/upload/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
   {% if args.public_path_as_str() != "" %}
   <button id="copy-url-button" class="small-button" style="margin-right: 0">
     Copy URL
@@ -148,7 +148,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
   const copyRedirectBtn = document.getElementById("copy-redirect-button")
   var content = `{{ pasta.content_escaped() }}`
   const contentElement = document.getElementById("code");
-  const url = (`{{ args.short_path_as_str()}}` === "") ? `{{ args.public_path_as_str() }}/pasta/{{pasta.id_as_animals()}}` : `{{ args.short_path_as_str()}}/p/{{pasta.id_as_animals()}}`
+  const url = (`{{ args.short_path_as_str()}}` === "") ? `{{ args.public_path_as_str() }}/upload/{{pasta.id_as_animals()}}` : `{{ args.short_path_as_str()}}/p/{{pasta.id_as_animals()}}`
   const redirect_url = (`{{ args.short_path_as_str()}}` === "") ? `{{ args.public_path_as_str() }}/url/{{pasta.id_as_animals()}}` : `{{ args.short_path_as_str()}}/u/{{pasta.id_as_animals()}}`
 
   const te = new TextEncoder();

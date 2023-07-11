@@ -1,7 +1,7 @@
 {% include "header.html" %}
 
 <div style="float: left">
-  <a href="{{ args.public_path_as_str() }}/pasta/{{pasta.id_as_animals()}}">Back to Pasta</a>
+  <a href="{{ args.public_path_as_str() }}/upload/{{pasta.id_as_animals()}}">Back to Upload</a>
 </div>
 
 
@@ -11,7 +11,7 @@
     {{qr}}
   </a>
   {% else %}
-  <a href="{{ args.public_path_as_str() }}/pasta/{{pasta.id_as_animals()}}">
+  <a href="{{ args.public_path_as_str() }}/upload/{{pasta.id_as_animals()}}">
     {{qr}}
   </a>
   {% endif %}

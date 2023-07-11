@@ -8,7 +8,7 @@ use actix_web::{get, web, HttpResponse};
 use askama::Template;
 
 #[derive(Template)]
-#[template(path = "auth_pasta.html")]
+#[template(path = "auth_upload.html")]
 struct AuthPasta<'a> {
     args: &'a Args,
     id: String,
@@ -19,7 +19,7 @@ struct AuthPasta<'a> {
 }
 
 #[get("/auth/{id}")]
-pub async fn auth_pasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+pub async fn auth_upload(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
@@ -40,7 +40,7 @@ pub async fn auth_pasta(data: web::Data<AppState>, id: web::Path<String>) -> Htt
                     status: String::from(""),
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
-                    path: String::from("pasta"),
+                    path: String::from("upload"),
                 }
                 .render()
                 .unwrap(),
@@ -54,7 +54,7 @@ pub async fn auth_pasta(data: web::Data<AppState>, id: web::Path<String>) -> Htt
 }
 
 #[get("/auth/{id}/{status}")]
-pub async fn auth_pasta_with_status(
+pub async fn auth_upload_with_status(
     data: web::Data<AppState>,
     param: web::Path<(String, String)>,
 ) -> HttpResponse {
@@ -80,7 +80,7 @@ pub async fn auth_pasta_with_status(
                     status,
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
-                    path: String::from("pasta"),
+                    path: String::from("upload"),
                 }
                 .render()
                 .unwrap(),

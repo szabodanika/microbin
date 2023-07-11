@@ -15,7 +15,6 @@ use std::fs;
 
 #[get("/remove/{id}")]
 pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
-
     let mut pastas = data.pastas.lock().unwrap();
 
     let id = if ARGS.hash_ids {
@@ -67,10 +66,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
             delete(Some(&pastas), Some(id));
 
             return HttpResponse::Found()
-                .append_header((
-                    "Location",
-                    format!("{}/pastalist", ARGS.public_path_as_str()),
-                ))
+                .append_header(("Location", format!("{}/list", ARGS.public_path_as_str())))
                 .finish();
         }
     }
@@ -88,12 +84,6 @@ pub async fn post_remove(
     id: web::Path<String>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    if ARGS.readonly {
-        return Ok(HttpResponse::Found()
-            .append_header(("Location", format!("{}/", ARGS.public_path_as_str())))
-            .finish());
-    }
-
     let id = if ARGS.hash_ids {
         hashid_to_u64(&id).unwrap_or(0)
     } else {
@@ -153,7 +143,7 @@ pub async fn post_remove(
                         return Ok(HttpResponse::Found()
                             .append_header((
                                 "Location",
-                                format!("{}/pastalist", ARGS.public_path_as_str()),
+                                format!("{}/list", ARGS.public_path_as_str()),
                             ))
                             .finish());
                     } else {
@@ -178,7 +168,7 @@ pub async fn post_remove(
                 .append_header((
                     "Location",
                     format!(
-                        "{}/pasta/{}",
+                        "{}/upload/{}",
                         ARGS.public_path_as_str(),
                         pastas[i].id_as_animals()
                     ),

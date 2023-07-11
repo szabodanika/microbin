@@ -7,13 +7,13 @@ use crate::util::misc::remove_expired;
 use crate::AppState;
 
 #[derive(Template)]
-#[template(path = "pastalist.html")]
-struct PastaListTemplate<'a> {
+#[template(path = "list.html")]
+struct ListTemplate<'a> {
     pastas: &'a Vec<Pasta>,
     args: &'a Args,
 }
 
-#[get("/pastalist")]
+#[get("/list")]
 pub async fn list(data: web::Data<AppState>) -> HttpResponse {
     if ARGS.no_listing {
         return HttpResponse::Found()
@@ -29,7 +29,7 @@ pub async fn list(data: web::Data<AppState>) -> HttpResponse {
     pastas.sort_by(|a, b| b.created.cmp(&a.created));
 
     HttpResponse::Ok().content_type("text/html").body(
-        PastaListTemplate {
+        ListTemplate {
             pastas: &pastas,
             args: &ARGS,
         }
