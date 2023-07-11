@@ -8,11 +8,12 @@
     Success!
   </b> <br>
   {% endif %}
-  <label for="password"> Please enter the password to open the upload. <sup>
+  <label for="password"> Please enter the
+    password to access or modify this upload. <sup>
       <a href="/guide#encryption">﹖</a></sup></label>
   <input id="password-field" required placeholder="Password" type="password" autocomplete="off">
   <input id="password-hidden" name="password" type="hidden">
-  <button>Open</button>
+  <button>Okay</button>
 
   {% if status == "incorrect" %}
   <b>

@@ -16,7 +16,7 @@
     Content</a>
   {%- endif %} {% if args.qr && args.public_path_as_str() != "" %}
   <a style="margin-right: 1rem" href="{{ args.public_path_as_str()  }}/qr/{{pasta.id_as_animals()}}">QR</a>
-  {%- endif %} {% if pasta.editable %}
+  {%- endif %} {% if pasta.editable && !pasta.encrypt_client %}
   <a style="margin-right: 1rem" href="{{ args.public_path_as_str()  }}/edit/{{pasta.id_as_animals()}}">Edit</a>
   {%- endif %}
   <a style="margin-right: 1rem" href="{{ args.public_path_as_str()  }}/remove/{{pasta.id_as_animals()}}">Remove</a>

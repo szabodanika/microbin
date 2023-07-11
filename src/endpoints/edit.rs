@@ -157,7 +157,7 @@ pub async fn post_edit_private(
         }
     }
 
-    if found {
+    if found && !pastas[index].encrypt_client {
         let original_content = pastas[index].content.to_owned();
 
         // decrypt content temporarily
@@ -250,7 +250,7 @@ pub async fn post_submit_edit_private(
         }
     }
 
-    if found && pastas[index].editable {
+    if found && pastas[index].editable && !pastas[index].encrypt_client {
         if pastas[index].readonly {
             let res = decrypt(pastas[index].encrypted_key.as_ref().unwrap(), &password);
             if res.is_ok() {
@@ -332,7 +332,7 @@ pub async fn post_edit(
 
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
-            if pasta.editable {
+            if pasta.editable && !pasta.encrypt_client {
                 if pastas[i].readonly || pastas[i].encrypt_server {
                     if password != *"" {
                         let res = decrypt(pastas[i].encrypted_key.as_ref().unwrap(), &password);
