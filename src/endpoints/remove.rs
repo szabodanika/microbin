@@ -15,11 +15,6 @@ use std::fs;
 
 #[get("/remove/{id}")]
 pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
-    if ARGS.readonly {
-        return HttpResponse::Found()
-            .append_header(("Location", format!("{}/", ARGS.public_path_as_str())))
-            .finish();
-    }
 
     let mut pastas = data.pastas.lock().unwrap();
 

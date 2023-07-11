@@ -141,6 +141,7 @@ async fn main() -> std::io::Result<()> {
             .service(remove::remove)
             .service(remove::post_remove)
             .service(pastalist::list)
+            .service(create::index_with_status)
             .wrap(Condition::new(
                 ARGS.auth_basic_username.is_some()
                     && ARGS.auth_basic_username.as_ref().unwrap().trim() != "",

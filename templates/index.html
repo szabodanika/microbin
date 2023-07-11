@@ -100,8 +100,8 @@
 
         {% if args.highlightsyntax %}
         <div>
-            <label for="syntax-highlight">Syntax <sup> <a href="/guide#syntax">﹖</a></sup></label><br>
-            <select style="width: 100%;" name="syntax-highlight" id="syntax-highlight">
+            <label for="syntax_highlight">Syntax <sup> <a href="/guide#syntax">﹖</a></sup></label><br>
+            <select style="width: 100%;" name="syntax_highlight" id="syntax_highlight">
                 <option value="none">None</option>
                 <optgroup label="Client-Rendered">
                     <option value="auto">Automatic</option>
@@ -138,11 +138,11 @@
             </select>
         </div>
         {%- else %}
-        <input type="hidden" name="syntax-highlight" value="none">
+        <input type="hidden" name="syntax_highlight" value="none">
         {%- endif %}
 
         <div>
-            <label for="syntax-highlight">Privacy <sup> <a href="/guide#privacy">﹖</a></sup></label><br>
+            <label for="syntax_highlight">Privacy <sup> <a href="/guide#privacy">﹖</a></sup></label><br>
             <select style="width: 100%;" name="privacy" id="privacy">
                 <optgroup label="Unencrypted (no password)">
                     <option value="public">Public</option>
@@ -188,17 +188,23 @@
             <br>
             <input type="file" id="file" name="file" />
         </div>
-        {% endif %} {% if args.readonly %}
-        <b>
-            <input style="width: 140px; float: right; background-color:
-            #2975D2; color: white;" disabled type="submit" value="Read Only" /></b>
-        {%- else %}
+        {% endif %}
         <b>
             <input style="width: 140px; float: right; background-color:
             #2975D2; color: white;" id="submit-button" type="submit" value="Save" />
+            {% if args.readonly %}
+            {% if status == "incorrect" %}
+            <input style="width: 160px; float: right; background-color: rgba(255, 0, 0, 0.137);" type="password"
+                id="uploader_password" name="uploader_password" placeholder="Incorrect password!" />
+            {% else %}
+            <input style="width: 160px; float: right;" type="password" id="uploader_password" name="uploader_password"
+                placeholder="Uploader Password" />
+
+            {% endif %}
+            {% endif %}
         </b>
-        {%- endif %}
     </div>
+
     <input type="hidden" name="content" id="content">
     <input type="hidden" name="encrypt_client" id="encrypt_client">
     {% if args.encryption_server_side || args.enable_readonly %}

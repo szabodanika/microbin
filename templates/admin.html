@@ -284,14 +284,14 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>auth_username</td>
+                    <td>auth_basic_username</td>
                     {% if args.auth_basic_username.as_ref().is_some() %}
                     <td>set</td>
                     {% else %}
                     <td>unset</td>
                     {% endif %}
 
-                    <td>auth_password</td>
+                    <td>auth_basic_password</td>
                     {% if args.auth_basic_password.as_ref().is_some() %}
                     <td>set</td>
                     {% else %}
@@ -418,6 +418,12 @@
                 <tr>
                     <td>max_file_size_unencrypted_mb</td>
                     <td>{{ args.max_file_size_unencrypted_mb }} MB</td>
+                    <td>uploader_password</td>
+                    {% if args.uploader_password.as_ref().is_some() %}
+                    <td>set</td>
+                    {% else %}
+                    <td>unset</td>
+                    {% endif %}
                 </tr>
             </tbody>
         </table>

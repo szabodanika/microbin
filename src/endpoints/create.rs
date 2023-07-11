@@ -19,13 +19,33 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[template(path = "index.html")]
 struct IndexTemplate<'a> {
     args: &'a ARGS,
+    status: String,
 }
 
 #[get("/")]
 pub async fn index() -> impl Responder {
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .body(IndexTemplate { args: &ARGS }.render().unwrap())
+    HttpResponse::Ok().content_type("text/html").body(
+        IndexTemplate {
+            args: &ARGS,
+            status: String::from(""),
+        }
+        .render()
+        .unwrap(),
+    )
+}
+
+#[get("/{status}")]
+pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
+    let status = param.into_inner();
+
+    return HttpResponse::Ok().content_type("text/html").body(
+        IndexTemplate {
+            args: &ARGS,
+            status,
+        }
+        .render()
+        .unwrap(),
+    );
 }
 
 pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
@@ -54,12 +74,6 @@ pub async fn create(
     data: web::Data<AppState>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    if ARGS.readonly {
-        return Ok(HttpResponse::Found()
-            .append_header(("Location", format!("{}/", ARGS.public_path_as_str())))
-            .finish());
-    }
-
     let mut pastas = data.pastas.lock().unwrap();
 
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -91,9 +105,17 @@ pub async fn create(
 
     let mut random_key: String = String::from("");
     let mut plain_key: String = String::from("");
+    let mut uploader_password = String::from("");
 
     while let Some(mut field) = payload.try_next().await? {
         match field.name() {
+            "uploader_password" => {
+                while let Some(chunk) = field.try_next().await? {
+                    uploader_password
+                        .push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
+                }
+                continue;
+            }
             "random_key" => {
                 while let Some(chunk) = field.try_next().await? {
                     random_key = std::str::from_utf8(&chunk).unwrap().to_string();
@@ -179,7 +201,7 @@ pub async fn create(
                 }
                 continue;
             }
-            "syntax-highlight" => {
+            "syntax_highlight" => {
                 while let Some(chunk) = field.try_next().await? {
                     new_pasta.extension = std::str::from_utf8(&chunk).unwrap().to_string();
                 }
@@ -241,6 +263,14 @@ pub async fn create(
             field => {
                 log::error!("Unexpected multipart field:  {}", field);
             }
+        }
+    }
+
+    if ARGS.readonly && ARGS.uploader_password.is_some() {
+        if uploader_password != ARGS.uploader_password.as_ref().unwrap().to_owned() {
+            return Ok(HttpResponse::Found()
+                .append_header(("Location", "/incorrect"))
+                .finish());
         }
     }
 

@@ -67,6 +67,9 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_SHORT_PATH")]
     pub short_path: Option<PublicUrl>,
 
+    #[clap(long, env = "MICROBIN_UPLOADER_PASSWORD")]
+    pub uploader_password: Option<String>,
+
     #[clap(long, env = "MICROBIN_READONLY")]
     pub readonly: bool,
 
@@ -184,6 +187,7 @@ impl Args {
             json_db: self.json_db,
             public_path: self.public_path,
             short_path: self.short_path,
+            uploader_password: None,
             readonly: self.readonly,
             show_read_stats: self.show_read_stats,
             title: self.title,
