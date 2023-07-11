@@ -73,20 +73,22 @@ pub async fn post_admin(
         message = "Warning: You are using the default admin login details. This is a security risk, please change them."
     }
 
-    let latest_version_res = fetch_latest_version().await;
-
     let update;
-    if latest_version_res.is_ok() {
-        let latest_version = latest_version_res.unwrap();
-        println!("{:#?}", latest_version);
-        if latest_version.newer_than_current() {
-            update = Some(latest_version);
+
+    if !ARGS.disable_update_checking {
+        let latest_version_res = fetch_latest_version().await;
+        if latest_version_res.is_ok() {
+            let latest_version = latest_version_res.unwrap();
+            if latest_version.newer_than_current() {
+                update = Some(latest_version);
+            } else {
+                update = None;
+            }
         } else {
             update = None;
         }
     } else {
         update = None;
-        println!("{:#?}", latest_version_res.err().unwrap());
     }
 
     Ok(HttpResponse::Ok().content_type("text/html").body(

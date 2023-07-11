@@ -7,6 +7,7 @@ use crate::endpoints::{
 };
 use crate::pasta::Pasta;
 use crate::util::db::read_all;
+use crate::util::telemetry::start_telemetry_thread;
 use actix_web::middleware::Condition;
 use actix_web::{middleware, web, App, HttpServer};
 use actix_web_httpauth::middleware::HttpAuthentication;
@@ -29,6 +30,7 @@ pub mod util {
     pub mod hashids;
     pub mod misc;
     pub mod syntaxhighlighter;
+    pub mod telemetry;
     pub mod version;
 }
 
@@ -91,6 +93,10 @@ async fn main() -> std::io::Result<()> {
     let data = web::Data::new(AppState {
         pastas: Mutex::new(read_all()),
     });
+
+    if !ARGS.disable_telemetry {
+        start_telemetry_thread();
+    }
 
     HttpServer::new(move || {
         App::new()

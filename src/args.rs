@@ -1,5 +1,6 @@
 use clap::Parser;
 use lazy_static::lazy_static;
+use serde::Serialize;
 use std::convert::Infallible;
 use std::fmt;
 use std::net::IpAddr;
@@ -9,7 +10,7 @@ lazy_static! {
     pub static ref ARGS: Args = Args::parse();
 }
 
-#[derive(Parser, Debug, Clone)]
+#[derive(Parser, Debug, Clone, Serialize)]
 #[clap(author, version, about, long_about = None)]
 pub struct Args {
     #[clap(long, env = "MICROBIN_BASIC_AUTH_USERNAME")]
@@ -114,6 +115,15 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_HASH_IDS")]
     pub hash_ids: bool,
 
+    #[clap(long, env = "MICROBIN_LIST_SERVER")]
+    pub list_server: bool,
+
+    #[clap(long, env = "MICROBIN_DISABLE_TELEMETRY")]
+    pub disable_telemetry: bool,
+
+    #[clap(long, env = "MICROBIN_DISABLE_UPDATE_CHECKING")]
+    pub disable_update_checking: bool,
+
     #[clap(long, env = "MICROBIN_ENCRYPTION_CLIENT_SIDE")]
     pub encryption_client_side: bool,
 
@@ -153,9 +163,55 @@ impl Args {
             String::from("")
         }
     }
+
+    pub fn without_secrets(self) -> Args {
+        Args {
+            auth_basic_username: None,
+            auth_basic_password: None,
+            auth_admin_username: String::from(""),
+            auth_admin_password: String::from(""),
+            editable: self.editable,
+            footer_text: self.footer_text,
+            hide_footer: self.hide_footer,
+            hide_header: self.hide_header,
+            hide_logo: self.hide_logo,
+            no_listing: self.no_listing,
+            highlightsyntax: self.highlightsyntax,
+            port: self.port,
+            bind: self.bind,
+            private: self.private,
+            pure_html: self.pure_html,
+            json_db: self.json_db,
+            public_path: self.public_path,
+            short_path: self.short_path,
+            readonly: self.readonly,
+            show_read_stats: self.show_read_stats,
+            title: self.title,
+            list_server: self.list_server,
+            threads: self.threads,
+            gc_days: self.gc_days,
+            enable_burn_after: self.enable_burn_after,
+            default_burn_after: self.default_burn_after,
+            wide: self.wide,
+            qr: self.qr,
+            eternal_pasta: self.eternal_pasta,
+            enable_readonly: self.enable_readonly,
+            default_expiry: self.default_expiry,
+            data_dir: String::from(""),
+            no_file_upload: self.no_file_upload,
+            custom_css: self.custom_css,
+            hash_ids: self.hash_ids,
+            disable_telemetry: self.disable_telemetry,
+            encryption_client_side: self.encryption_client_side,
+            encryption_server_side: self.encryption_server_side,
+            max_file_size_encrypted_mb: self.max_file_size_encrypted_mb,
+            max_file_size_unencrypted_mb: self.max_file_size_unencrypted_mb,
+            disable_update_checking: self.disable_update_checking,
+        }
+    }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct PublicUrl(pub String);
 
 impl fmt::Display for PublicUrl {

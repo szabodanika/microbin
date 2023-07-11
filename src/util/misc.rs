@@ -143,7 +143,6 @@ pub fn decrypt_file(
     let res = mc.decrypt_bytes_to_bytes(&ciphertext[..]);
 
     if res.is_err() {
-        println!("{}", res.err().unwrap());
         return Err("Failed to decrypt file".into());
     }
 

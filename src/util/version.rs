@@ -46,7 +46,7 @@ impl Version {
 }
 
 pub async fn fetch_latest_version() -> Result<Version, reqwest::Error> {
-    let url = "https://microbin.eu/version/";
+    let url = "https://api.microbin.eu/version/";
     let response = reqwest::get(url).await?;
     let version = response.json::<Version>().await?;
 
