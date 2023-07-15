@@ -53,7 +53,7 @@ fn pastaresponse(
             return HttpResponse::Found()
                 .append_header((
                     "Location",
-                    format!("/auth/{}", pastas[index].id_as_animals()),
+                    format!("{}/auth/{}", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
                 ))
                 .finish();
         }
@@ -77,7 +77,7 @@ fn pastaresponse(
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("/auth/{}/incorrect", pastas[index].id_as_animals()),
+                        format!("{}/auth/{}/incorrect", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
                     ))
                     .finish();
             }
@@ -280,7 +280,7 @@ pub async fn getrawpasta(
             return Ok(HttpResponse::Found()
                 .append_header((
                     "Location",
-                    format!("/auth_raw/{}", pastas[index].id_as_animals()),
+                    format!("{}/auth_raw/{}", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
                 ))
                 .finish());
         }
@@ -361,7 +361,7 @@ pub async fn postrawpasta(
             return Ok(HttpResponse::Found()
                 .append_header((
                     "Location",
-                    format!("/auth/{}", pastas[index].id_as_animals()),
+                    format!("{}/auth/{}", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
                 ))
                 .finish());
         }
@@ -385,7 +385,7 @@ pub async fn postrawpasta(
                 return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("/auth/{}/incorrect", pastas[index].id_as_animals()),
+                        format!("{}/auth/{}/incorrect", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
                     ))
                     .finish());
             }

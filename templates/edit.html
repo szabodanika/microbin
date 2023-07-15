@@ -1,5 +1,5 @@
 {% include "header.html" %}
-<form action="/{{ path }}/{{ pasta.id_as_animals() }}" method="POST" enctype="multipart/form-data">
+<form action="{{ args.public_path_as_str() }}/{{ path }}/{{ pasta.id_as_animals() }}" method="POST" enctype="multipart/form-data">
     <h4>
         Editing upload '{{ pasta.id_as_animals() }}'
     </h4>
@@ -11,7 +11,7 @@
     <div>
         {% if pasta.readonly || pasta.encrypt_server %}
         <div style="float: left; height: 90px;">
-            <label for="password">Re-enter Password <sup><a href="/guide#password">﹖</a></sup></label><br>
+            <label for="password">Re-enter Password <sup><a href="{{ args.public_path_as_str() }}/guide#password">﹖</a></sup></label><br>
             <input {% if status=="incorrect" %} autofocus {% endif %} style="width: 130px; height: 28px;"
                 type="password" id="password" name="password" autocomplete="off" />
             {% if status == "incorrect" %}
