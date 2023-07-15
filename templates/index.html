@@ -1,5 +1,5 @@
 {% include "header.html" %}
-<form id="pasta-form" action="upload" method="POST" enctype="multipart/form-data">
+<form id="pasta-form" action="{{ args.public_path_as_str() }}/upload" method="POST" enctype="multipart/form-data">
     <br>
     <div id="settings">
         <div>
@@ -281,7 +281,7 @@
         submitButton.textContent = 'Uploading...';
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/upload', true);
+        xhr.open('POST', '{{ args.public_path_as_str() }}/upload', true);
 
         xhr.upload.onprogress = function (event) {
             if (showProgress) {

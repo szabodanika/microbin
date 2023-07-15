@@ -38,7 +38,7 @@ padding-right:0.5rem; line-height: 1.5; font-size: 1.1em; padding-top: 2rem;">
                 {% if !args.hide_logo %}
                 <!-- <i><span style="font-size:2.2rem;
                 margin-right:1rem">μ</span></i> -->
-                <a href="/"><img width=100 style="margin-bottom: -6px; margin-right:
+                <a href="{{ args.public_path_as_str() }}"><img width=100 style="margin-bottom: -6px; margin-right:
                 0.5rem;" src="{{ args.public_path_as_str() }}/static/logo.png"></a>
                 {%- endif %} {% if args.title.as_ref().is_none() %} {%- else %} {{
                 args.title.as_ref().unwrap() }} {%- endif %}

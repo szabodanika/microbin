@@ -241,7 +241,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     // {%- endif %}
     formData.append('password', key);
 
-    const response = await fetch('/secure_file/{{ pasta.id_as_animals() }}', {
+    const response = await fetch('{{ args.public_path_as_str() }}/secure_file/{{ pasta.id_as_animals() }}', {
       method: 'POST',
       body: formData,
     })
