@@ -393,6 +393,12 @@
         evt.preventDefault();
     };
 
+    document.onpaste = function (event) {
+        const data = (event.clipboardData || event.originalEvent.clipboardData);
+        if(data.files.length === 0) return;
+        attachFileButton.textContent = "Attached: " + data.files[0].name;
+        hiddenFileButton.files = data.files;
+    }
 </script>
 
 <style>
