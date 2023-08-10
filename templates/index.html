@@ -141,6 +141,7 @@
         <input type="hidden" name="syntax_highlight" value="none">
         {%- endif %}
 
+        {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly || args.private %}
         <div>
             <label for="syntax_highlight">Privacy <sup> <a href="/guide#privacy">﹖</a></sup></label><br>
             <select style="width: 100%;" name="privacy" id="privacy">
@@ -167,6 +168,7 @@
                 {%- endif %}
             </select>
         </div>
+        {%- endif %}
 
         {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly %}
         <div>
