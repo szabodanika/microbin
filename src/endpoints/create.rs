@@ -91,7 +91,7 @@ pub async fn create(
         extension: String::from(""),
         private: false,
         readonly: false,
-        editable: true,
+        editable: ARGS.editable,
         encrypt_server: false,
         encrypted_key: Some(String::from("")),
         encrypt_client: false,
