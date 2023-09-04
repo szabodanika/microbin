@@ -304,7 +304,7 @@ pub async fn getrawpasta(
         pastas[index].last_read = timenow;
 
         // send raw content of pasta
-        let response = Ok(HttpResponse::NotFound()
+        let response = Ok(HttpResponse::Ok()
             .content_type("text/plain")
             .body(pastas[index].content.to_owned()));
 
