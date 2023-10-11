@@ -3,7 +3,7 @@ services:
     image: danielszabo99/microbin:latest
     restart: always
     ports:
-     - "${MICROBIN_PORT}:8080"
+     - "8080:${MICROBIN_PORT}"
     volumes:
      - ./microbin-data:/app/microbin_data
     environment:
