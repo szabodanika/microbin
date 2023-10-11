@@ -7,6 +7,7 @@ services:
     volumes:
      - ./microbin-data:/app/microbin_data
     environment:
+      TZ: ${TZ}
       MICROBIN_BASIC_AUTH_USERNAME: ${MICROBIN_BASIC_AUTH_USERNAME}
       MICROBIN_BASIC_AUTH_PASSWORD: ${MICROBIN_BASIC_AUTH_PASSWORD}
       MICROBIN_ADMIN_USERNAME: ${MICROBIN_ADMIN_USERNAME}
