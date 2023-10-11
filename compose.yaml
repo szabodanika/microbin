@@ -3,10 +3,11 @@ services:
     image: danielszabo99/microbin:latest
     restart: always
     ports:
-     - "${MICROBIN_PORT}:8080"
+     - "8080:${MICROBIN_PORT}"
     volumes:
      - ./microbin-data:/app/microbin_data
     environment:
+      TZ: ${TZ}
       MICROBIN_BASIC_AUTH_USERNAME: ${MICROBIN_BASIC_AUTH_USERNAME}
       MICROBIN_BASIC_AUTH_PASSWORD: ${MICROBIN_BASIC_AUTH_PASSWORD}
       MICROBIN_ADMIN_USERNAME: ${MICROBIN_ADMIN_USERNAME}
