@@ -36,7 +36,9 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             true
         } else {
             // remove from database
-            delete(None, Some(p.id));
+            if let Err(e) = delete(None, Some(p.id)) {
+                log::error!("Failed to delete pasta with id {} => {}", p.id, e);
+            }
 
             // remove the file itself
             if let Some(file) = &p.file {

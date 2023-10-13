@@ -12,9 +12,10 @@ use crate::util::misc::{decrypt, remove_expired};
 use crate::AppState;
 use askama::Template;
 use std::fs;
+use actix_web::error::ErrorInternalServerError;
 
 #[get("/remove/{id}")]
-pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> Result<HttpResponse, Error> {
     let mut pastas = data.pastas.lock().unwrap();
 
     let id = if ARGS.hash_ids {
@@ -27,12 +28,12 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
         if pasta.id == id {
             // if it's encrypted or read-only, it needs password to be deleted
             if pasta.encrypt_server || pasta.readonly {
-                return HttpResponse::Found()
+                return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
                         format!("/auth_remove_private/{}", pasta.id_as_animals()),
                     ))
-                    .finish();
+                    .finish());
             }
 
             // remove the file itself
@@ -63,19 +64,22 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
             // remove it from in-memory pasta list
             pastas.remove(i);
 
-            delete(Some(&pastas), Some(id));
+            if let Err(error) = delete(Some(&pastas), Some(id)) {
+                log::error!("Failed to delete pasta with id {} => {}", id, error);
+                return Err(ErrorInternalServerError("Database delete error"));
+            }
 
-            return HttpResponse::Found()
+            return Ok(HttpResponse::Found()
                 .append_header(("Location", format!("{}/list", ARGS.public_path_as_str())))
-                .finish();
+                .finish());
         }
     }
 
     remove_expired(&mut pastas);
 
-    HttpResponse::Ok()
+    Ok(HttpResponse::Ok()
         .content_type("text/html")
-        .body(ErrorTemplate { args: &ARGS }.render().unwrap())
+        .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }
 
 #[post("/remove/{id}")]
@@ -137,8 +141,10 @@ pub async fn post_remove(
 
                         // remove it from in-memory pasta list
                         pastas.remove(i);
-
-                        delete(Some(&pastas), Some(id));
+                        if let Err(error) = delete(Some(&pastas), Some(id)) {
+                            log::error!("Failed to delete pasta with id {} => {}", id, error);
+                            return Err(ErrorInternalServerError("Database delete error"));
+                        }
 
                         return Ok(HttpResponse::Found()
                             .append_header((

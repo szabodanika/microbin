@@ -308,7 +308,9 @@ pub async fn create(
 
     for (_, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
-            insert(Some(&pastas), Some(pasta));
+            if let Err(e) = insert(Some(&pastas), Some(pasta)){
+                log::error!("Failed to insert pasta with id {} => {}", pasta.id, e);
+            }
         }
     }
 
