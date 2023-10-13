@@ -12,6 +12,7 @@ use askama::Template;
 use futures::TryStreamExt;
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use std::time::{SystemTime, UNIX_EPOCH};
+use actix_web::error::ErrorInternalServerError;
 
 #[derive(Template)]
 #[template(path = "upload.html", escape = "none")]
@@ -24,7 +25,7 @@ fn pastaresponse(
     data: web::Data<AppState>,
     id: web::Path<String>,
     password: String,
-) -> HttpResponse {
+) -> Result<HttpResponse, Error> {
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
@@ -50,19 +51,22 @@ fn pastaresponse(
 
     if found {
         if pastas[index].encrypt_server && password == *"" {
-            return HttpResponse::Found()
+            return Ok(HttpResponse::Found()
                 .append_header((
                     "Location",
                     format!("/auth/{}", pastas[index].id_as_animals()),
                 ))
-                .finish();
+                .finish());
         }
 
         // increment read count
         pastas[index].read_count += 1;
 
         // save the updated read count
-        update(Some(&pastas), Some(&pastas[index]));
+        if let Err(error) = update(Some(&pastas), Some(&pastas[index])) {
+            log::error!("Failed to update pasta with id {} => {}", &pastas[index].id, error);
+            return Err(ErrorInternalServerError("Database update error"))
+        }
 
         let original_content = pastas[index].content.to_owned();
 
@@ -74,12 +78,12 @@ fn pastaresponse(
                     .content
                     .replace_range(.., res.unwrap().as_str());
             } else {
-                return HttpResponse::Found()
+                return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
                         format!("/auth/{}/incorrect", pastas[index].id_as_animals()),
                     ))
-                    .finish();
+                    .finish());
             }
         }
 
@@ -108,17 +112,19 @@ fn pastaresponse(
 
         // update last read time
         pastas[index].last_read = timenow;
-
         // save the updated read count
-        update(Some(&pastas), Some(&pastas[index]));
+        if let Err(e) = update(Some(&pastas), Some(&pastas[index])) {
+            log::error!("Failed to update pasta with id {} => {}", &pastas[index].id, e);
+            return Err(ErrorInternalServerError("Database update error"))
+        }
 
-        return response;
+        return Ok(response);
     }
 
     // otherwise send pasta not found error
-    HttpResponse::Ok()
+    Ok(HttpResponse::Ok()
         .content_type("text/html")
-        .body(ErrorTemplate { args: &ARGS }.render().unwrap())
+        .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }
 
 #[post("/upload/{id}")]
@@ -136,8 +142,7 @@ pub async fn postpasta(
             }
         }
     }
-
-    Ok(pastaresponse(data, id, password))
+    pastaresponse(data, id, password)
 }
 
 #[post("/p/{id}")]
@@ -155,21 +160,20 @@ pub async fn postshortpasta(
             }
         }
     }
-
-    Ok(pastaresponse(data, id, password))
+    pastaresponse(data, id, password)
 }
 
 #[get("/upload/{id}")]
-pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+pub async fn getpasta(data: web::Data<AppState>, id: web::Path<String>) -> Result<HttpResponse, Error> {
     pastaresponse(data, id, String::from(""))
 }
 
 #[get("/p/{id}")]
-pub async fn getshortpasta(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+pub async fn getshortpasta(data: web::Data<AppState>, id: web::Path<String>) -> Result<HttpResponse, Error> {
     pastaresponse(data, id, String::from(""))
 }
 
-fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> Result<HttpResponse, Error> {
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
@@ -199,7 +203,10 @@ fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse
         pastas[index].read_count += 1;
 
         // save the updated read count
-        update(Some(&pastas), Some(&pastas[index]));
+        if let Err(e) = update(Some(&pastas), Some(&pastas[index])) {
+            log::error!("Failed to update pasta with id {} => {}", &pastas[index].id, e);
+            return Err(ErrorInternalServerError("Database update error"))
+        }
 
         // send redirect if it's a url pasta
         if pastas[index].pasta_type == "url" {
@@ -220,9 +227,12 @@ fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse
             pastas[index].last_read = timenow;
 
             // save the updated read count
-            update(Some(&pastas), Some(&pastas[index]));
+            if let Err(e) = update(Some(&pastas), Some(&pastas[index])) {
+                log::error!("Failed to update pasta with id {} => {}", &pastas[index].id, e);
+                return Err(ErrorInternalServerError("Database update error"))
+            }
 
-            return response;
+            return Ok(response);
         // send error if we're trying to open a non-url pasta as a redirect
         } else {
             HttpResponse::Ok()
@@ -232,18 +242,18 @@ fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse
     }
 
     // otherwise send pasta not found error
-    HttpResponse::Ok()
+    Ok(HttpResponse::Ok()
         .content_type("text/html")
-        .body(ErrorTemplate { args: &ARGS }.render().unwrap())
+        .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }
 
 #[get("/url/{id}")]
-pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+pub async fn redirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Result<HttpResponse, Error> {
     urlresponse(data, id)
 }
 
 #[get("/u/{id}")]
-pub async fn shortredirecturl(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
+pub async fn shortredirecturl(data: web::Data<AppState>, id: web::Path<String>) -> Result<HttpResponse, Error> {
     urlresponse(data, id)
 }
 
@@ -289,7 +299,10 @@ pub async fn getrawpasta(
         pastas[index].read_count += 1;
 
         // save the updated read count
-        update(Some(&pastas), Some(&pastas[index]));
+        if let Err(e) = update(Some(&pastas), Some(&pastas[index])) {
+            log::error!("Failed to update pasta with id {} => {}", &pastas[index].id, e);
+            return Err(ErrorInternalServerError("Database update error"))
+        }
 
         // get current unix time in seconds
         let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -370,7 +383,10 @@ pub async fn postrawpasta(
         pastas[index].read_count += 1;
 
         // save the updated read count
-        update(Some(&pastas), Some(&pastas[index]));
+        if let Err(e) = update(Some(&pastas), Some(&pastas[index])) {
+            log::error!("Failed to update pasta with id {} => {}", &pastas[index].id, e);
+            return Err(ErrorInternalServerError("Database update error"))
+        }
 
         let original_content = pastas[index].content.to_owned();
 
@@ -404,7 +420,10 @@ pub async fn postrawpasta(
         pastas[index].last_read = timenow;
 
         // save the updated read count
-        update(Some(&pastas), Some(&pastas[index]));
+        if let Err(e) = update(Some(&pastas), Some(&pastas[index])) {
+            log::error!("Failed to update pasta with id {} => {}", &pastas[index].id, e);
+            return Err(ErrorInternalServerError("Database update error"))
+        }
 
         // send raw content of pasta
         let response = Ok(HttpResponse::NotFound()

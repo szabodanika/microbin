@@ -6,7 +6,7 @@ use crate::endpoints::{
     pasta as pasta_endpoint, qr, remove, static_resources,
 };
 use crate::pasta::Pasta;
-use crate::util::db::read_all;
+use crate::util::db::{read_all};
 use crate::util::telemetry::start_telemetry_thread;
 use actix_web::middleware::Condition;
 use actix_web::{middleware, web, App, HttpServer};
@@ -17,6 +17,7 @@ use log::LevelFilter;
 use std::fs;
 use std::io::Write;
 use std::sync::Mutex;
+use crate::util::db_sqlite::init_db;
 
 pub mod args;
 pub mod pasta;
@@ -56,6 +57,7 @@ pub struct AppState {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+
     Builder::new()
         .format(|buf, record| {
             writeln!(
@@ -68,6 +70,11 @@ async fn main() -> std::io::Result<()> {
         })
         .filter(None, LevelFilter::Info)
         .init();
+
+    if let Err(error) = init_db() {
+        log::error!("Failed to initialize database {}", error);
+        panic!("Failed to initialize database {}", error);
+    }
 
     log::info!(
         "MicroBin starting on http://{}:{}",
@@ -90,8 +97,15 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
+    let pastas = match read_all() {
+        Ok(v) => v,
+        Err(e) => {
+            panic!("Could not read pastas {}", e)
+        }
+    };
+
     let data = web::Data::new(AppState {
-        pastas: Mutex::new(read_all()),
+        pastas: Mutex::new(pastas),
     });
 
     if !ARGS.disable_telemetry {

@@ -7,6 +7,7 @@ use crate::util::misc::{decrypt, encrypt, remove_expired};
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::{get, post, web, Error, HttpResponse};
+use actix_web::error::ErrorInternalServerError;
 use askama::Template;
 use futures::TryStreamExt;
 
@@ -168,7 +169,10 @@ pub async fn post_edit_private(
                     .content
                     .replace_range(.., res.unwrap().as_str());
                 // save pasta in database
-                update(Some(&pastas), Some(&pastas[index]));
+                if let Err(e) = update(Some(&pastas), Some(&pastas[index])) {
+                    log::error!("Failed to update pastas => {}", e);
+                    return Err(ErrorInternalServerError("Database update error"));
+                }
             } else {
                 return Ok(HttpResponse::Found()
                     .append_header((
@@ -272,7 +276,10 @@ pub async fn post_submit_edit_private(
                     .content
                     .replace_range(.., &encrypt(&new_content, &password));
                 // save pasta in database
-                update(Some(&pastas), Some(&pastas[index]));
+                if let Err(e) = update(Some(&pastas), Some(&pastas[index])) {
+                    log::error!("Update error for pasta with id {} => {}", &pastas[index].id, e);
+                    return Err(ErrorInternalServerError("Database update error"));
+                }
             } else {
                 return Ok(HttpResponse::Found()
                     .append_header((
@@ -339,7 +346,10 @@ pub async fn post_edit(
                         if res.is_ok() {
                             pastas[i].content.replace_range(.., &new_content);
                             // save pasta in database
-                            update(Some(&pastas), Some(&pastas[i]));
+                            if let Err(e) = update(Some(&pastas), Some(&pastas[i])) {
+                                log::error!("Failed to update pasta with id {} => {}", &pastas[i].id, e);
+                                return Err(ErrorInternalServerError("Database update error"))
+                            }
                         } else {
                             return Ok(HttpResponse::Found()
                                 .append_header((
@@ -359,7 +369,10 @@ pub async fn post_edit(
                 } else {
                     pastas[i].content.replace_range(.., &new_content);
                     // save pasta in database
-                    update(Some(&pastas), Some(&pastas[i]));
+                    if let Err(e) = update(Some(&pastas), Some(&pastas[i])) {
+                        log::error!("Failed to update pasta with id {} => {}", &pastas[i].id, e);
+                        return Err(ErrorInternalServerError("Database update error"))
+                    }
                 }
 
                 return Ok(HttpResponse::Found()

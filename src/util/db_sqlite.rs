@@ -1,30 +1,14 @@
 use bytesize::ByteSize;
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, Error};
 
 use crate::{args::ARGS, pasta::PastaFile, Pasta};
 
-pub fn read_all() -> Vec<Pasta> {
-    select_all_from_db()
+pub fn get_connection() -> Result<Connection, Error> {
+    Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
 }
 
-pub fn update_all(pastas: &[Pasta]) {
-    rewrite_all_to_db(pastas);
-}
-
-pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
-    let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
-        .expect("Failed to open SQLite database!");
-
-    conn.execute(
-        "
-        DROP TABLE IF EXISTS pasta;
-        );",
-        params![],
-    )
-    .expect("Failed to drop SQLite table for Pasta!");
-
-    conn.execute(
-        "
+pub fn init_db() -> Result<(), Error> {
+    let query_create_db =         "
         CREATE TABLE IF NOT EXISTS pasta (
             id INTEGER PRIMARY KEY,
             content TEXT NOT NULL,
@@ -43,10 +27,42 @@ pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
             read_count INTEGER NOT NULL,
             burn_after_reads INTEGER NOT NULL,
             pasta_type TEXT NOT NULL
-        );",
-        params![],
-    )
-    .expect("Failed to create SQLite table for Pasta!");
+        );";
+    let conn = get_connection()?;
+    conn.execute(query_create_db, params![])?;
+    match conn.close() {
+        Ok(_) => Ok(()),
+        Err(c) => Err(c.1)
+    }
+}
+
+pub fn recreate_db() -> Result<(), Error> {
+    let query_drop = "
+        DROP TABLE IF EXISTS pasta;
+        );";
+    let conn = get_connection()?;
+    conn.execute(query_drop, params![])?;
+    match conn.close() {
+        Ok(_) => { },
+        Err(c) => return Err(c.1)
+    }
+    init_db()?;
+    Ok(())
+}
+
+pub fn read_all() -> Result<Vec<Pasta>, Error> {
+    select_all_from_db()
+}
+
+pub fn update_all(pastas: &[Pasta]) -> Result<(), Error> {
+    rewrite_all_to_db(pastas)?;
+    Ok(())
+}
+
+pub fn rewrite_all_to_db(pasta_data: &[Pasta]) -> Result<(), Error> {
+    recreate_db()?;
+    let conn = get_connection()?;
+
 
     for pasta in pasta_data.iter() {
         conn.execute(
@@ -88,43 +104,19 @@ pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
                 pasta.burn_after_reads,
                 pasta.pasta_type,
             ],
-        )
-        .expect("Failed to insert pasta.");
+        )?;
+    }
+    match conn.close() {
+        Ok(_) => Ok(()),
+        Err(c) => Err(c.1)
     }
 }
 
-pub fn select_all_from_db() -> Vec<Pasta> {
-    let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
-        .expect("Failed to open SQLite database!");
-
-    conn.execute(
-        "
-        CREATE TABLE IF NOT EXISTS pasta (
-            id INTEGER PRIMARY KEY,
-            content TEXT NOT NULL,
-            file_name TEXT,
-            file_size INTEGER,
-            extension TEXT NOT NULL,
-            read_only INTEGER NOT NULL,
-            private INTEGER NOT NULL,
-            editable INTEGER NOT NULL,
-            encrypt_server INTEGER NOT NULL,
-            encrypt_client INTEGER NOT NULL,
-            encrypted_key TEXT,
-            created INTEGER NOT NULL,
-            expiration INTEGER NOT NULL,
-            last_read INTEGER NOT NULL,
-            read_count INTEGER NOT NULL,
-            burn_after_reads INTEGER NOT NULL,
-            pasta_type TEXT NOT NULL
-        );",
-        params![],
-    )
-    .expect("Failed to create SQLite table for Pasta!");
+pub fn select_all_from_db() -> Result<Vec<Pasta>, Error> {
+    let conn = get_connection()?;
 
     let mut stmt = conn
-        .prepare("SELECT * FROM pasta ORDER BY created ASC")
-        .expect("Failed to prepare SQL statement to load pastas");
+        .prepare("SELECT * FROM pasta ORDER BY created ASC")?;
 
     let pasta_iter = stmt
         .query_map([], |row| {
@@ -158,42 +150,19 @@ pub fn select_all_from_db() -> Vec<Pasta> {
                 burn_after_reads: row.get(15)?,
                 pasta_type: row.get(16)?,
             })
-        })
-        .expect("Failed to select Pastas from SQLite database.");
+        })?;
 
-    pasta_iter
-        .map(|r| r.expect("Failed to get pasta"))
-        .collect::<Vec<Pasta>>()
+    let pastas_result: Result<Vec<Pasta>, Error> = pasta_iter.collect();
+    let pastas = match pastas_result {
+        Ok(v) => v,
+        Err(e) => return Err(e)
+    };
+
+    Ok(pastas)
 }
 
-pub fn insert(pasta: &Pasta) {
-    let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
-        .expect("Failed to open SQLite database!");
-
-    conn.execute(
-        "
-        CREATE TABLE IF NOT EXISTS pasta (
-            id INTEGER PRIMARY KEY,
-            content TEXT NOT NULL,
-            file_name TEXT,
-            file_size INTEGER,
-            extension TEXT NOT NULL,
-            read_only INTEGER NOT NULL,
-            private INTEGER NOT NULL,
-            editable INTEGER NOT NULL,
-            encrypt_server INTEGER NOT NULL,
-            encrypt_client INTEGER NOT NULL,
-            encrypted_key TEXT,
-            created INTEGER NOT NULL,
-            expiration INTEGER NOT NULL,
-            last_read INTEGER NOT NULL,
-            read_count INTEGER NOT NULL,
-            burn_after_reads INTEGER NOT NULL,
-            pasta_type TEXT NOT NULL
-        );",
-        params![],
-    )
-    .expect("Failed to create SQLite table for Pasta!");
+pub fn insert(pasta: &Pasta) -> Result<(), Error> {
+    let conn = get_connection()?;
 
     conn.execute(
         "INSERT INTO pasta (
@@ -234,11 +203,14 @@ pub fn insert(pasta: &Pasta) {
             pasta.burn_after_reads,
             pasta.pasta_type,
         ],
-    )
-    .expect("Failed to insert pasta.");
+    )?;
+    match conn.close() {
+        Ok(_) => Ok(()),
+        Err(c) => Err(c.1)
+    }
 }
 
-pub fn update(pasta: &Pasta) {
+pub fn update(pasta: &Pasta) -> Result<(), Error> {
     let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
         .expect("Failed to open SQLite database!");
 
@@ -280,18 +252,23 @@ pub fn update(pasta: &Pasta) {
             pasta.burn_after_reads,
             pasta.pasta_type,
         ],
-    )
-    .expect("Failed to update pasta.");
+    )?;
+    match conn.close() {
+        Ok(_) => Ok(()),
+        Err(c) => Err(c.1)
+    }
 }
 
-pub fn delete_by_id(id: u64) {
-    let conn = Connection::open(format!("{}/database.sqlite", ARGS.data_dir))
-        .expect("Failed to open SQLite database!");
+pub fn delete_by_id(id: u64) -> Result<(), Error> {
+    let conn = get_connection()?;
 
     conn.execute(
         "DELETE FROM pasta 
         WHERE id = ?1;",
         params![id],
-    )
-    .expect("Failed to delete pasta.");
+    )?;
+    match conn.close() {
+        Ok(_) => Ok(()),
+        Err(c) => Err(c.1)
+    }
 }
