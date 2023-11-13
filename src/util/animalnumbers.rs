@@ -6,48 +6,57 @@ const ANIMAL_NAMES: &[&str] = &[
     "deer", "horse", "rat", "wasp", "dog", "jaguar", "raven", "whale", "dove", "koala", "seal",
     "wolf", "duck", "lion", "shark", "worm", "eagle", "lizard", "sheep", "zebra",
 ];
+const ANIMAL_COUNT: u64 = ANIMAL_NAMES.len() as u64;
 
-pub fn to_animal_names(mut number: u64) -> String {
+pub fn to_animal_names(number: u64) -> String {
     let mut result: Vec<&str> = Vec::new();
 
     if number == 0 {
         return ANIMAL_NAMES[0].parse().unwrap();
     }
 
-    let mut power = 6;
-
-    loop {
-        let digit = number / ANIMAL_NAMES.len().pow(power) as u64;
-        if !(result.is_empty() && digit == 0) {
-            result.push(ANIMAL_NAMES[digit as usize]);
-        }
-        number -= digit * ANIMAL_NAMES.len().pow(power) as u64;
-        if power > 0 {
-            power -= 1;
-        } else if power == 0 || number == 0 {
-            break;
-        }
+    let mut value = number;
+    while value != 0 {
+        let digit = (value % ANIMAL_COUNT) as usize;
+        value /= ANIMAL_COUNT;
+        result.push(ANIMAL_NAMES[digit]);
     }
 
+    // We calculated the numbers in Little-Endian,
+    // now convert to Big-Endian for backwards compatibility with old data.
+    result.reverse();
+
     result.join("-")
+}
+
+#[test]
+fn test_to_animal_names() {
+    assert_eq!(to_animal_names(0), "ant");
+    assert_eq!(to_animal_names(1), "eel");
+    assert_eq!(to_animal_names(64), "eel-ant");
+    assert_eq!(to_animal_names(12345), "sloth-ant-lion");
 }
 
 pub fn to_u64(animal_names: &str) -> Result<u64, &str> {
     let mut result: u64 = 0;
 
-    let animals: Vec<&str> = animal_names.split('-').collect();
-
-    let mut pow = animals.len();
-    for animal in animals {
-        pow -= 1;
+    for animal in animal_names.split('-') {
         let animal_index = ANIMAL_NAMES.iter().position(|&r| r == animal);
         match animal_index {
             None => return Err("Failed to convert animal name to u64!"),
-            Some(_) => {
-                result += (animal_index.unwrap() * ANIMAL_NAMES.len().pow(pow as u32)) as u64
+            Some(idx) => {
+                result = result * ANIMAL_COUNT + (idx as u64);
             }
         }
     }
 
     Ok(result)
+}
+
+#[test]
+fn test_animal_name_to_u64() {
+    assert_eq!(to_u64("ant"), Ok(0));
+    assert_eq!(to_u64("eel"), Ok(1));
+    assert_eq!(to_u64("eel-ant"), Ok(64));
+    assert_eq!(to_u64("sloth-ant-lion"), Ok(12345));
 }
