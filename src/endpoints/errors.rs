@@ -11,6 +11,6 @@ pub struct ErrorTemplate<'a> {
 
 pub async fn not_found() -> Result<HttpResponse, Error> {
     Ok(HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }
