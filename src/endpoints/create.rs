@@ -24,7 +24,7 @@ struct IndexTemplate<'a> {
 
 #[get("/")]
 pub async fn index() -> impl Responder {
-    HttpResponse::Ok().content_type("text/html").body(
+    HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
         IndexTemplate {
             args: &ARGS,
             status: String::from(""),
@@ -38,7 +38,7 @@ pub async fn index() -> impl Responder {
 pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
     let status = param.into_inner();
 
-    return HttpResponse::Ok().content_type("text/html").body(
+    return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
         IndexTemplate {
             args: &ARGS,
             status,

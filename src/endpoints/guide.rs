@@ -11,6 +11,6 @@ struct Guide<'a> {
 #[get("/guide")]
 pub async fn guide() -> HttpResponse {
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(Guide { args: &ARGS }.render().unwrap())
 }

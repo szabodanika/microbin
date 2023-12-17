@@ -33,7 +33,7 @@ pub async fn auth_upload(data: web::Data<AppState>, id: web::Path<String>) -> Ht
 
     for (_i, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id: id.into_inner(),
@@ -49,7 +49,7 @@ pub async fn auth_upload(data: web::Data<AppState>, id: web::Path<String>) -> Ht
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -73,7 +73,7 @@ pub async fn auth_upload_with_status(
 
     for (_i, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id,
@@ -89,7 +89,7 @@ pub async fn auth_upload_with_status(
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -108,7 +108,7 @@ pub async fn auth_raw_pasta(data: web::Data<AppState>, id: web::Path<String>) ->
 
     for (_i, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id: id.into_inner(),
@@ -124,7 +124,7 @@ pub async fn auth_raw_pasta(data: web::Data<AppState>, id: web::Path<String>) ->
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -148,7 +148,7 @@ pub async fn auth_raw_pasta_with_status(
 
     for (_i, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id,
@@ -164,7 +164,7 @@ pub async fn auth_raw_pasta_with_status(
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -183,7 +183,7 @@ pub async fn auth_edit_private(data: web::Data<AppState>, id: web::Path<String>)
 
     for (_, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id: id.into_inner(),
@@ -199,7 +199,7 @@ pub async fn auth_edit_private(data: web::Data<AppState>, id: web::Path<String>)
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -223,7 +223,7 @@ pub async fn auth_edit_private_with_status(
 
     for (_i, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id,
@@ -239,7 +239,7 @@ pub async fn auth_edit_private_with_status(
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -258,7 +258,7 @@ pub async fn auth_file(data: web::Data<AppState>, id: web::Path<String>) -> Http
 
     for (_, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id: id.into_inner(),
@@ -274,7 +274,7 @@ pub async fn auth_file(data: web::Data<AppState>, id: web::Path<String>) -> Http
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -298,7 +298,7 @@ pub async fn auth_file_with_status(
 
     for (_i, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id,
@@ -314,7 +314,7 @@ pub async fn auth_file_with_status(
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -333,7 +333,7 @@ pub async fn auth_remove_private(data: web::Data<AppState>, id: web::Path<String
 
     for (_, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id: id.into_inner(),
@@ -349,7 +349,7 @@ pub async fn auth_remove_private(data: web::Data<AppState>, id: web::Path<String
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -373,7 +373,7 @@ pub async fn auth_remove_private_with_status(
 
     for (_i, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 AuthPasta {
                     args: &ARGS,
                     id,
@@ -389,6 +389,6 @@ pub async fn auth_remove_private_with_status(
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
