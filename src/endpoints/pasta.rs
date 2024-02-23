@@ -1,9 +1,8 @@
 use crate::args::{Args, ARGS};
 use crate::endpoints::errors::ErrorTemplate;
 use crate::pasta::Pasta;
-use crate::util::animalnumbers::to_u64;
 use crate::util::db::update;
-use crate::util::hashids::to_u64 as hashid_to_u64;
+use crate::util::hashids::alias_comparator;
 use crate::util::misc::remove_expired;
 use crate::AppState;
 use actix_multipart::Multipart;
@@ -27,12 +26,8 @@ fn pastaresponse(
 ) -> HttpResponse {
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
+    let comparator = alias_comparator(id.as_str());
 
-    let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
-    };
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -41,7 +36,7 @@ fn pastaresponse(
     let mut index: usize = 0;
     let mut found: bool = false;
     for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
+        if comparator(pasta) {
             index = i;
             found = true;
             break;
@@ -173,11 +168,7 @@ fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -187,7 +178,7 @@ fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse
     let mut found: bool = false;
 
     for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
+        if comparator(pasta) {
             index = i;
             found = true;
             break;
@@ -255,11 +246,8 @@ pub async fn getrawpasta(
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
+
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -268,7 +256,7 @@ pub async fn getrawpasta(
     let mut index: usize = 0;
     let mut found: bool = false;
     for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
+        if comparator(pasta) {
             index = i;
             found = true;
             break;
@@ -336,11 +324,7 @@ pub async fn postrawpasta(
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -349,7 +333,7 @@ pub async fn postrawpasta(
     let mut index: usize = 0;
     let mut found: bool = false;
     for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
+        if comparator(pasta) {
             index = i;
             found = true;
             break;

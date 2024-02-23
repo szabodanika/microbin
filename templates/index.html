@@ -1,5 +1,8 @@
 {% include "header.html" %}
 <form id="pasta-form" action="upload" method="POST" enctype="multipart/form-data">
+    {% if args.enable_custom_url %}
+    <input type="hidden" name="custom_alias" id="custom_alias">
+    {%- endif %}
     <br>
     <div id="settings">
         <div>
@@ -175,6 +178,13 @@
         </div>
         {%- endif %}
 
+        {% if args.enable_custom_url %}
+        <div>
+            <label for="alias_field">Custom URL <sup><a href="/guide#custom_url">﹖</a></sup></label><br>
+            <input style="width: 130px; height: 28px;" type="text" id="alias_field" autocomplete="off" />
+        </div>
+        {%- endif %}
+
     </div>
 
     <label>Content</label>
@@ -219,11 +229,13 @@
     const form = document.getElementById("pasta-form");
     const submitButton = document.getElementById("submit-button");
     const passwordField = document.getElementById("password_field");
+    const aliasField = document.getElementById("alias_field");
     const privacyDropdown = document.getElementById("privacy");
     const contentInput = document.getElementById("content-input");
     const content = document.getElementById("content");
     const attachFileButton = document.getElementById('attach-file-button');
     const dropContainer = document.getElementById('pasta-form');
+    const hiddenCustomAlias = document.getElementById("custom_alias");
     const hiddenFileButton = document.getElementById('file');
     const hiddenRandomKeyField = document.getElementById("random_key");
     const hiddenEncryptedRandomKeyField = document.getElementById("encrypted_random_key");
@@ -234,7 +246,11 @@
 
     form.onsubmit = async function (event) {
         event.preventDefault(); // prevent default form submission
-
+        // {% if args.enable_custom_url %}
+        if (aliasField.value.trim() != "") {
+            hiddenCustomAlias.value = aliasField.value.trim();
+        }
+        // {%- endif %}
         // {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly %}
         if (passwordField.value.trim() != "") {
             if (fileOversized()) return false;
@@ -296,6 +312,8 @@
                     window.location.href = xhr.responseURL;
                 } else {
                     console.log('Request failed with status:', xhr.status);
+                    window.alert(xhr.responseText);
+                    submitButton.disabled = false;
                 }
             }
         };

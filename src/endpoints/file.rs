@@ -2,9 +2,9 @@ use std::fs::{self, File};
 use std::path::PathBuf;
 
 use crate::args::ARGS;
-use crate::util::hashids::to_u64 as hashid_to_u64;
+use crate::util::hashids::alias_comparator;
 use crate::util::misc::remove_expired;
-use crate::util::{animalnumbers::to_u64, misc::decrypt_file};
+use crate::util::misc::decrypt_file;
 use crate::AppState;
 use actix_multipart::Multipart;
 use actix_web::{get, post, web, Error, HttpResponse};
@@ -19,11 +19,7 @@ pub async fn post_secure_file(
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -32,7 +28,7 @@ pub async fn post_secure_file(
     let mut index: usize = 0;
     let mut found: bool = false;
     for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
+        if comparator(pasta) {
             index = i;
             found = true;
             break;
@@ -86,11 +82,7 @@ pub async fn get_file(
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    let id_intern = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id.into_inner()).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -99,7 +91,7 @@ pub async fn get_file(
     let mut index: usize = 0;
     let mut found: bool = false;
     for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id_intern {
+        if comparator(pasta) {
             index = i;
             found = true;
             break;

@@ -103,6 +103,9 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_ENABLE_READONLY")]
     pub enable_readonly: bool,
 
+    #[clap(long, env = "MICROBIN_ENABLE_CUSTOM_URL")]
+    pub enable_custom_url: bool,
+
     #[clap(long, env = "MICROBIN_DEFAULT_EXPIRY", default_value = "24hour")]
     pub default_expiry: String,
 
@@ -114,7 +117,7 @@ pub struct Args {
 
     #[clap(long, env = "MICROBIN_CUSTOM_CSS")]
     pub custom_css: Option<String>,
-
+    
     #[clap(long, env = "MICROBIN_HASH_IDS")]
     pub hash_ids: bool,
 
@@ -211,6 +214,7 @@ impl Args {
             max_file_size_encrypted_mb: self.max_file_size_encrypted_mb,
             max_file_size_unencrypted_mb: self.max_file_size_unencrypted_mb,
             disable_update_checking: self.disable_update_checking,
+            enable_custom_url: self.enable_custom_url,
         }
     }
 }

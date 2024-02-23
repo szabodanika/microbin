@@ -1,8 +1,7 @@
 use crate::args::{Args, ARGS};
 use crate::endpoints::errors::ErrorTemplate;
 use crate::pasta::Pasta;
-use crate::util::animalnumbers::to_u64;
-use crate::util::hashids::to_u64 as hashid_to_u64;
+use crate::util::hashids::alias_comparator;
 use crate::util::misc::{self, remove_expired};
 use crate::AppState;
 use actix_web::{get, web, HttpResponse};
@@ -21,11 +20,7 @@ pub async fn getqr(data: web::Data<AppState>, id: web::Path<String>) -> HttpResp
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
-    let u64_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -34,7 +29,7 @@ pub async fn getqr(data: web::Data<AppState>, id: web::Path<String>) -> HttpResp
     let mut index: usize = 0;
     let mut found: bool = false;
     for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == u64_id {
+        if comparator(pasta) {
             index = i;
             found = true;
             break;

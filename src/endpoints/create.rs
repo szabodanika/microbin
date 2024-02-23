@@ -1,11 +1,14 @@
 use crate::pasta::PastaFile;
 use crate::util::animalnumbers::to_animal_names;
+use crate::util::animalnumbers::to_u64;
 use crate::util::db::insert;
 use crate::util::hashids::to_hashids;
+use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::{encrypt, encrypt_file, is_valid_url};
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
+use actix_web::error::ErrorForbidden;
 use actix_web::{get, web, Error, HttpResponse, Responder};
 use askama::Template;
 use bytesize::ByteSize;
@@ -88,6 +91,7 @@ pub async fn create(
         id: rand::thread_rng().gen::<u16>() as u64,
         content: String::from(""),
         file: None,
+        custom_alias: None,
         extension: String::from(""),
         private: false,
         readonly: false,
@@ -207,6 +211,31 @@ pub async fn create(
                 }
                 continue;
             }
+            "custom_alias" => {
+                if !ARGS.enable_custom_url {
+                    continue;
+                }
+                while let Some(chunk) = field.try_next().await? {
+                    let custom_alias_unchecked =
+                        std::str::from_utf8(&chunk).unwrap().trim().to_string();
+                    // todo check it
+                    if hashid_to_u64(&custom_alias_unchecked).is_ok()
+                        || to_u64(&&custom_alias_unchecked).is_ok()
+                    {
+                        // prevent conflicts with default url.
+                        return Err(ErrorForbidden("Conflicts with default URL format"));
+                    }
+                    if pastas
+                        .iter()
+                        .any(|pasta| pasta.custom_alias.as_ref() == Some(&custom_alias_unchecked))
+                    {
+                        // prevent conflicts with default url.
+                        return Err(ErrorForbidden("Custom url conflicts with existing pasta"));
+                    }
+                    new_pasta.custom_alias = Some(custom_alias_unchecked);
+                }
+                continue;
+            }
             "file" => {
                 if ARGS.no_file_upload {
                     continue;
@@ -303,7 +332,9 @@ pub async fn create(
     }
 
     let encrypt_server = new_pasta.encrypt_server;
+    let alias = new_pasta.custom_alias.clone();
 
+    println!("{new_pasta:?}");
     pastas.push(new_pasta);
 
     for (_, pasta) in pastas.iter().enumerate() {
@@ -312,7 +343,9 @@ pub async fn create(
         }
     }
 
-    let slug = if ARGS.hash_ids {
+    let slug = if let Some(alias) = alias {
+        alias
+    } else if ARGS.hash_ids {
         to_hashids(id)
     } else {
         to_animal_names(id)
