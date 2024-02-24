@@ -334,7 +334,6 @@ pub async fn create(
     let encrypt_server = new_pasta.encrypt_server;
     let alias = new_pasta.custom_alias.clone();
 
-    println!("{new_pasta:?}");
     pastas.push(new_pasta);
 
     for (_, pasta) in pastas.iter().enumerate() {
