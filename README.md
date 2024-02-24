@@ -45,6 +45,7 @@ On our website [microbin.eu](https://microbin.eu) you will find the following:
 - QR code support
 - URL shortening and redirection
 - Animal names instead of random numbers for upload identifiers (64 animals)
+- Custom URL
 - SQLite and JSON database support
 - Private and public, editable and uneditable, automatically and never expiring uploads
 - Automatic dark mode and custom styling support with very little CSS and only vanilla JS (see [`water.css`](https://github.com/kognise/water.css))

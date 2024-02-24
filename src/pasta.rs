@@ -58,6 +58,7 @@ pub struct Pasta {
     pub id: u64,
     pub content: String,
     pub file: Option<PastaFile>,
+    pub custom_alias: Option<String>,
     pub extension: String,
     pub private: bool,
     pub readonly: bool,
@@ -75,11 +76,11 @@ pub struct Pasta {
 
 impl Pasta {
     pub fn id_as_animals(&self) -> String {
-        if ARGS.hash_ids {
+        self.custom_alias.clone().unwrap_or(if ARGS.hash_ids {
             to_hashids(self.id)
         } else {
             to_animal_names(self.id)
-        }
+        })
     }
 
     pub fn has_file(&self) -> bool {

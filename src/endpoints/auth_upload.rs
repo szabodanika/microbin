@@ -1,7 +1,6 @@
 use crate::args::{Args, ARGS};
 use crate::endpoints::errors::ErrorTemplate;
-use crate::util::animalnumbers::to_u64;
-use crate::util::hashids::to_u64 as hashid_to_u64;
+use crate::util::hashids::alias_comparator;
 use crate::util::misc::remove_expired;
 use crate::AppState;
 use actix_web::{get, web, HttpResponse};
@@ -25,14 +24,10 @@ pub async fn auth_upload(data: web::Data<AppState>, id: web::Path<String>) -> Ht
 
     remove_expired(&mut pastas);
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
@@ -65,14 +60,10 @@ pub async fn auth_upload_with_status(
 
     let (id, status) = param.into_inner();
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
@@ -100,14 +91,10 @@ pub async fn auth_raw_pasta(data: web::Data<AppState>, id: web::Path<String>) ->
 
     remove_expired(&mut pastas);
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
@@ -140,14 +127,10 @@ pub async fn auth_raw_pasta_with_status(
 
     let (id, status) = param.into_inner();
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
@@ -175,14 +158,10 @@ pub async fn auth_edit_private(data: web::Data<AppState>, id: web::Path<String>)
 
     remove_expired(&mut pastas);
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
@@ -215,14 +194,10 @@ pub async fn auth_edit_private_with_status(
 
     let (id, status) = param.into_inner();
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
@@ -250,14 +225,10 @@ pub async fn auth_file(data: web::Data<AppState>, id: web::Path<String>) -> Http
 
     remove_expired(&mut pastas);
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
@@ -290,14 +261,10 @@ pub async fn auth_file_with_status(
 
     let (id, status) = param.into_inner();
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
@@ -325,14 +292,10 @@ pub async fn auth_remove_private(data: web::Data<AppState>, id: web::Path<String
 
     remove_expired(&mut pastas);
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
@@ -365,14 +328,10 @@ pub async fn auth_remove_private_with_status(
 
     let (id, status) = param.into_inner();
 
-    let intern_id = if ARGS.hash_ids {
-        hashid_to_u64(&id).unwrap_or(0)
-    } else {
-        to_u64(&id).unwrap_or(0)
-    };
+    let comparator = alias_comparator(id.as_str());
 
     for (_i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == intern_id {
+        if comparator(pasta) {
             return HttpResponse::Ok().content_type("text/html").body(
                 AuthPasta {
                     args: &ARGS,
