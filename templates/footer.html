@@ -4,7 +4,7 @@
     {% if args.footer_text.as_ref().is_none() %}
     <a href="https://microbin.eu">MicroBin</a> by Dániel Szabó and the FOSS
     Community. Let's keep the Web <b>compact</b>, <b>accessible</b> and
-    <b>humane</b>! {%- else %} {{ args.footer_text.as_ref().unwrap() | safe }} {%-
+    <b>humane</b>! {%- else %} {{ args.footer_text.as_ref().unwrap()|safe }} {%-
     endif %}
 </p>
 
