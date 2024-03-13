@@ -38,7 +38,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
             // remove the file itself
             if let Some(PastaFile { name, .. }) = &pasta.file {
                 if fs::remove_file(format!(
-                    "./{}/attachments/{}/{}",
+                    "{}/attachments/{}/{}",
                     ARGS.data_dir,
                     pasta.id_as_animals(),
                     name
@@ -50,7 +50,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
 
                 // and remove the containing directory
                 if fs::remove_dir(format!(
-                    "./{}/attachments/{}/",
+                    "{}/attachments/{}/",
                     ARGS.data_dir,
                     pasta.id_as_animals()
                 ))
@@ -113,7 +113,7 @@ pub async fn post_remove(
                         // remove the file itself
                         if let Some(PastaFile { name, .. }) = &pasta.file {
                             if fs::remove_file(format!(
-                                "./{}/attachments/{}/{}",
+                                "{}/attachments/{}/{}",
                                 ARGS.data_dir,
                                 pasta.id_as_animals(),
                                 name
@@ -125,7 +125,7 @@ pub async fn post_remove(
 
                             // and remove the containing directory
                             if fs::remove_dir(format!(
-                                "./{}/attachments/{}/",
+                                "{}/attachments/{}/",
                                 ARGS.data_dir,
                                 pasta.id_as_animals()
                             ))
