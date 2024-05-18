@@ -13,6 +13,9 @@ RUN \
   CARGO_NET_GIT_FETCH_WITH_CLI=true \
   cargo build --release
 
+# build a healthcheck binary
+RUN cd healthcheck && cargo build --release
+
 # https://hub.docker.com/r/bitnami/minideb
 FROM bitnami/minideb:latest
 
@@ -34,6 +37,11 @@ COPY --from=build \
 COPY --from=build \
   /app/target/release/microbin \
   /usr/bin/microbin
+
+# copy healthcheck executable
+COPY --from=build \
+  /app/healthcheck/target/release/healthcheck \
+  /usr/bin/healthcheck
 
 # Expose webport used for the webserver to the docker runtime
 EXPOSE 8080
