@@ -70,6 +70,10 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
     }
 }
 
+/// receives a file through http Post on url /upload/a-b-c with a, b and c
+/// different animals. The client sends the post in response to a form.
+// TODO: form field order might need to be changed. In my testing the attachment 
+// data is nestled between password encryption key etc <21-10-24, dvdsk> 
 pub async fn create(
     data: web::Data<AppState>,
     mut payload: Multipart,
