@@ -108,7 +108,10 @@ pub async fn create(
     let mut uploader_password = String::from("");
 
     while let Some(mut field) = payload.try_next().await? {
-        match field.name() {
+        let Some(field_name) = field.name() else {
+            continue;
+        };
+        match field_name {
             "uploader_password" => {
                 while let Some(chunk) = field.try_next().await? {
                     uploader_password
@@ -212,7 +215,7 @@ pub async fn create(
                     continue;
                 }
 
-                let path = field.content_disposition().get_filename();
+                let path = field.content_disposition().and_then(|cd| cd.get_filename());
 
                 let path = match path {
                     Some("") => continue,
