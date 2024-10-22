@@ -15,7 +15,8 @@ categories = ["pastebins"]
 [dependencies]
 actix-files = "0.6.6"
 actix-multipart = "0.7.2"
-actix-web = "4"
+actix-web = { version = "4", default-features = false, features = [
+"compat","compress-brotli", "compress-gzip", "cookies", "http2", "macros", "unicode"] }
 actix-web-httpauth = "0.8.2"
 askama = "0.10"
 askama-filters = { version = "0.1.3", features = ["chrono"] }
@@ -34,23 +35,36 @@ mime_guess = "2.0.4"
 once_cell = "1.19.0"
 qrcode-generator = "4.1.9"
 rand = "0.8.5"
-reqwest = { version = "0.12", default-features=false, features = ["charset",
+reqwest = { version = "0.12", default-features = false, features = ["charset",
 "http2", "macos-system-configuration", "json", "blocking"] }
-rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite = { version = "0.32", features = ["bundled"], optional = true }
 rust-embed = "8.3.0"
+
+# The rustls-rustcrypto version must support the rustls version and the
+# rustls version must match the one expected by reqwest;
+rustls = { version = "0.23", default-features = false, features = ["custom-provider"], optional = true }
+rustls-rustcrypto = { version = "0.0.2-alpha", optional = true }
+
 sanitize-filename = "0.5.0"
 serde_json = "1.0.114"
 serde = { version = "1.0.197", features = ["derive"] }
-syntect = "5.2.0"
+syntect = { version = "5.2.0", default-features = false }
+webpki-roots = { version = "0.26", optional = true }
 
 [dependencies.openssl]
 version = "0.10.64"
 features = ["vendored"]
+optional = true
 
 [features]
-default = ["default-tls"]
-default-tls = ["reqwest/default-tls"]
-rustls = ["reqwest/rustls-tls"]
+default = ["__default-tls", "__zstd", "__syntect-fast", "dep:rusqlite"]
+no-c-deps = ["__rustcrypto-tls", "__syntect-rust"]
+
+__default-tls = ["reqwest/default-tls", "dep:openssl"]
+__rustcrypto-tls = ["reqwest/rustls-tls-manual-roots-no-provider", "dep:rustls", "dep:rustls-rustcrypto", "webpki-roots"]
+__syntect-fast = ["syntect/default-onig"]
+__syntect-rust = ["syntect/default-fancy"]
+__zstd = ["actix-web/compress-zstd"]
 
 [profile.release]
 lto = true

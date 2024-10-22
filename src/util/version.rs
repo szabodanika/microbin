@@ -1,7 +1,3 @@
-extern crate reqwest;
-extern crate serde;
-extern crate serde_json;
-
 use std::borrow::Cow;
 
 use serde::{Deserialize, Serialize};
@@ -47,7 +43,8 @@ impl Version {
 
 pub async fn fetch_latest_version() -> Result<Version, reqwest::Error> {
     let url = "https://api.microbin.eu/version/";
-    let response = reqwest::get(url).await?;
+    let http_client = crate::util::http_client::new_async();
+    let response = http_client.get(url).send().await?;
     let version = response.json::<Version>().await?;
 
     Ok(version)

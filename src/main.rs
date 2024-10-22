@@ -26,12 +26,14 @@ pub mod util {
     pub mod auth;
     pub mod db;
     pub mod db_json;
+    #[cfg(feature = "default")]
     pub mod db_sqlite;
     pub mod hashids;
     pub mod misc;
     pub mod syntaxhighlighter;
     pub mod telemetry;
     pub mod version;
+    pub mod http_client;
 }
 
 pub mod endpoints {

@@ -1,6 +1,3 @@
-extern crate reqwest;
-extern crate serde;
-extern crate serde_json;
 use std::{
     thread,
     time::{Duration, Instant},
@@ -33,7 +30,7 @@ fn send_telemetry() -> Result<(), reqwest::Error> {
     let json_body = json!(ARGS.to_owned().without_secrets().to_owned()).to_string();
 
     // Send the telemetry data to the API
-    reqwest::blocking::Client::new()
+    crate::util::http_client::new()
         .post("https://api.microbin.eu/telemetry/")
         .header("Content-Type", "application/json")
         .body(json_body)
