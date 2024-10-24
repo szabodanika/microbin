@@ -287,7 +287,7 @@ pub async fn getrawpasta(
 
         // send raw content of pasta
         let response = Ok(HttpResponse::NotFound()
-            .content_type("text/plain")
+            .content_type("text/plain; charset=utf-8")
             .body(pastas[index].content.to_owned()));
 
         return response;
