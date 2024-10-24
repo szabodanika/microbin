@@ -35,11 +35,11 @@ pub async fn post_admin(
     let mut password = String::from("");
 
     while let Some(mut field) = payload.try_next().await? {
-        if field.name() == "username" {
+        if field.name() == Some("username") {
             while let Some(chunk) = field.try_next().await? {
                 username.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
             }
-        } else if field.name() == "password" {
+        } else if field.name() == Some("password") {
             while let Some(chunk) = field.try_next().await? {
                 password.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
             }

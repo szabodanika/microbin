@@ -1,0 +1,10 @@
+# specifies the linker for compiling to these targets
+# this needs to be done to allow cross compiling
+
+# may need more entries for more architectures, if you run into
+# issues on something else then aarch64 musl open an issue and
+# point to this comment. This will no longer be necessary when
+# rust-lld is stabilizes.
+
+[target.aarch64-unknown-linux-musl]
+rustflags = ["-Clinker=rust-lld"]

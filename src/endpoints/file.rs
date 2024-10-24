@@ -2,19 +2,19 @@ use std::fs::{self, File};
 use std::path::PathBuf;
 
 use crate::args::ARGS;
+use crate::util::auth;
 use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::remove_expired;
 use crate::util::{animalnumbers::to_u64, misc::decrypt_file};
 use crate::AppState;
 use actix_multipart::Multipart;
 use actix_web::{get, post, web, Error, HttpResponse};
-use futures::TryStreamExt;
 
 #[post("/secure_file/{id}")]
 pub async fn post_secure_file(
     data: web::Data<AppState>,
     id: web::Path<String>,
-    mut payload: Multipart,
+    payload: Multipart,
 ) -> Result<HttpResponse, Error> {
     // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
@@ -39,15 +39,7 @@ pub async fn post_secure_file(
         }
     }
 
-    let mut password = String::from("");
-
-    while let Some(mut field) = payload.try_next().await? {
-        if field.name() == "password" {
-            while let Some(chunk) = field.try_next().await? {
-                password.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
-            }
-        }
-    }
+    let password = auth::password_from_multipart(payload).await?;
 
     if found {
         if let Some(ref pasta_file) = pastas[index].file {
