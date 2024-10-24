@@ -141,6 +141,7 @@
         <input type="hidden" name="syntax_highlight" value="none">
         {%- endif %}
 
+        {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly || args.private %}
         <div>
             <label for="privacy">Privacy <sup> <a href="/guide#privacy">﹖</a></sup></label><br>
             <select style="width: 100%;" name="privacy" id="privacy">
@@ -167,6 +168,7 @@
                 {%- endif %}
             </select>
         </div>
+        {%- endif %}
 
         {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly %}
         <div>
@@ -237,7 +239,9 @@
 
         // {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly %}
         if (passwordField.value.trim() != "") {
+            // {% if !args.no_file_upload %}
             if (fileOversized()) return false;
+            // {%- endif %}
 
             if (privacyDropdown.value == "secret") {
                 let randomKey = Array.from(Array(16), () => Math.floor(Math.random() * 36).toString(36)).join('');
@@ -249,7 +253,9 @@
                     content.value = contentInput.value;
                 }
                 hiddenPlainKeyField.name = "";
+                // {% if !args.no_file_upload %}
                 await encryptFile();
+                // {%- endif %}
             } else {
                 hiddenPlainKeyField.value = passwordField.value;
                 hiddenEncryptedClientSide.name = "";
@@ -270,7 +276,7 @@
         content.value = contentInput.value;
         // {%- endif %}
 
-        if (contentInput.value.trim() == "" && hiddenFileButton.files.length == 0) {
+        if (contentInput.value.trim() == "" && (hiddenFileButton == undefined || hiddenFileButton.files.length == 0)) {
             contentInput.focus();
             return false;
         }
@@ -316,6 +322,7 @@
         return aesjs.utils.hex.fromBytes(encryptedBytes);
     }
 
+    // {% if !args.no_file_upload %}
     function encryptFileWithPassword(password, bytes) {
         const passwordBytes = aesjs.utils.utf8.toBytes(password.padStart(32, "#"));
         const aesCtr = new aesjs.ModeOfOperation.ctr(passwordBytes);
@@ -392,6 +399,7 @@
         attachFileButton.textContent = "Attached: " + hiddenFileButton.files[0].name;
         evt.preventDefault();
     };
+    // {%- endif %}
 
 </script>
 
