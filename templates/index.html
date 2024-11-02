@@ -299,7 +299,7 @@
         xhr.onreadystatechange = function () {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 if (xhr.status === 200 || xhr.status === 302) {
-                    window.location.href = xhr.responseURL;
+                    window.location.href = xhr.getResponseHeader('pasta_url');
                 } else {
                     console.log('Request failed with status:', xhr.status);
                 }
