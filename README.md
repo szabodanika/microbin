@@ -8,7 +8,7 @@
 [![Docker Image](https://github.com/szabodanika/microbin/actions/workflows/release.yml/badge.svg)](https://hub.docker.com/r/danielszabo99/microbin)
 [![Docker Pulls](https://img.shields.io/docker/pulls/danielszabo99/microbin?label=Docker%20pulls)](https://img.shields.io/docker/pulls/danielszabo99/microbin?label=Docker%20pulls)
 
-MicroBin is a super tiny, feature rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
+MicroBin is a super tiny, feature-rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
 ### Check out the Public Test Server at [pub.microbin.eu](https://pub.microbin.eu)!
 
@@ -28,7 +28,7 @@ source .env;
 microbin
 ```
 
-On our website [microbin.eu](https://microbin.eu) you will find the following:
+On our website [microbin.eu](https://microbin.eu), you will find the following:
 
 - [Screenshots](https://microbin.eu/screenshots/)
 - [Guide and Documentation](https://microbin.eu/docs/intro)
@@ -39,8 +39,8 @@ On our website [microbin.eu](https://microbin.eu) you will find the following:
 
 - Entirely self-contained executable, MicroBin is a single file!
 - Server-side and client-side encryption
-- File uploads (eg. `server.com/file/pig-dog-cat`)
-- Raw text serving (eg. `server.com/raw/pig-dog-cat`)
+- File uploads (e.g. `server.com/file/pig-dog-cat`)
+- Raw text serving (e.g. `server.com/raw/pig-dog-cat`)
 - QR code support
 - URL shortening and redirection
 - Animal names instead of random numbers for upload identifiers (64 animals)
@@ -53,8 +53,8 @@ On our website [microbin.eu](https://microbin.eu) you will find the following:
 
 In MicroBin, an upload can be:
 
-- A text that you want to paste from one machine to another, eg. some code,
-- A file that you want to share, eg. a video that is too large for Discord, a zip with a code project in it or an image,
+- A text that you want to paste from one machine to another, e.g. some code,
+- A file that you want to share, e.g. a video that is too large for Discord, a zip with a code project in it or an image,
 - A URL redirection.
 
 ## When is MicroBin useful?
@@ -65,7 +65,7 @@ You can use MicroBin:
 - To send large files to other people,
 - To share secrets or sensitive documents securely,
 - As a URL shortener/redirect service,
-- To serve content on the web, eg. configuration files for testing, images, or any other file content using the Raw functionality,
+- To serve content on the web, eg . configuration files for testing, images, or any other file content using the Raw functionality,
 - To move files between your desktop and a server you access from the console,
 - As a "postbox" service where people can upload their files or texts, but they cannot see or remove what others sent you,
 - Or even to take quick notes.
@@ -74,4 +74,4 @@ You can use MicroBin:
 
 MicroBin and MicroBin.eu are available under the [BSD 3-Clause License](LICENSE).
 
-© Dániel Szabó 2022-2023
+© Dániel Szabó 2022-2024
