@@ -175,13 +175,13 @@ pub async fn create(
             "burn_after" => {
                 while let Some(chunk) = field.try_next().await? {
                     new_pasta.burn_after_reads = match std::str::from_utf8(&chunk).unwrap() {
-                        // give an extra read because the user will be
+                        // give two extra each time just because the user will be
                         // redirected to the pasta page automatically
                         "1" => 2,
-                        "10" => 10,
-                        "100" => 100,
-                        "1000" => 1000,
-                        "10000" => 10000,
+                        "10" => 11,
+                        "100" => 101,
+                        "1000" => 1001,
+                        "10000" => 10001,
                         "0" => 0,
                         _ => {
                             log::error!("{}", "Unexpected burn after value!");
@@ -332,7 +332,7 @@ pub async fn create(
     } else {
         Ok(HttpResponse::Found()
             .append_header((
-                "Location",
+                "pasta_url",
                 format!("{}/upload/{}", ARGS.public_path_as_str(), slug),
             ))
             .finish())
