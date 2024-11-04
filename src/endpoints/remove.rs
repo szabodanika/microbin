@@ -74,7 +74,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
     remove_expired(&mut pastas);
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -170,6 +170,6 @@ pub async fn post_remove(
     }
 
     Ok(HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }

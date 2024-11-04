@@ -53,7 +53,7 @@ pub async fn getqr(data: web::Data<AppState>, id: web::Path<String>) -> HttpResp
         };
 
         // serve qr code in template
-        return HttpResponse::Ok().content_type("text/html").body(
+        return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
             QRTemplate {
                 qr: &svg,
                 pasta: &pastas[index],
@@ -67,6 +67,6 @@ pub async fn getqr(data: web::Data<AppState>, id: web::Path<String>) -> HttpResp
     // otherwise
     // send pasta not found error
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
