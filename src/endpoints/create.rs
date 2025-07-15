@@ -6,7 +6,7 @@ use crate::util::misc::{encrypt, encrypt_file, is_valid_url};
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
-use actix_web::{get, web, Error, HttpResponse, Responder};
+use actix_web::{get, web, Error, HttpResponse, Responder, HttpRequest};
 use askama::Template;
 use bytesize::ByteSize;
 use futures::TryStreamExt;
@@ -76,6 +76,7 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
 // data is nestled between password encryption key etc <21-10-24, dvdsk> 
 pub async fn create(
     data: web::Data<AppState>,
+    req: HttpRequest,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
     let mut pastas = data.pastas.lock().unwrap();
@@ -105,7 +106,13 @@ pub async fn create(
         last_read: timenow,
         pasta_type: String::from(""),
         expiration: expiration_to_timestamp(&ARGS.default_expiry, timenow),
+        author: None,
     };
+
+    // Extract author information from Google IAP headers if enabled
+    if ARGS.enable_google_iap {
+        new_pasta.author = crate::util::auth::extract_google_iap_user(&req);
+    }
 
     let mut random_key: String = String::from("");
     let mut plain_key: String = String::from("");

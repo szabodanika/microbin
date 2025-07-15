@@ -33,6 +33,13 @@
 
 <br>
 <br>
+
+{% if pasta.author.is_some() %}
+<div style="margin-bottom: 1rem; padding: 0.5rem; background-color: var(--background-alt); border-radius: 4px;">
+  <strong>Author:</strong> {{ pasta.author.as_ref().unwrap() }} <br>
+</div>
+{%- endif %}
+
 {% if pasta.encrypt_client %}
 <span style="margin-left: auto; margin-right: auto; display: flex;
 justify-content: center; align-items: center;">
