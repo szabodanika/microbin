@@ -43,14 +43,16 @@ pub async fn getqr(data: web::Data<AppState>, id: web::Path<String>) -> HttpResp
 
     if found {
         // generate the QR code as an SVG - if its a file or text pastas, this will point to the /upload endpoint, otherwise to the /url endpoint, essentially directly taking the user to the url stored in the pasta
-        let svg: String = match pastas[index].pasta_type.as_str() {
-            "url" => misc::string_to_qr_svg(
-                format!("{}/url/{}", &ARGS.public_path_as_str(), &id).as_str(),
-            ),
-            _ => misc::string_to_qr_svg(
-                format!("{}/upload/{}", &ARGS.public_path_as_str(), &id).as_str(),
-            ),
-        };
+        let svg = misc::string_to_qr_svg(&match pastas[index].pasta_type.as_str() {
+            "url" => match ARGS.short_path.as_ref() {
+                Some(short) => format!("{short}/u/{id}"),
+                _ => format!("{}/url/{}", &ARGS.public_path_as_str(), &id),
+            },
+            _ => match ARGS.short_path.as_ref() {
+                Some(short) => format!("{short}/p/{id}"),
+                _ => format!("{}/upload/{}", &ARGS.public_path_as_str(), &id),
+            },
+        });
 
         // serve qr code in template
         return HttpResponse::Ok().content_type("text/html").body(
