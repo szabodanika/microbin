@@ -1,6 +1,6 @@
 [package]
 name = "microbin"
-version = "2.0.4"
+version = "2.1.0"
 edition = "2021"
 rust-version = "1.74.0"
 authors = ["Daniel Szabo <daniel@microbin.eu>"]
