@@ -273,7 +273,8 @@ pub async fn create(
     }
 
     if ARGS.readonly && ARGS.uploader_password.is_some() {
-        if uploader_password != ARGS.uploader_password.as_ref().unwrap().to_owned() {
+        if uploader_password.trim() != ARGS.uploader_password.as_ref().unwrap().trim() {
+            log::warn!("Uploader password mismatch. Input length: {}, Expected length: {}", uploader_password.trim().len(), ARGS.uploader_password.as_ref().unwrap().trim().len());
             return Ok(HttpResponse::Found()
                 .append_header(("Location", format!("{}/incorrect", ARGS.public_path_as_str())))
                 .finish());
