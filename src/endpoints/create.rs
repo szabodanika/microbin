@@ -6,6 +6,7 @@ use crate::util::misc::{encrypt, encrypt_file, is_valid_url};
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
+use actix_web::cookie::Cookie;
 use actix_web::{get, web, Error, HttpResponse, Responder};
 use askama::Template;
 use bytesize::ByteSize;
@@ -175,9 +176,7 @@ pub async fn create(
             "burn_after" => {
                 while let Some(chunk) = field.try_next().await? {
                     new_pasta.burn_after_reads = match std::str::from_utf8(&chunk).unwrap() {
-                        // give an extra read because the user will be
-                        // redirected to the pasta page automatically
-                        "1" => 2,
+                        "1" => 1,
                         "10" => 10,
                         "100" => 100,
                         "1000" => 1000,
@@ -330,11 +329,27 @@ pub async fn create(
             .append_header(("Location", format!("/auth/{}/success", slug)))
             .finish())
     } else {
+        // Generate time-limited token for initial view using Hashids
+        let timenow = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let expiry = timenow + 15; // 15 seconds validity
+        
+        // Use global HARSH instance
+        let encoded_token = crate::util::hashids::HARSH.encode(&[expiry, id]);
+
         Ok(HttpResponse::Found()
             .append_header((
                 "Location",
                 format!("{}/upload/{}", ARGS.public_path_as_str(), slug),
             ))
+            .cookie(
+                Cookie::build("owner_token", encoded_token)
+                    .path("/")
+                    .max_age(actix_web::cookie::time::Duration::seconds(15))
+                    .finish(),
+            )
             .finish())
     }
 }
