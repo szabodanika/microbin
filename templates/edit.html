@@ -6,7 +6,7 @@
     <label>Content</label>
     <br>
     <textarea style="width: 100%; min-height: 100px; font-family: monospace;" name="content" id="content" {% if status
-        !="incorrect" %} autofocus {% endif %}>{{ pasta.content_escaped() }}</textarea>
+        !="incorrect" %} autofocus {% endif %}>{{ pasta.content_textarea_safe() }}</textarea>
     <br>
     <div>
         {% if pasta.readonly || pasta.encrypt_server %}
