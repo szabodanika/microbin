@@ -1,11 +1,11 @@
 use actix_multipart::Multipart;
 use actix_web::{get, post, web, Error, HttpResponse};
-use futures::TryStreamExt;
 
 use crate::args::ARGS;
 use crate::endpoints::errors::ErrorTemplate;
 use crate::pasta::PastaFile;
 use crate::util::animalnumbers::to_u64;
+use crate::util::auth;
 use crate::util::db::delete;
 use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::{decrypt, remove_expired};
@@ -38,7 +38,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
             // remove the file itself
             if let Some(PastaFile { name, .. }) = &pasta.file {
                 if fs::remove_file(format!(
-                    "./{}/attachments/{}/{}",
+                    "{}/attachments/{}/{}",
                     ARGS.data_dir,
                     pasta.id_as_animals(),
                     name
@@ -50,7 +50,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
 
                 // and remove the containing directory
                 if fs::remove_dir(format!(
-                    "./{}/attachments/{}/",
+                    "{}/attachments/{}/",
                     ARGS.data_dir,
                     pasta.id_as_animals()
                 ))
@@ -82,7 +82,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
 pub async fn post_remove(
     data: web::Data<AppState>,
     id: web::Path<String>,
-    mut payload: Multipart,
+    payload: Multipart,
 ) -> Result<HttpResponse, Error> {
     let id = if ARGS.hash_ids {
         hashid_to_u64(&id).unwrap_or(0)
@@ -94,15 +94,7 @@ pub async fn post_remove(
 
     remove_expired(&mut pastas);
 
-    let mut password = String::from("");
-
-    while let Some(mut field) = payload.try_next().await? {
-        if field.name() == "password" {
-            while let Some(chunk) = field.try_next().await? {
-                password = std::str::from_utf8(&chunk).unwrap().to_string();
-            }
-        }
-    }
+    let password = auth::password_from_multipart(payload).await?;
 
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
@@ -113,7 +105,7 @@ pub async fn post_remove(
                         // remove the file itself
                         if let Some(PastaFile { name, .. }) = &pasta.file {
                             if fs::remove_file(format!(
-                                "./{}/attachments/{}/{}",
+                                "{}/attachments/{}/{}",
                                 ARGS.data_dir,
                                 pasta.id_as_animals(),
                                 name
@@ -125,7 +117,7 @@ pub async fn post_remove(
 
                             // and remove the containing directory
                             if fs::remove_dir(format!(
-                                "./{}/attachments/{}/",
+                                "{}/attachments/{}/",
                                 ARGS.data_dir,
                                 pasta.id_as_animals()
                             ))

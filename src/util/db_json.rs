@@ -15,31 +15,19 @@ pub fn update_all(pastas: &Vec<Pasta>) {
 }
 
 fn save_to_file(pasta_data: &Vec<Pasta>) {
-    let mut file = File::create(DATABASE_PATH);
-    match file {
-        Ok(_) => {
-            let writer = BufWriter::new(file.unwrap());
-            serde_json::to_writer(writer, &pasta_data).expect("Failed to create JSON writer");
-        }
-        Err(_) => {
-            log::info!("Database file {} not found!", DATABASE_PATH);
-            file = File::create(DATABASE_PATH);
-            match file {
-                Ok(_) => {
-                    log::info!("Database file {} created.", DATABASE_PATH);
-                    save_to_file(pasta_data);
-                }
-                Err(err) => {
-                    log::error!(
-                        "Failed to create database file {}: {}!",
-                        &DATABASE_PATH,
-                        &err
-                    );
-                    panic!("Failed to create database file {}: {}!", DATABASE_PATH, err)
-                }
-            }
-        }
-    }
+    // This uses a two stage write. First we write to a new file, if this fails
+    // only the new pasta's are lost. Then we replace the current database with
+    // the new file. This either succeeds or fails. The database is never left
+    // in an undefined state.
+    let tmp_file_path = DATABASE_PATH.to_string() + ".tmp";
+    let tmp_file = File::create(&tmp_file_path).expect(&format!(
+        "failed to create temporary database file for writing. path: {tmp_file_path}"
+    ));
+
+    let writer = BufWriter::new(tmp_file);
+    serde_json::to_writer(writer, &pasta_data)
+        .expect("Should be able to write out data to database file");
+    std::fs::rename(tmp_file_path, DATABASE_PATH).expect("Could not update database");
 }
 
 fn load_from_file() -> io::Result<Vec<Pasta>> {
