@@ -100,8 +100,26 @@ pub async fn post_remove(
         if pasta.id == id {
             if pastas[i].readonly || pastas[i].encrypt_server {
                 if password != *"" {
-                    let res = decrypt(pastas[i].content.to_owned().as_str(), &password);
-                    if res.is_ok() {
+                    let mut is_password_correct = false;
+                    // if it is read-only, the content is not encrypted, but the key is
+                    if pastas[i].readonly {
+                        if let Some(ref encrypted_key) = pastas[i].encrypted_key {
+                            let res = decrypt(encrypted_key, &password);
+                            if let Ok(decrypted_key) = res {
+                                if decrypted_key == id.to_string() {
+                                    is_password_correct = true;
+                                }
+                            }
+                        }
+                    } else {
+                        // if it is not read-only, the content is encrypted
+                        let res = decrypt(pastas[i].content.to_owned().as_str(), &password);
+                        if res.is_ok() {
+                            is_password_correct = true;
+                        }
+                    }
+
+                    if is_password_correct {
                         // remove the file itself
                         if let Some(PastaFile { name, .. }) = &pasta.file {
                             if fs::remove_file(format!(
