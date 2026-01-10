@@ -2,7 +2,7 @@
 
 {% if encrypt_client %}
 
-<form id="auth-form" method="POST" action="/{{path}}/{{id}}" enctype="multipart/form-data">
+<form id="auth-form" method="POST" action="{{ args.public_path_as_str() }}/{{path}}/{{id}}" enctype="multipart/form-data">
   {% if status == "success" %}
   <b>
     Success!
@@ -10,7 +10,7 @@
   {% endif %}
   <label for="password"> Please enter the
     password to access or modify this upload. <sup>
-      <a href="/guide#encryption">﹖</a></sup></label>
+      <a href="{{ args.public_path_as_str() }}/guide#encryption">﹖</a></sup></label>
   <input id="password-field" required placeholder="Password" type="password" autocomplete="off">
   <input id="password-hidden" name="password" type="hidden">
   <button>Okay</button>
@@ -60,7 +60,7 @@
 
 {% else %}
 
-<form id="auth-form" method="POST" action="/{{path}}/{{id}}" enctype="multipart/form-data">
+<form id="auth-form" method="POST" action="{{ args.public_path_as_str() }}/{{path}}/{{id}}" enctype="multipart/form-data">
   {% if status == "success" %}
   <b>
     Success!
@@ -68,7 +68,7 @@
   {% endif %}
   <label for="password" style="margin-bottom: 0.5rem;"> Please enter the
     password to access or modify this upload. <sup>
-      <a href="/guide#encryption">﹖</a></sup></label>
+      <a href="{{ args.public_path_as_str() }}/guide#encryption">﹖</a></sup></label>
   <input id="password-field" placeholder="Password" name="password" type="password" autocomplete="off" />
   <button>Okay</button>
 
