@@ -22,7 +22,7 @@ struct AdminTemplate<'a> {
 #[get("/admin")]
 pub async fn get_admin() -> Result<HttpResponse, Error> {
     return Ok(HttpResponse::Found()
-        .append_header(("Location", "/auth_admin"))
+        .append_header(("Location", format!("{}/auth_admin", ARGS.public_path_as_str())))
         .finish());
 }
 
@@ -48,7 +48,7 @@ pub async fn post_admin(
 
     if username != ARGS.auth_admin_username || password != ARGS.auth_admin_password {
         return Ok(HttpResponse::Found()
-            .append_header(("Location", "/auth_admin/incorrect"))
+            .append_header(("Location", format!("{}/auth_admin/incorrect", ARGS.public_path_as_str())))
             .finish());
     }
 

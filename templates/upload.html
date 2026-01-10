@@ -39,7 +39,7 @@ justify-content: center; align-items: center;">
   <div id="decryption">
     {% if pasta.encrypt_client %}
     <label for="password-field" style="margin-bottom: 0.5em;">
-      Please enter your key to decrypt this upload. <sup> <a href="/guide#encryption">﹖</a></sup>
+      Please enter your key to decrypt this upload. <sup> <a href="{{ args.public_path_as_str() }}/guide#encryption">﹖</a></sup>
     </label>
     <input class="small-button" placeholder="Key" style="margin-right: 0.5rem" type="password" id="password-field"
       autocomplete="off" />
@@ -241,7 +241,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     // {%- endif %}
     formData.append('password', key);
 
-    const response = await fetch('/secure_file/{{ pasta.id_as_animals() }}', {
+    const response = await fetch('{{ args.public_path_as_str() }}/secure_file/{{ pasta.id_as_animals() }}', {
       method: 'POST',
       body: formData,
     })

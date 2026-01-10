@@ -1,9 +1,9 @@
 {% include "header.html" %}
-<form id="pasta-form" action="upload" method="POST" enctype="multipart/form-data">
+<form id="pasta-form" action="{{ args.public_path_as_str() }}/upload" method="POST" enctype="multipart/form-data">
     <br>
     <div id="settings">
         <div>
-            <label for="expiration">Expiration <sup> <a href="/guide#expiration">﹖</a></sup></label><br>
+            <label for="expiration">Expiration <sup> <a href="{{ args.public_path_as_str() }}/guide#expiration">﹖</a></sup></label><br>
             <select style="width: 100%;" name="expiration" id="expiration">
                 <optgroup label="Expire after">
                     {% if args.default_expiry == "1min" %}
@@ -54,7 +54,7 @@
         </div>
         {% if args.enable_burn_after %}
         <div>
-            <label for="burn_after">Burn After <sup> <a href="/guide#burn-after">﹖</a></sup></label><br>
+            <label for="burn_after">Burn After <sup> <a href="{{ args.public_path_as_str() }}/guide#burn-after">﹖</a></sup></label><br>
             <select style="width: 100%;" name="burn_after" id="burn_after">
                 {% if args.default_burn_after == 0 %}
                 <option selected value="0">
@@ -100,7 +100,7 @@
 
         {% if args.highlightsyntax %}
         <div>
-            <label for="syntax_highlight">Syntax <sup> <a href="/guide#syntax">﹖</a></sup></label><br>
+            <label for="syntax_highlight">Syntax <sup> <a href="{{ args.public_path_as_str() }}/guide#syntax">﹖</a></sup></label><br>
             <select style="width: 100%;" name="syntax_highlight" id="syntax_highlight">
                 <option value="none">None</option>
                 <optgroup label="Client-Rendered">
@@ -143,7 +143,7 @@
 
         {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly || args.private %}
         <div>
-            <label for="privacy">Privacy <sup> <a href="/guide#privacy">﹖</a></sup></label><br>
+            <label for="privacy">Privacy <sup> <a href="{{ args.public_path_as_str() }}/guide#privacy">﹖</a></sup></label><br>
             <select style="width: 100%;" name="privacy" id="privacy">
                 <optgroup label="Unencrypted (no password)">
                     <option value="public">Public</option>
@@ -172,7 +172,7 @@
 
         {% if args.encryption_client_side || args.encryption_server_side || args.enable_readonly %}
         <div>
-            <label for="password_field">Password <sup><a href="/guide#password">﹖</a></sup></label><br>
+            <label for="password_field">Password <sup><a href="{{ args.public_path_as_str() }}/guide#password">﹖</a></sup></label><br>
             <input style="width: 130px; height: 28px;" type="password" id="password_field" autocomplete="off" />
         </div>
         {%- endif %}
@@ -287,7 +287,7 @@
         submitButton.textContent = 'Uploading...';
 
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/upload', true);
+        xhr.open('POST', '{{ args.public_path_as_str() }}/upload', true);
 
         xhr.upload.onprogress = function (event) {
             if (showProgress) {
