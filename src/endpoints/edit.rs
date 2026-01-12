@@ -43,7 +43,7 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("/auth_edit_private/{}", pasta.id_as_animals()),
+                        format!("{}/auth_edit_private/{}", ARGS.public_path_as_str(), pasta.id_as_animals()),
                     ))
                     .finish();
             }
@@ -95,7 +95,7 @@ pub async fn get_edit_with_status(
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("/auth_edit_private/{}", pasta.id_as_animals()),
+                        format!("{}/auth_edit_private/{}", ARGS.public_path_as_str(), pasta.id_as_animals()),
                     ))
                     .finish();
             }
@@ -136,7 +136,7 @@ pub async fn post_edit_private(
     let mut password = String::from("");
 
     while let Some(mut field) = payload.try_next().await? {
-        if field.name() == "password" {
+        if field.name() == Some("password") {
             while let Some(chunk) = field.try_next().await? {
                 password.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
             }
@@ -174,7 +174,8 @@ pub async fn post_edit_private(
                     .append_header((
                         "Location",
                         format!(
-                            "/auth_edit_private/{}/incorrect",
+                            "{}/auth_edit_private/{}/incorrect",
+                            ARGS.public_path_as_str(),
                             pastas[index].id_as_animals()
                         ),
                     ))
@@ -224,12 +225,12 @@ pub async fn post_submit_edit_private(
     let mut new_content = String::from("");
 
     while let Some(mut field) = payload.try_next().await? {
-        if field.name() == "content" {
+        if field.name() == Some("content") {
             while let Some(chunk) = field.try_next().await? {
                 new_content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
             }
         }
-        if field.name() == "password" {
+        if field.name() == Some("password") {
             while let Some(chunk) = field.try_next().await? {
                 password = std::str::from_utf8(&chunk).unwrap().to_string();
             }
@@ -261,7 +262,7 @@ pub async fn post_submit_edit_private(
                 return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("/edit/{}/incorrect", pastas[index].id_as_animals()),
+                        format!("{}/edit/{}/incorrect", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
                     ))
                     .finish());
             }
@@ -278,7 +279,8 @@ pub async fn post_submit_edit_private(
                     .append_header((
                         "Location",
                         format!(
-                            "/auth_edit_private/{}/incorrect",
+                            "{}/auth_edit_private/{}/incorrect",
+                            ARGS.public_path_as_str(),
                             pastas[index].id_as_animals()
                         ),
                     ))
@@ -289,7 +291,7 @@ pub async fn post_submit_edit_private(
         return Ok(HttpResponse::Found()
             .append_header((
                 "Location",
-                format!("/auth/{}/success", pastas[index].id_as_animals()),
+                format!("{}/auth/{}/success", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
             ))
             .finish());
     }
@@ -318,12 +320,12 @@ pub async fn post_edit(
     let mut password = String::from("");
 
     while let Some(mut field) = payload.try_next().await? {
-        if field.name() == "content" {
+        if field.name() == Some("content") {
             while let Some(chunk) = field.try_next().await? {
                 new_content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
             }
         }
-        if field.name() == "password" {
+        if field.name() == Some("password") {
             while let Some(chunk) = field.try_next().await? {
                 password = std::str::from_utf8(&chunk).unwrap().to_string();
             }
@@ -344,7 +346,7 @@ pub async fn post_edit(
                             return Ok(HttpResponse::Found()
                                 .append_header((
                                     "Location",
-                                    format!("/edit/{}/incorrect", pasta.id_as_animals()),
+                                    format!("{}/edit/{}/incorrect", ARGS.public_path_as_str(), pasta.id_as_animals()),
                                 ))
                                 .finish());
                         }
@@ -352,7 +354,7 @@ pub async fn post_edit(
                         return Ok(HttpResponse::Found()
                             .append_header((
                                 "Location",
-                                format!("/edit/{}/incorrect", pasta.id_as_animals()),
+                                format!("{}/edit/{}/incorrect", ARGS.public_path_as_str(), pasta.id_as_animals()),
                             ))
                             .finish());
                     }
