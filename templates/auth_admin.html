@@ -1,6 +1,6 @@
 {% include "header.html" %}
 
-<form id="auth-form" method="POST" action="/admin/" enctype="multipart/form-data">
+<form id="auth-form" method="POST" action="{{ args.public_path_as_str() }}/admin/" enctype="multipart/form-data">
   <label for="username"> Administrator username</label>
   <input id="username-field" placeholder="Username" type="username" autocomplete="off" name="username">
   <label for="password"> Administrator password.</label>

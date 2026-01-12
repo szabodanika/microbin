@@ -46,7 +46,7 @@ justify-content: center; align-items: center;">
   <div id="decryption">
     {% if pasta.encrypt_client %}
     <label for="password-field" style="margin-bottom: 0.5em;">
-      Please enter your key to decrypt this upload. <sup> <a href="/guide#encryption">﹖</a></sup>
+      Please enter your key to decrypt this upload. <sup> <a href="{{ args.public_path_as_str() }}/guide#encryption">?</a></sup>
     </label>
     <input class="small-button" placeholder="Key" style="margin-right: 0.5rem" type="password" id="password-field"
       autocomplete="off" />
@@ -170,6 +170,53 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
   // {% endif %}
 
 
+  function copyToClipboard(text, buttonElement, originalLabel) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCopiedFeedback(buttonElement, originalLabel);
+      }).catch(err => {
+        console.error('Failed to copy using Clipboard API: ', err);
+        fallbackCopyTextToClipboard(text, buttonElement, originalLabel);
+      });
+    } else {
+      fallbackCopyTextToClipboard(text, buttonElement, originalLabel);
+    }
+  }
+
+  function fallbackCopyTextToClipboard(text, buttonElement, originalLabel) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Ensure it's not visible but part of the DOM
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    
+    textArea.focus();
+    textArea.select();
+
+    try {
+      var successful = document.execCommand('copy');
+      if (successful) {
+        showCopiedFeedback(buttonElement, originalLabel);
+      } else {
+        console.error('Fallback: Copying text command was unsuccessful');
+      }
+    } catch (err) {
+      console.error('Fallback: Oops, unable to copy', err);
+    }
+
+    document.body.removeChild(textArea);
+  }
+
+  function showCopiedFeedback(buttonElement, originalLabel) {
+    buttonElement.innerHTML = "Copied";
+    setTimeout(() => {
+      buttonElement.innerHTML = originalLabel;
+    }, 1000);
+  }
+
   function escapeHtml(unsafe) {
     return unsafe
       .replace(/&/g, "&amp;")
@@ -193,36 +240,22 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
 
   if (copyURLBtn) {
     copyURLBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(url)
-      copyURLBtn.innerHTML = "Copied"
-      setTimeout(() => {
-        copyURLBtn.innerHTML = "Copy URL"
-      }, 1000)
+      copyToClipboard(url, copyURLBtn, "Copy URL");
     })
   }
-
-  // it will be undefined when the element does not exist on non-url pastas
   if (copyRedirectBtn) {
     copyRedirectBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(redirect_url)
-      copyRedirectBtn.innerHTML = "Copied"
-      setTimeout(() => {
-        copyRedirectBtn.innerHTML = "Copy Redirect"
-      }, 1000)
+      copyToClipboard(redirect_url, copyRedirectBtn, "Copy Redirect");
     })
   }
 
   if (copyTextBtn) {
     copyTextBtn.addEventListener("click", () => {
       const decodeContent = decodeEntity(content)
-      navigator.clipboard.writeText(decodeContent)
-      copyTextBtn.innerHTML = "Copied"
-      setTimeout(() => {
-        copyTextBtn.innerHTML = "Copy Text"
-      }, 1000)
+      copyToClipboard(decodeContent, copyTextBtn, "Copy Text");
     })
   }
-
+  
   // {% if pasta.encrypt_client %}
 
   const decryptDiv = document.getElementById('decryption');
@@ -248,7 +281,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     // {%- endif %}
     formData.append('password', key);
 
-    const response = await fetch('/secure_file/{{ pasta.id_as_animals() }}', {
+    const response = await fetch('{{ args.public_path_as_str() }}/secure_file/{{ pasta.id_as_animals() }}', {
       method: 'POST',
       body: formData,
     })

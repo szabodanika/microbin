@@ -43,12 +43,12 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("/auth_edit_private/{}", pasta.id_as_animals()),
+                        format!("{}/auth_edit_private/{}", ARGS.public_path_as_str(), pasta.id_as_animals()),
                     ))
                     .finish();
             }
 
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 EditTemplate {
                     pasta,
                     args: &ARGS,
@@ -62,7 +62,7 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -95,12 +95,12 @@ pub async fn get_edit_with_status(
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("/auth_edit_private/{}", pasta.id_as_animals()),
+                        format!("{}/auth_edit_private/{}", ARGS.public_path_as_str(), pasta.id_as_animals()),
                     ))
                     .finish();
             }
 
-            return HttpResponse::Ok().content_type("text/html").body(
+            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
                 EditTemplate {
                     pasta,
                     args: &ARGS,
@@ -114,7 +114,7 @@ pub async fn get_edit_with_status(
     }
 
     HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap())
 }
 
@@ -174,7 +174,8 @@ pub async fn post_edit_private(
                     .append_header((
                         "Location",
                         format!(
-                            "/auth_edit_private/{}/incorrect",
+                            "{}/auth_edit_private/{}/incorrect",
+                            ARGS.public_path_as_str(),
                             pastas[index].id_as_animals()
                         ),
                     ))
@@ -183,7 +184,7 @@ pub async fn post_edit_private(
         }
 
         // serve pasta in template
-        let response = HttpResponse::Ok().content_type("text/html").body(
+        let response = HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
             EditTemplate {
                 pasta: &pastas[index],
                 args: &ARGS,
@@ -201,7 +202,7 @@ pub async fn post_edit_private(
         return Ok(response);
     }
     Ok(HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }
 
@@ -261,7 +262,7 @@ pub async fn post_submit_edit_private(
                 return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("/edit/{}/incorrect", pastas[index].id_as_animals()),
+                        format!("{}/edit/{}/incorrect", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
                     ))
                     .finish());
             }
@@ -278,7 +279,8 @@ pub async fn post_submit_edit_private(
                     .append_header((
                         "Location",
                         format!(
-                            "/auth_edit_private/{}/incorrect",
+                            "{}/auth_edit_private/{}/incorrect",
+                            ARGS.public_path_as_str(),
                             pastas[index].id_as_animals()
                         ),
                     ))
@@ -289,12 +291,12 @@ pub async fn post_submit_edit_private(
         return Ok(HttpResponse::Found()
             .append_header((
                 "Location",
-                format!("/auth/{}/success", pastas[index].id_as_animals()),
+                format!("{}/auth/{}/success", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
             ))
             .finish());
     }
     Ok(HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }
 
@@ -344,7 +346,7 @@ pub async fn post_edit(
                             return Ok(HttpResponse::Found()
                                 .append_header((
                                     "Location",
-                                    format!("/edit/{}/incorrect", pasta.id_as_animals()),
+                                    format!("{}/edit/{}/incorrect", ARGS.public_path_as_str(), pasta.id_as_animals()),
                                 ))
                                 .finish());
                         }
@@ -352,7 +354,7 @@ pub async fn post_edit(
                         return Ok(HttpResponse::Found()
                             .append_header((
                                 "Location",
-                                format!("/edit/{}/incorrect", pasta.id_as_animals()),
+                                format!("{}/edit/{}/incorrect", ARGS.public_path_as_str(), pasta.id_as_animals()),
                             ))
                             .finish());
                     }
@@ -379,6 +381,6 @@ pub async fn post_edit(
     }
 
     Ok(HttpResponse::Ok()
-        .content_type("text/html")
+        .content_type("text/html; charset=utf-8")
         .body(ErrorTemplate { args: &ARGS }.render().unwrap()))
 }

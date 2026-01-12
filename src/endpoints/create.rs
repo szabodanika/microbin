@@ -7,6 +7,7 @@ use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
 use actix_web::{get, web, Error, HttpResponse, Responder, HttpRequest};
+use actix_web::cookie::Cookie;
 use askama::Template;
 use bytesize::ByteSize;
 use futures::TryStreamExt;
@@ -24,7 +25,7 @@ struct IndexTemplate<'a> {
 
 #[get("/")]
 pub async fn index() -> impl Responder {
-    HttpResponse::Ok().content_type("text/html").body(
+    HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
         IndexTemplate {
             args: &ARGS,
             status: String::from(""),
@@ -38,7 +39,7 @@ pub async fn index() -> impl Responder {
 pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
     let status = param.into_inner();
 
-    return HttpResponse::Ok().content_type("text/html").body(
+    return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
         IndexTemplate {
             args: &ARGS,
             status,
@@ -182,9 +183,7 @@ pub async fn create(
             "burn_after" => {
                 while let Some(chunk) = field.try_next().await? {
                     new_pasta.burn_after_reads = match std::str::from_utf8(&chunk).unwrap() {
-                        // give an extra read because the user will be
-                        // redirected to the pasta page automatically
-                        "1" => 2,
+                        "1" => 1,
                         "10" => 10,
                         "100" => 100,
                         "1000" => 1000,
@@ -281,9 +280,10 @@ pub async fn create(
     }
 
     if ARGS.readonly && ARGS.uploader_password.is_some() {
-        if uploader_password != ARGS.uploader_password.as_ref().unwrap().to_owned() {
+        if uploader_password.trim() != ARGS.uploader_password.as_ref().unwrap().trim() {
+            log::warn!("Uploader password mismatch. Input length: {}, Expected length: {}", uploader_password.trim().len(), ARGS.uploader_password.as_ref().unwrap().trim().len());
             return Ok(HttpResponse::Found()
-                .append_header(("Location", "/incorrect"))
+                .append_header(("Location", format!("{}/incorrect", ARGS.public_path_as_str())))
                 .finish());
         }
     }
@@ -337,11 +337,27 @@ pub async fn create(
             .append_header(("Location", format!("/auth/{}/success", slug)))
             .finish())
     } else {
+        // Generate time-limited token for initial view using Hashids
+        let timenow = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let expiry = timenow + 15; // 15 seconds validity
+        
+        // Use global HARSH instance
+        let encoded_token = crate::util::hashids::HARSH.encode(&[expiry, id]);
+
         Ok(HttpResponse::Found()
             .append_header((
                 "Location",
                 format!("{}/upload/{}", ARGS.public_path_as_str(), slug),
             ))
+            .cookie(
+                Cookie::build("owner_token", encoded_token)
+                    .path("/")
+                    .max_age(actix_web::cookie::time::Duration::seconds(15))
+                    .finish(),
+            )
             .finish())
     }
 }

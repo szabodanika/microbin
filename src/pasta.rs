@@ -253,6 +253,10 @@ impl Pasta {
         )
         .to_string()
     }
+
+    pub fn content_textarea_safe(&self) -> String {
+        html_escape::encode_text(&self.content).to_string()
+    }
 }
 
 impl fmt::Display for Pasta {

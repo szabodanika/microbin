@@ -73,5 +73,3 @@ You can use MicroBin:
 ...and many other things, why not get creative?
 
 MicroBin and MicroBin.eu are available under the [BSD 3-Clause License](LICENSE).
-
-© Dániel Szabó 2022-2024

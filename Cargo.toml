@@ -1,6 +1,6 @@
 [package]
 name = "microbin"
-version = "2.0.4"
+version = "2.1.0"
 edition = "2021"
 rust-version = "1.74.0"
 authors = ["Daniel Szabo <daniel@microbin.eu>"]
@@ -10,7 +10,7 @@ readme = "README.md"
 homepage = "https://microbin.eu"
 repository = "https://github.com/szabodanika/microbin"
 keywords = ["pastebin", "filesharing", "microbin", "actix", "selfhosted"]
-categories = ["pastebins"]
+
 
 [dependencies]
 actix-files = "0.6.6"
