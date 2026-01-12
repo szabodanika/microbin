@@ -26,7 +26,8 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
             // if it's encrypted or read-only, it needs password to be deleted
-            if pasta.encrypt_server || pasta.readonly {
+            // OR if it is not editable (public immutable), it needs admin password to be deleted
+            if pasta.encrypt_server || pasta.readonly || !pasta.editable {
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
@@ -98,11 +99,16 @@ pub async fn post_remove(
 
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
-            if pastas[i].readonly || pastas[i].encrypt_server {
+            if pastas[i].readonly || pastas[i].encrypt_server || !pastas[i].editable {
                 if password != *"" {
                     let mut is_password_correct = false;
+
+                    if password == ARGS.auth_admin_password {
+                        is_password_correct = true;
+                    }
+
                     // if it is read-only, the content is not encrypted, but the key is
-                    if pastas[i].readonly {
+                    if !is_password_correct && pastas[i].readonly {
                         if let Some(ref encrypted_key) = pastas[i].encrypted_key {
                             let res = decrypt(encrypted_key, &password);
                             if let Ok(decrypted_key) = res {
@@ -111,7 +117,7 @@ pub async fn post_remove(
                                 }
                             }
                         }
-                    } else {
+                    } else if !is_password_correct && pastas[i].encrypt_server {
                         // if it is not read-only, the content is encrypted
                         let res = decrypt(pastas[i].content.to_owned().as_str(), &password);
                         if res.is_ok() {

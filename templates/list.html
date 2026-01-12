@@ -87,7 +87,9 @@
                         {%- endif %}
                     </td>
                     <td>
+                        {% if pasta.editable || pasta.readonly || pasta.encrypt_server %}
                         <a href="{{ args.public_path_as_str() }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+                        {%- endif %}
                     </td>
                 </tr>
                 {%- endif %}
@@ -153,7 +155,9 @@
                         {%- endif %}
                     </td>
                     <td>
+                        {% if pasta.editable || pasta.readonly || pasta.encrypt_server %}
                         <a href="{{ args.public_path_as_str() }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+                        {%- endif %}
                     </td>
                 </tr>
                 {%- endif %}
