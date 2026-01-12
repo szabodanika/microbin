@@ -332,7 +332,7 @@ pub async fn getrawpasta(
         pastas[index].last_read = timenow;
 
         // send raw content of pasta
-        let response = Ok(HttpResponse::NotFound()
+        let response = Ok(HttpResponse::Ok()
             .content_type("text/plain; charset=utf-8")
             .body(pastas[index].content.to_owned()));
 
@@ -427,8 +427,8 @@ pub async fn postrawpasta(
         update(Some(&pastas), Some(&pastas[index]));
 
         // send raw content of pasta
-        let response = Ok(HttpResponse::NotFound()
-            .content_type("text/html")
+        let response = Ok(HttpResponse::Ok()
+            .content_type("text/plain; charset=utf-8")
             .body(pastas[index].content.to_owned()));
 
         if pastas[index].content != original_content {
