@@ -97,7 +97,7 @@ justify-content: center; align-items: center;">
 
 {% if pasta.file.is_some() && pasta.file.as_ref().unwrap().is_image() &&
 pasta.file_embeddable() && !pasta.encrypt_client %}
-<img id="embed" src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" height="300" />
+<img id="embed" src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" style="max-height: 50vh; max-width: 100%; height: auto; width: auto;" />
 <span style="margin-left: auto; margin-right: auto; display: flex;
   justify-content: center; align-items: center;">
   <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
