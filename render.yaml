@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: microbin
-    plan: free
-    numInstances: 1
-    env: rust
-    repo: https://github.com/szabodanika/microbin.git
-    buildCommand: cargo build --release
-    startCommand: ./target/release/microbin --editable --highlightsyntax
