@@ -91,7 +91,7 @@ pub async fn post_admin(
         update = None;
     }
 
-    Ok(HttpResponse::Ok().content_type("text/html").body(
+    Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
         AdminTemplate {
             pastas: &pastas,
             args: &ARGS,
