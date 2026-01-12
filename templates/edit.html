@@ -1,17 +1,17 @@
 {% include "header.html" %}
-<form action="/{{ path }}/{{ pasta.id_as_animals() }}" method="POST" enctype="multipart/form-data">
+<form action="{{ args.public_path_as_str() }}/{{ path }}/{{ pasta.id_as_animals() }}" method="POST" enctype="multipart/form-data">
     <h4>
         Editing upload '{{ pasta.id_as_animals() }}'
     </h4>
     <label>Content</label>
     <br>
     <textarea style="width: 100%; min-height: 100px; font-family: monospace;" name="content" id="content" {% if status
-        !="incorrect" %} autofocus {% endif %}>{{ pasta.content_escaped() }}</textarea>
+        !="incorrect" %} autofocus {% endif %}>{{ pasta.content_textarea_safe() }}</textarea>
     <br>
     <div>
         {% if pasta.readonly || pasta.encrypt_server %}
         <div style="float: left; height: 90px;">
-            <label for="password">Re-enter Password <sup><a href="/guide#password">﹖</a></sup></label><br>
+            <label for="password">Re-enter Password <sup><a href="{{ args.public_path_as_str() }}/guide#password">?</a></sup></label><br>
             <input {% if status=="incorrect" %} autofocus {% endif %} style="width: 130px; height: 28px;"
                 type="password" id="password" name="password" autocomplete="off" />
             {% if status == "incorrect" %}
@@ -25,8 +25,7 @@
 
         <div style="float: right; height: 90px; justify-content: end;">
             <label for="password_field"></label><br>
-            <input style="width: 140px; float: right; background-color:
-    #2975D2; color: white;" id="submit-button" type="submit" value="Save" />
+            <input id="submit-button" type="submit" value="Save" />
             </td>
         </div>
     </div>

@@ -6,6 +6,7 @@ use crate::util::misc::{encrypt, encrypt_file, is_valid_url};
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
+use actix_web::cookie::Cookie;
 use actix_web::{get, web, Error, HttpResponse, Responder};
 use askama::Template;
 use bytesize::ByteSize;
@@ -58,9 +59,9 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
         "1week" => timenow + 60 * 60 * 24 * 7,
         "never" => {
             if ARGS.eternal_pasta {
-                timenow + 60 * 60 * 24 * 7
-            } else {
                 0
+            } else {
+                timenow + 60 * 60 * 24 * 7
             }
         }
         _ => {
@@ -70,6 +71,10 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
     }
 }
 
+/// receives a file through http Post on url /upload/a-b-c with a, b and c
+/// different animals. The client sends the post in response to a form.
+// TODO: form field order might need to be changed. In my testing the attachment 
+// data is nestled between password encryption key etc <21-10-24, dvdsk> 
 pub async fn create(
     data: web::Data<AppState>,
     mut payload: Multipart,
@@ -91,7 +96,7 @@ pub async fn create(
         extension: String::from(""),
         private: false,
         readonly: false,
-        editable: true,
+        editable: ARGS.editable,
         encrypt_server: false,
         encrypted_key: Some(String::from("")),
         encrypt_client: false,
@@ -108,7 +113,10 @@ pub async fn create(
     let mut uploader_password = String::from("");
 
     while let Some(mut field) = payload.try_next().await? {
-        match field.name() {
+        let Some(field_name) = field.name() else {
+            continue;
+        };
+        match field_name {
             "uploader_password" => {
                 while let Some(chunk) = field.try_next().await? {
                     uploader_password
@@ -168,9 +176,7 @@ pub async fn create(
             "burn_after" => {
                 while let Some(chunk) = field.try_next().await? {
                     new_pasta.burn_after_reads = match std::str::from_utf8(&chunk).unwrap() {
-                        // give an extra read because the user will be
-                        // redirected to the pasta page automatically
-                        "1" => 2,
+                        "1" => 1,
                         "10" => 10,
                         "100" => 100,
                         "1000" => 1000,
@@ -212,7 +218,7 @@ pub async fn create(
                     continue;
                 }
 
-                let path = field.content_disposition().get_filename();
+                let path = field.content_disposition().and_then(|cd| cd.get_filename());
 
                 let path = match path {
                     Some("") => continue,
@@ -229,14 +235,14 @@ pub async fn create(
                 };
 
                 std::fs::create_dir_all(format!(
-                    "./{}/attachments/{}",
+                    "{}/attachments/{}",
                     ARGS.data_dir,
                     &new_pasta.id_as_animals()
                 ))
                 .unwrap();
 
                 let filepath = format!(
-                    "./{}/attachments/{}/{}",
+                    "{}/attachments/{}/{}",
                     ARGS.data_dir,
                     &new_pasta.id_as_animals(),
                     &file.name()
@@ -267,9 +273,10 @@ pub async fn create(
     }
 
     if ARGS.readonly && ARGS.uploader_password.is_some() {
-        if uploader_password != ARGS.uploader_password.as_ref().unwrap().to_owned() {
+        if uploader_password.trim() != ARGS.uploader_password.as_ref().unwrap().trim() {
+            log::warn!("Uploader password mismatch. Input length: {}, Expected length: {}", uploader_password.trim().len(), ARGS.uploader_password.as_ref().unwrap().trim().len());
             return Ok(HttpResponse::Found()
-                .append_header(("Location", "/incorrect"))
+                .append_header(("Location", format!("{}/incorrect", ARGS.public_path_as_str())))
                 .finish());
         }
     }
@@ -290,7 +297,7 @@ pub async fn create(
 
     if new_pasta.file.is_some() && new_pasta.encrypt_server && !new_pasta.readonly {
         let filepath = format!(
-            "./{}/attachments/{}/{}",
+            "{}/attachments/{}/{}",
             ARGS.data_dir,
             &new_pasta.id_as_animals(),
             &new_pasta.file.as_ref().unwrap().name()
@@ -323,11 +330,27 @@ pub async fn create(
             .append_header(("Location", format!("/auth/{}/success", slug)))
             .finish())
     } else {
+        // Generate time-limited token for initial view using Hashids
+        let timenow = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let expiry = timenow + 15; // 15 seconds validity
+        
+        // Use global HARSH instance
+        let encoded_token = crate::util::hashids::HARSH.encode(&[expiry, id]);
+
         Ok(HttpResponse::Found()
             .append_header((
                 "Location",
                 format!("{}/upload/{}", ARGS.public_path_as_str(), slug),
             ))
+            .cookie(
+                Cookie::build("owner_token", encoded_token)
+                    .path("/")
+                    .max_age(actix_web::cookie::time::Duration::seconds(15))
+                    .finish(),
+            )
             .finish())
     }
 }

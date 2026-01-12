@@ -1,6 +1,6 @@
 {% include "header.html" %}
 
-<form id="auth-form" method="POST" action="/admin/" enctype="multipart/form-data">
+<form id="auth-form" method="POST" action="{{ args.public_path_as_str() }}/admin/" enctype="multipart/form-data">
   <label for="username"> Administrator username</label>
   <input id="username-field" placeholder="Username" type="username" autocomplete="off" name="username">
   <label for="password"> Administrator password.</label>
@@ -16,7 +16,7 @@
 {% include "footer.html" %} {% if !args.pure_html %}
 <style>
   #auth-form {
-    background-color: #f7f7f7;
+    background-color: var(--background-alt);
     border-radius: 6px;
     padding: 10px;
     width: fit-content;
