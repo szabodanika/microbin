@@ -6,8 +6,10 @@ use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::{decrypt, encrypt, remove_expired};
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
+use actix_web::error::ErrorBadRequest;
 use actix_web::{get, post, web, Error, HttpResponse};
 use askama::Template;
+use bytes::BytesMut;
 use futures::TryStreamExt;
 
 #[derive(Template)]
@@ -226,8 +228,13 @@ pub async fn post_submit_edit_private(
 
     while let Some(mut field) = payload.try_next().await? {
         if field.name() == Some("content") {
+            let mut buf = BytesMut::new();
             while let Some(chunk) = field.try_next().await? {
-                new_content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
+                buf.extend_from_slice(&chunk);
+            }
+            if !buf.is_empty() {
+                new_content = String::from_utf8(buf.to_vec())
+                    .map_err(|_| ErrorBadRequest("Invalid UTF-8 in content"))?;
             }
         }
         if field.name() == Some("password") {
@@ -321,8 +328,13 @@ pub async fn post_edit(
 
     while let Some(mut field) = payload.try_next().await? {
         if field.name() == Some("content") {
+            let mut buf = BytesMut::new();
             while let Some(chunk) = field.try_next().await? {
-                new_content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
+                buf.extend_from_slice(&chunk);
+            }
+            if !buf.is_empty() {
+                new_content = String::from_utf8(buf.to_vec())
+                    .map_err(|_| ErrorBadRequest("Invalid UTF-8 in content"))?;
             }
         }
         if field.name() == Some("password") {
