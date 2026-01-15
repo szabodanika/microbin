@@ -6,6 +6,7 @@ use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::{decrypt, encrypt, remove_expired};
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
+use actix_web::error::ErrorBadRequest;
 use actix_web::{get, post, web, Error, HttpResponse};
 use askama::Template;
 use bytes::BytesMut;
