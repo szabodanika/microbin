@@ -321,9 +321,18 @@ pub async fn post_edit(
 
     while let Some(mut field) = payload.try_next().await? {
         if field.name() == Some("content") {
+            let mut buf = BytesMut::new();
             while let Some(chunk) = field.try_next().await? {
-                new_content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
+                buf.extend_from_slice(&chunk);
             }
+            if !buf.is_empty() {
+                new_pasta.content = String::from_utf8(buf.to_vec())
+                    .map_err(|_| ErrorBadRequest("Invalid UTF-8 in content"))?;
+            }
+            
+            // while let Some(chunk) = field.try_next().await? {
+            //     new_content.push_str(std::str::from_utf8(&chunk).unwrap().to_string().as_str());
+            // }
         }
         if field.name() == Some("password") {
             while let Some(chunk) = field.try_next().await? {
