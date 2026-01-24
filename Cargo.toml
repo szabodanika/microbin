@@ -50,6 +50,7 @@ serde_json = "1.0.114"
 serde = { version = "1.0.197", features = ["derive"] }
 syntect = { version = "5.2.0", default-features = false }
 webpki-roots = { version = "0.26", optional = true }
+bytes = "1.11.0"
 
 [dependencies.openssl]
 version = "0.10.64"
