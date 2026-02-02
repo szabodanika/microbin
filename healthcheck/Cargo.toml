@@ -1,0 +1,11 @@
+[package]
+name = "healthcheck"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "healthcheck"
+path = "main.rs"
+
+[dependencies]
+minreq = "2.11.2"
