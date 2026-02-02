@@ -1,0 +1,20 @@
+app = "microbin"
+primary_region = "ams"
+kill_signal = "SIGINT"
+kill_timeout = "5s"
+
+[experimental]
+  entrypoint = ["microbin", "--highlightsyntax", "--private", "--qr", "--editable", "--enable-burn-after"]
+
+[build]
+  image = "danielszabo99/microbin:latest"
+
+[[mounts]]
+  source = "microbin_data"
+  destination = "/app/pasta_data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
