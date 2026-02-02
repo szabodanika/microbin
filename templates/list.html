@@ -16,7 +16,7 @@
         <table style="width: 100%; min-width: 720px;">
             {% endif %}
             <thead>
-                <th style="width: 25%">
+                <th style="width: 20%">
                     Key
                 </th>
                 <th style="width: 10%">
@@ -30,7 +30,9 @@
                 <th style="width: 15%">
                     Contents
                 </th>
-
+                <th style="width: 15%">
+                    Author
+                </th>
                 <th style="width: 10%">
                 </th>
                 <th style="width: 10%">
@@ -79,7 +81,13 @@
                         </a>
                         {%- endif %}
                     </td>
-
+                    <td>
+                        {% if pasta.author.is_some() %}
+                        {{ pasta.author.as_ref().unwrap() }}
+                        {%- else %}
+                        <em>Unknown</em>
+                        {%- endif %}
+                    </td>
                     <td>
                         {% if pasta.editable %}
                         <a style="margin-right:1rem"
@@ -104,7 +112,7 @@
             <table style="width: 100%; min-width: 720px;">
                 {% endif %}
                 <thead>
-                    <th style=" width: 25%">
+                    <th style=" width: 20%">
                         Key
                     </th>
                     <th style="width: 10%">
@@ -116,6 +124,9 @@
                         Expiration
                     </th>
                     <th style="width: 15%">
+                    </th>
+                    <th style="width: 15%">
+                        Author
                     </th>
                     <th style="width: 10%">
                     </th>
@@ -147,6 +158,13 @@
                     <td>
                         <a style="margin-right:1rem"
                             href="{{ args.public_path_as_str() }}/url/{{pasta.id_as_animals()}}">Redirect</a>
+                    </td>
+                    <td>
+                        {% if pasta.author.is_some() %}
+                        {{ pasta.author.as_ref().unwrap() }}
+                        {%- else %}
+                        <em>Unknown</em>
+                        {%- endif %}
                     </td>
                     <td>
                         {% if pasta.editable %}
