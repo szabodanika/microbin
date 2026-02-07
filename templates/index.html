@@ -181,14 +181,19 @@
 
     <label>Content</label>
     <textarea style="width: 100%; min-height: 100px; margin-bottom: 2em; font-family: monospace;" id="content-input"
-        autofocus placeholder="Type something here."></textarea>
+        autofocus placeholder="Type something here, or paste an image from your clipboard."></textarea>
     <div>
         {% if !args.no_file_upload %}
         <div id="file-select">
-            <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">Select or drop file
+            <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">Select, drop, or paste file
                     attachment</a></label>
             <br>
             <input type="file" id="file" name="file" />
+            <div id="paste-preview" style="display: none; margin-top: 0.5em;">
+                <img id="paste-preview-img" style="max-width: 200px; max-height: 150px; border: 1px solid #ccc; border-radius: 4px;" />
+                <br>
+                <a role="button" id="paste-remove" style="font-size: smaller; cursor: pointer;">Remove</a>
+            </div>
         </div>
         {% endif %}
         <b>
@@ -397,8 +402,71 @@
         dataTransfer.items.add(evt.dataTransfer.files[0]);
         hiddenFileButton.files = dataTransfer.files;
         attachFileButton.textContent = "Attached: " + hiddenFileButton.files[0].name;
+        hidePastePreview();
         evt.preventDefault();
     };
+
+    // Clipboard paste support for images
+    const pastePreview = document.getElementById('paste-preview');
+    const pastePreviewImg = document.getElementById('paste-preview-img');
+    const pasteRemoveBtn = document.getElementById('paste-remove');
+
+    document.addEventListener('paste', function (evt) {
+        const items = evt.clipboardData && evt.clipboardData.items;
+        if (!items) return;
+
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image/') !== -1) {
+                const blob = items[i].getAsFile();
+                if (!blob) continue;
+
+                // Generate a filename with timestamp
+                const ext = blob.type.split('/')[1] || 'png';
+                const filename = 'pasted-image-' + Date.now() + '.' + ext;
+                const file = new File([blob], filename, { type: blob.type });
+
+                // Attach to file input
+                const container = new DataTransfer();
+                container.items.add(file);
+                hiddenFileButton.files = container.files;
+                attachFileButton.textContent = "Attached: " + filename;
+
+                // Show image preview
+                const url = URL.createObjectURL(blob);
+                pastePreviewImg.onload = function () { URL.revokeObjectURL(url); };
+                pastePreviewImg.src = url;
+                pastePreview.style.display = 'block';
+
+                fileOversized();
+
+                // Prevent the image data from being inserted as text
+                evt.preventDefault();
+                return;
+            }
+        }
+    });
+
+    if (pasteRemoveBtn) {
+        pasteRemoveBtn.addEventListener('click', function () {
+            const container = new DataTransfer();
+            hiddenFileButton.files = container.files;
+            attachFileButton.textContent = "Select, drop, or paste file attachment";
+            hidePastePreview();
+        });
+    }
+
+    function hidePastePreview() {
+        if (pastePreview) {
+            pastePreview.style.display = 'none';
+            pastePreviewImg.src = '';
+        }
+    }
+
+    // Also hide preview when a file is selected via the file picker
+    const origChangeHandler = hiddenFileButton.onchange;
+    hiddenFileButton.addEventListener('change', function () {
+        hidePastePreview();
+    });
     // {%- endif %}
 
 </script>
