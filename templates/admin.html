@@ -298,7 +298,11 @@
                 </tr>
                 <tr>
                     <td>editable</td>
-                    <td>{{ args.editable }}</td>
+                    {% if args.editable.is_some() %}
+                    <td>{{ args.editable.unwrap() }}</td>
+                    {% else %}
+                    <td>true (default)</td>
+                    {% endif %}
 
                     <td>footer_text</td>
                     {% if args.footer_text.as_ref().is_some() %}

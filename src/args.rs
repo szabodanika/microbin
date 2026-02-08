@@ -25,8 +25,8 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_ADMIN_PASSWORD", default_value = "m1cr0b1n")]
     pub auth_admin_password: String,
 
-    #[clap(long, env = "MICROBIN_EDITABLE", default_value_t = true)]
-    pub editable: bool,
+    #[clap(long, env = "MICROBIN_EDITABLE")]
+    pub editable: Option<bool>,
 
     #[clap(long, env = "MICROBIN_FOOTER_TEXT")]
     pub footer_text: Option<String>,
