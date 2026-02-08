@@ -146,6 +146,12 @@ pub struct Args {
         default_value_t = 2048
     )]
     pub max_file_size_unencrypted_mb: usize,
+
+    #[clap(long, env = "MICROBIN_FCM_SERVER_KEY")]
+    pub fcm_server_key: Option<String>,
+
+    #[clap(long, env = "MICROBIN_PUSH_NOTIFICATIONS")]
+    pub push_notifications: bool,
 }
 
 impl Args {
@@ -211,6 +217,8 @@ impl Args {
             max_file_size_encrypted_mb: self.max_file_size_encrypted_mb,
             max_file_size_unencrypted_mb: self.max_file_size_unencrypted_mb,
             disable_update_checking: self.disable_update_checking,
+            fcm_server_key: None,
+            push_notifications: self.push_notifications,
         }
     }
 }

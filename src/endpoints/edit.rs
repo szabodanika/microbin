@@ -4,6 +4,7 @@ use crate::util::animalnumbers::to_u64;
 use crate::util::db::update;
 use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::{decrypt, encrypt, remove_expired};
+use crate::util::push;
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
@@ -295,10 +296,13 @@ pub async fn post_submit_edit_private(
             }
         }
 
+        let slug = pastas[index].id_as_animals();
+        push::notify_all(push::PushEvent::Edited, &slug, &pastas[index].pasta_type);
+
         return Ok(HttpResponse::Found()
             .append_header((
                 "Location",
-                format!("{}/auth/{}/success", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
+                format!("{}/auth/{}/success", ARGS.public_path_as_str(), slug),
             ))
             .finish());
     }
@@ -376,13 +380,16 @@ pub async fn post_edit(
                     update(Some(&pastas), Some(&pastas[i]));
                 }
 
+                let slug = pastas[i].id_as_animals();
+                push::notify_all(push::PushEvent::Edited, &slug, &pastas[i].pasta_type);
+
                 return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
                         format!(
                             "{}/upload/{}",
                             ARGS.public_path_as_str(),
-                            pastas[i].id_as_animals()
+                            slug
                         ),
                     ))
                     .finish());
