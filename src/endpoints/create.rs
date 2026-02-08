@@ -3,7 +3,6 @@ use crate::util::animalnumbers::to_animal_names;
 use crate::util::db::insert;
 use crate::util::hashids::to_hashids;
 use crate::util::misc::{encrypt, encrypt_file, is_valid_url};
-use crate::util::push;
 use crate::{AppState, Pasta, ARGS};
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
@@ -312,7 +311,6 @@ pub async fn create(
     }
 
     let encrypt_server = new_pasta.encrypt_server;
-    let pasta_type = new_pasta.pasta_type.clone();
 
     pastas.push(new_pasta);
 
@@ -327,8 +325,6 @@ pub async fn create(
     } else {
         to_animal_names(id)
     };
-
-    push::notify_all(push::PushEvent::Created, &slug, &pasta_type);
 
     if encrypt_server {
         Ok(HttpResponse::Found()
