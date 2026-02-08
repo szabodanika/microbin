@@ -9,6 +9,7 @@ use crate::util::auth;
 use crate::util::db::delete;
 use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::util::misc::{decrypt, remove_expired};
+use crate::util::push;
 use crate::AppState;
 use askama::Template;
 use std::fs;
@@ -61,10 +62,15 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
                 }
             }
 
+            let slug = pasta.id_as_animals();
+            let pasta_type = pasta.pasta_type.clone();
+
             // remove it from in-memory pasta list
             pastas.remove(i);
 
             delete(Some(&pastas), Some(id));
+
+            push::notify_all(push::PushEvent::Deleted, &slug, &pasta_type);
 
             return HttpResponse::Found()
                 .append_header(("Location", format!("{}/list", ARGS.public_path_as_str())))
@@ -126,12 +132,15 @@ pub async fn post_remove(
                     }
 
                     if is_password_correct {
+                        let slug = pasta.id_as_animals();
+                        let pasta_type = pasta.pasta_type.clone();
+
                         // remove the file itself
                         if let Some(PastaFile { name, .. }) = &pasta.file {
                             if fs::remove_file(format!(
                                 "{}/attachments/{}/{}",
                                 ARGS.data_dir,
-                                pasta.id_as_animals(),
+                                &slug,
                                 name
                             ))
                             .is_err()
@@ -143,7 +152,7 @@ pub async fn post_remove(
                             if fs::remove_dir(format!(
                                 "{}/attachments/{}/",
                                 ARGS.data_dir,
-                                pasta.id_as_animals()
+                                &slug
                             ))
                             .is_err()
                             {
@@ -155,6 +164,8 @@ pub async fn post_remove(
                         pastas.remove(i);
 
                         delete(Some(&pastas), Some(id));
+
+                        push::notify_all(push::PushEvent::Deleted, &slug, &pasta_type);
 
                         return Ok(HttpResponse::Found()
                             .append_header((

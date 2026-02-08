@@ -34,6 +34,7 @@ pub mod util {
     pub mod telemetry;
     pub mod version;
     pub mod http_client;
+    pub mod push;
 }
 
 pub mod endpoints {
@@ -155,6 +156,9 @@ async fn main() -> std::io::Result<()> {
                     .service(api::api_list)
                     .service(api::api_get_pasta)
                     .service(api::api_create)
+                    .service(api::api_push_register)
+                    .service(api::api_push_unregister)
+                    .service(api::api_push_status)
                     .service(web::resource("/upload").route(web::post().to(create::create)))
                     .service(create::index_with_status)
             )

@@ -3,6 +3,7 @@ use crate::util::animalnumbers::to_animal_names;
 use crate::util::db::{insert, update};
 use crate::util::hashids::to_hashids;
 use crate::util::misc::{encrypt, encrypt_file, is_valid_url, remove_expired};
+use crate::util::push;
 use crate::util::animalnumbers::to_u64;
 use crate::util::hashids::to_u64 as hashid_to_u64;
 use crate::{AppState, Pasta, ARGS};
@@ -12,7 +13,7 @@ use bytes::BytesMut;
 use bytesize::ByteSize;
 use futures::TryStreamExt;
 use rand::Rng;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -333,6 +334,8 @@ pub async fn api_create(
         }
     }
 
+    let pasta_type = new_pasta.pasta_type.clone();
+
     pastas.push(new_pasta);
 
     for (_, pasta) in pastas.iter().enumerate() {
@@ -349,9 +352,96 @@ pub async fn api_create(
 
     let base = ARGS.public_path_as_str();
 
+    push::notify_all(push::PushEvent::Created, &slug, &pasta_type);
+
     Ok(HttpResponse::Created().json(ApiCreateResponse {
         id: slug.clone(),
         url: format!("{}/upload/{}", base, slug),
         raw_url: format!("{}/raw/{}", base, slug),
     }))
+}
+
+#[derive(Deserialize)]
+pub struct PushRegisterRequest {
+    pub token: String,
+    pub label: Option<String>,
+}
+
+#[derive(Serialize)]
+struct PushResponse {
+    success: bool,
+    message: String,
+}
+
+#[derive(Serialize)]
+struct PushStatusResponse {
+    enabled: bool,
+    device_count: usize,
+}
+
+#[post("/api/push/register")]
+pub async fn api_push_register(
+    body: web::Json<PushRegisterRequest>,
+) -> HttpResponse {
+    if !ARGS.push_notifications {
+        return json_error(
+            actix_web::http::StatusCode::BAD_REQUEST,
+            "Push notifications are not enabled on this server",
+        );
+    }
+
+    if body.token.trim().is_empty() {
+        return json_error(
+            actix_web::http::StatusCode::BAD_REQUEST,
+            "Device token is required",
+        );
+    }
+
+    let added = push::register_token(body.token.clone(), body.label.clone());
+
+    HttpResponse::Ok().json(PushResponse {
+        success: true,
+        message: if added {
+            String::from("Device registered for push notifications")
+        } else {
+            String::from("Device already registered")
+        },
+    })
+}
+
+#[post("/api/push/unregister")]
+pub async fn api_push_unregister(
+    body: web::Json<PushRegisterRequest>,
+) -> HttpResponse {
+    if !ARGS.push_notifications {
+        return json_error(
+            actix_web::http::StatusCode::BAD_REQUEST,
+            "Push notifications are not enabled on this server",
+        );
+    }
+
+    let removed = push::unregister_token(&body.token);
+
+    HttpResponse::Ok().json(PushResponse {
+        success: removed,
+        message: if removed {
+            String::from("Device unregistered from push notifications")
+        } else {
+            String::from("Device token not found")
+        },
+    })
+}
+
+#[get("/api/push/status")]
+pub async fn api_push_status() -> HttpResponse {
+    let device_count = if ARGS.push_notifications {
+        push::DEVICE_TOKENS.lock().unwrap().len()
+    } else {
+        0
+    };
+
+    HttpResponse::Ok().json(PushStatusResponse {
+        enabled: ARGS.push_notifications,
+        device_count,
+    })
 }
