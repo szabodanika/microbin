@@ -24,6 +24,9 @@ jobs:
             echo "docker_tag=dev" >> $GITHUB_OUTPUT
           fi
 
+          # Convert repository name to lowercase for Docker
+          echo "repo_lowercase=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -48,7 +51,7 @@ jobs:
             linux/amd64
             linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.docker_tag }}
+          tags: ghcr.io/${{ steps.tags.outputs.repo_lowercase }}:${{ steps.tags.outputs.docker_tag }}
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
             org.opencontainers.image.revision=${{ github.sha }}
