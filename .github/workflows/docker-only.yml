@@ -19,35 +19,16 @@ jobs:
         id: tags
         run: |
           if [ "${{ github.ref_name }}" = "master" ]; then
-            TAG="latest"
+            echo "docker_tag=latest" >> $GITHUB_OUTPUT
           else
-            TAG="dev"
+            echo "docker_tag=dev" >> $GITHUB_OUTPUT
           fi
-
-          echo "docker_tag=$TAG" >> $GITHUB_OUTPUT
-
-          # Build tags list
-          TAGS="ghcr.io/${{ github.repository }}:$TAG"
-
-          # Add DockerHub tags if secrets are configured
-          if [ -n "${{ secrets.DOCKERHUB_REPO }}" ]; then
-            TAGS="$TAGS,${{ secrets.DOCKERHUB_REPO }}:$TAG"
-          fi
-
-          echo "tags=$TAGS" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
-      - name: Login to DockerHub
-        if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -67,7 +48,7 @@ jobs:
             linux/amd64
             linux/arm64
           push: true
-          tags: ${{ steps.tags.outputs.tags }}
+          tags: ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.docker_tag }}
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
             org.opencontainers.image.revision=${{ github.sha }}
