@@ -159,7 +159,7 @@ pub async fn api_create(
         extension: String::from(""),
         private: false,
         readonly: false,
-        editable: ARGS.editable,
+        editable: ARGS.editable.unwrap_or(true),
         encrypt_server: false,
         encrypted_key: Some(String::from("")),
         encrypt_client: false,
