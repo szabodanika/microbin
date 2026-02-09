@@ -11,6 +11,9 @@ jobs:
   docker:
     name: Build and Push Docker Images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,9 +29,6 @@ jobs:
 
           # Convert repository name to lowercase for Docker
           echo "repo_lowercase=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -47,9 +47,7 @@ jobs:
           build-args: |
             REPO=${{ github.repository }}
             VER=${{ github.ref_name }}
-          platforms: |
-            linux/amd64
-            linux/arm64
+          platforms: linux/amd64
           push: true
           tags: ghcr.io/${{ steps.tags.outputs.repo_lowercase }}:${{ steps.tags.outputs.docker_tag }}
           labels: |
