@@ -2,14 +2,10 @@ name: Docker Build and Push
 
 on:
   push:
-    tags:
-    - v[0-9]+.[0-9]+.[0-9]+*
+    branches:
+      - master
+      - '**'  # Allow manual pushes from any branch
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Version tag (e.g., v2.1.1)'
-        required: true
-        type: string
 
 jobs:
   docker:
@@ -19,27 +15,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set version
-        id: version
+      - name: Determine Docker tags
+        id: tags
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "version=${{ inputs.tag }}" >> $GITHUB_OUTPUT
+          if [ "${{ github.ref_name }}" = "master" ]; then
+            echo "docker_tag=latest" >> $GITHUB_OUTPUT
           else
-            echo "version=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+            echo "docker_tag=dev" >> $GITHUB_OUTPUT
           fi
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: |
-            ${{ secrets.DOCKERHUB_REPO }}
-            ghcr.io/${{ github.repository }}
-          tags: |
-            type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
-            type=semver,pattern={{major}},value=${{ steps.version.outputs.version }}
-            type=raw,value=latest,enable=${{ !contains(steps.version.outputs.version, '-') }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -66,12 +49,16 @@ jobs:
           context: .
           build-args: |
             REPO=${{ github.repository }}
-            VER=${{ steps.version.outputs.version }}
+            VER=${{ github.ref_name }}
           platforms: |
             linux/amd64
             linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ secrets.DOCKERHUB_REPO }}:${{ steps.tags.outputs.docker_tag }}
+            ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.docker_tag }}
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
