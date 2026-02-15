@@ -109,7 +109,7 @@ pub async fn get_file(
                 return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("/auth_file/{}", pastas[index].id_as_animals()),
+                        format!("{}/auth_file/{}", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
                     ))
                     .finish());
             }
