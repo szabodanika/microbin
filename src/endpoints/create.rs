@@ -328,7 +328,7 @@ pub async fn create(
 
     if encrypt_server {
         Ok(HttpResponse::Found()
-            .append_header(("Location", format!("/auth/{}/success", slug)))
+            .append_header(("Location", format!("{}/auth/{}/success", ARGS.public_path_as_str(), slug)))
             .finish())
     } else {
         // Generate time-limited token for initial view using Hashids
