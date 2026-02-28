@@ -77,8 +77,6 @@ pub async fn create(
     data: web::Data<AppState>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    let mut pastas = data.pastas.lock().unwrap();
-
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
         Err(_) => {
@@ -330,11 +328,14 @@ pub async fn create(
 
     let encrypt_server = new_pasta.encrypt_server;
 
-    pastas.push(new_pasta);
+    {
+        let mut pastas = data.pastas.lock().unwrap();
+        pastas.push(new_pasta);
 
-    for (_, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
-            insert(Some(&pastas), Some(pasta));
+        for (_, pasta) in pastas.iter().enumerate() {
+            if pasta.id == id {
+                insert(Some(&pastas), Some(pasta));
+            }
         }
     }
 
