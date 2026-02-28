@@ -269,6 +269,14 @@
             hiddenEncryptedRandomKeyField.name = "";
             hiddenRandomKeyField.name = "";
             content.value = contentInput.value;
+            // {% if !args.no_file_upload %}
+            if (privacyDropdown.value == "private" && hiddenFileButton.files.length > 1) {
+                submitButton.disabled = true;
+                submitButton.value = 'Zipping...';
+                await new Promise(r => setTimeout(r, 10));
+                await zipFiles();
+            }
+            // {%- endif %}
         }
     } else {
         if (privacyDropdown.value != "public" && privacyDropdown.value != "unlisted") {
@@ -433,6 +441,30 @@
                 resolve();
             }
         });
+    }
+
+    async function zipFiles() {
+        if (hiddenFileButton.files.length > 1) {
+            const zip = new JSZip();
+            const promises = [];
+            for (let i = 0; i < hiddenFileButton.files.length; i++) {
+                const file = hiddenFileButton.files[i];
+                promises.push(new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        zip.file(file.name, event.target.result);
+                        resolve();
+                    };
+                    reader.readAsArrayBuffer(file);
+                }));
+            }
+            await Promise.all(promises);
+            const blob = await zip.generateAsync({type: "blob"});
+            const zipFile = new File([blob], "archive.zip", {type: "application/zip"});
+            const container = new DataTransfer();
+            container.items.add(zipFile);
+            hiddenFileButton.files = container.files;
+        }
     }
 
     hiddenFileButton.addEventListener('change', function () {

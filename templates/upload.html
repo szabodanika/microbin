@@ -1,6 +1,8 @@
 {% include "header.html" %}
-<div id="decryption-button-container">
-  <button id="copy-button" class="small-button" style="margin-right: 0.5rem" onclick="copyToClipboard(content, this, 'Copy Text')">
+<div style="float: left">
+  {% if pasta.content != "" %}
+  <button id="copy-text-button" class="small-button" style="margin-right:
+  0.5rem">
     Copy Text
   </button>
 
@@ -12,34 +14,41 @@
   {%- endif %}
   <a style="margin-right: 1rem" href="{{ args.public_path_as_str()  }}/raw/{{pasta.id_as_animals()}}">Raw Text
     Content</a>
-  {% if args.qr && args.public_path_as_str() != "" %}
+  {%- endif %} {% if args.qr && args.public_path_as_str() != "" %}
   <a style="margin-right: 1rem" href="{{ args.public_path_as_str()  }}/qr/{{pasta.id_as_animals()}}">QR</a>
-  {%- endif %} {% if pasta.editable && ! pasta.encrypt_client %}
+  {%- endif %} {% if pasta.editable && !pasta.encrypt_client %}
   <a style="margin-right: 1rem" href="{{ args.public_path_as_str()  }}/edit/{{pasta.id_as_animals()}}">Edit</a>
   {%- endif %}
   {% if pasta.editable %}
-  <a style="margin-right: 1rem" href="{{ args.public_path_as_str()}}/remove/{{pasta.id_as_animals()}}">Remove</a>
+  <a style="margin-right: 1rem" href="{{ args.public_path_as_str()  }}/remove/{{pasta.id_as_animals()}}">Remove</a>
+  {%- endif %}
+ 
+</div>
+<div style="float: right; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+  <a href="{{ args.public_path_as_str()  }}/upload/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
+  {% if args.public_path_as_str() != "" %}
+  <button id="copy-url-button" class="small-button">Copy URL</button>
   {%- endif %}
   {% if pasta.encrypt_client && pasta.attachments.is_some() %}
-  <button id="download-all-encrypted-button" class="small-button" style="margin-right: 0.5rem; margin-top: 0.5rem">
-    Download all (Decrypted Zip)
-  </button>
-  {%- endif %}
-  {% if !pasta.encrypt_client && pasta.attachments.is_some() %}
-  <button id="download-all-unencrypted-button" class="small-button" style="margin-right: 0.5rem; margin-top: 0.5rem" onclick="window.location.href='{{ args.public_path_as_str() }}/archive/{{pasta.id_as_animals()}}'">
-    Download all as ZIP
-  </button>
+  <button id="download-all-encrypted-button" class="small-button">Download all (Decrypted Zip)</button>
   {%- endif %}
   {% if pasta.attachments.is_some() %}
-  <select id="view-selector" class="small-button" style="margin-right: 0.5rem; margin-top: 0.5rem">
+  <select style="margin-left: 1rem" id="view-selector" class="small-button">
     <option value="gallery">Gallery</option>
     <option value="stream">Stream</option>
     <option value="list">List</option>
   </select>
   {%- endif %}
+  {% if !pasta.encrypt_client && pasta.attachments.is_some() %}
+  <button id="download-all-unencrypted-button" class="small-button" onclick="window.location.href='{{ args.public_path_as_str() }}/archive/{{pasta.id_as_animals()}}'">Download all as ZIP</button>
+  {%- endif %}
+  
 </div>
 
-<div id="decryption-container" style="margin-bottom: 2rem; display: flex;
+<br>
+<br>
+{% if pasta.encrypt_client %}
+<span style="margin-left: auto; margin-right: auto; display: flex;
 justify-content: center; align-items: center;">
   <div id="decryption">
     {% if pasta.encrypt_client %}
@@ -57,20 +66,20 @@ justify-content: center; align-items: center;">
     </button>
     {%- endif %}
     {%- endif %}
-    {% if pasta.file.is_some() && ! pasta.file_embeddable() %}
-    <button type="button" class="small-button" id="download-button" style="margin-right:
+    {% if pasta.file.is_some() && !pasta.file_embeddable() %}
+    <button class="small-button" id="download-button" style="margin-right:
   0.5rem">
       <b>
-        {% if pasta.encrypt_client %}
-        Decrypt and download file
-        {%- else %}
-        Download file
-        {%- endif %}
+        Download {{pasta.file.as_ref().unwrap().display_name()}}
+        [{{pasta.file.as_ref().unwrap().size}}]
       </b>
     </button>
     {%- endif %}
   </div>
-</div>
+</span>
+{%- endif %}
+
+<br>
 
 {% if pasta.content != "" %}
 <div class="code-container">
@@ -86,6 +95,52 @@ justify-content: center; align-items: center;">
 </div>
 {%- endif %}
 
+{% if pasta.file.is_some() && !pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
+<span style="margin-left: auto; margin-right: auto; display: flex;
+    justify-content: center; align-items: center;">
+  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
+    [{{pasta.file.as_ref().unwrap().size}}]</p>
+  <a href="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" id="download-link">
+    <button class="download-button" autofocus>
+      Download
+    </button>
+  </a>
+</span>
+{%- endif %}
+
+
+{% if pasta.file.is_some() && pasta.file.as_ref().unwrap().is_image() &&
+pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
+<img id="embed" src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" style="max-height: 50vh; max-width: 100%; height: auto; width: auto;" />
+<span style="margin-left: auto; margin-right: auto; display: flex;
+  justify-content: center; align-items: center;">
+  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
+    [{{pasta.file.as_ref().unwrap().size}}]</p>
+  <a href="{{ args.public_path_as_str()      }}/file/{{pasta.id_as_animals()}}" id="download-link" download>
+    <button class="download-button" autofocus>
+      Download
+    </button>
+  </a>
+</span>
+{%- endif %}
+
+
+{% if pasta.file.is_some() && pasta.file.as_ref().unwrap().is_video() &&
+pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
+<video id="embed" controls src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" height="300"></video>
+<span style="margin-left: auto; margin-right: auto; display: flex;
+  justify-content: center; align-items: center;">
+  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
+    [{{pasta.file.as_ref().unwrap().size}}]</p>
+  <a href="{{ args.public_path_as_str()      }}/file/{{pasta.id_as_animals()}}" download id="download-link">
+    <button class="download-button">
+      Download
+    </button>
+  </a>
+</span>
+{%- endif %}
+
+{% if pasta.attachments.is_some() %}
 <div id="gallery-view" class="gallery-grid" style="display: grid; margin-top: 2rem;">
     {% if pasta.file.is_some() %}
     <div style="max-width: 100%; overflow: hidden;">
@@ -93,12 +148,9 @@ justify-content: center; align-items: center;">
         {% include "assets/file_card.html" %}
     </div>
     {% endif %}
-
-    {% if pasta.attachments.is_some() %}
-        {% for file in pasta.attachments.as_ref().unwrap() %}
-            {% include "assets/file_card.html" %}
-        {% endfor %}
-    {% endif %}
+    {% for file in pasta.attachments.as_ref().unwrap() %}
+        {% include "assets/file_card.html" %}
+    {% endfor %}
 </div>
 
 <div id="list-view" style="display: none; margin-top: 2rem;">
@@ -112,42 +164,59 @@ justify-content: center; align-items: center;">
         </thead>
         <tbody>
             {% if pasta.file.is_some() %}
+            {% let file = pasta.file.as_ref().unwrap() %}
             <tr>
-                {% let file = pasta.file.as_ref().unwrap() %}
                 <td style="padding: 8px;">{{ file.name() }}</td>
                 <td style="padding: 8px;">{{ file.size }}</td>
                 <td style="padding: 8px;">
-                    <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}?fname={{ file.name() }}" 
-                       class="download-link" 
-                       data-filename="{{ file.name() }}">
-                        Download
-                    </a>
+                    {% if !pasta.encrypt_client %}
+                    <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}"
+                       class="download-link" data-filename="{{ file.name() }}"
+                       {% if !pasta.encrypt_server %}download{% endif %}>Download</a>
+                    {% else %}<em>Encrypted</em>{% endif %}
                 </td>
             </tr>
             {% endif %}
-
-            {% if pasta.attachments.is_some() %}
             {% for file in pasta.attachments.as_ref().unwrap() %}
             <tr>
                 <td style="padding: 8px;">{{ file.name() }}</td>
                 <td style="padding: 8px;">{{ file.size }}</td>
                 <td style="padding: 8px;">
-                    <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}?fname={{ file.name() }}" 
-                       class="download-link" 
-                       data-filename="{{ file.name() }}">
-                        Download
-                    </a>
+                    {% if !pasta.encrypt_client %}
+                    <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}"
+                       class="download-link" data-filename="{{ file.name() }}"
+                       {% if !pasta.encrypt_server %}download{% endif %}>Download</a>
+                    {% else %}<em>Encrypted</em>{% endif %}
                 </td>
             </tr>
             {% endfor %}
-            {% endif %}
         </tbody>
     </table>
 </div>
+{%- endif %}
 
+<div>
+  {% if args.show_read_stats %} {% if pasta.read_count == 1 %}
+  <p style="font-size: small">Read {{pasta.read_count}} time, last
+    {{pasta.last_read_time_ago_as_string()}}</p>
+  {%- else %}
+  <p style="font-size: small">Read {{pasta.read_count}} times, last
+    {{pasta.last_read_time_ago_as_string()}}</p>
+  {%- endif %} {%- endif %}
+
+</div>
+
+<br>
+
+<script type="text/javascript" src="{{ args.public_path_as_str() }}/static/highlight/highlight.min.js"></script>
+<link rel="stylesheet" href="{{ args.public_path_as_str()}}/static/highlight/highlight.min.css">
+{% if pasta.encrypt_client && pasta.attachments.is_some() %}
 <script type="text/javascript" src="{{ args.public_path_as_str() }}/static/jszip.min.js"></script>
+{%- endif %}
+
 <script>
-  const copyBtn = document.getElementById("copy-button")
+  const copyURLBtn = document.getElementById("copy-url-button")
+  const copyTextBtn = document.getElementById("copy-text-button")
   const copyRedirectBtn = document.getElementById("copy-redirect-button")
   var content = `{{ pasta.content_escaped() }}`
   const contentElement = document.getElementById("code");
@@ -156,10 +225,12 @@ justify-content: center; align-items: center;">
 
   const te = new TextEncoder();
 
-  // {% if pasta.extension == "auto" && ! pasta.encrypt_client %}
+  // {% if pasta.extension == "auto" && !pasta.encrypt_client %}
   onload = (event) => {
     contentElement.innerHTML = content;
     hljs.highlightAll();
+    contentElement.innerHTML =
+      wrapStringInCodeLines(contentElement.innerHTML);
   };
   // {% endif %}
 
@@ -180,12 +251,13 @@ justify-content: center; align-items: center;">
   function fallbackCopyTextToClipboard(text, buttonElement, originalLabel) {
     var textArea = document.createElement("textarea");
     textArea.value = text;
-    
+
     // Ensure it's not visible but part of the DOM
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
     textArea.style.top = "0";
     document.body.appendChild(textArea);
+
     textArea.focus();
     textArea.select();
 
@@ -210,14 +282,7 @@ justify-content: center; align-items: center;">
     }, 1000);
   }
 
-  if (copyRedirectBtn) {
-    copyRedirectBtn.onclick = function () {
-      copyToClipboard(redirect_url, copyRedirectBtn, "Copy Redirect");
-    };
-  }
-
   function escapeHtml(unsafe) {
-    if (!unsafe) return "";
     return unsafe
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -226,24 +291,107 @@ justify-content: center; align-items: center;">
       .replace(/'/g, "&#039;");
   }
 
+  function wrapStringInCodeLines(str) {
+    const lines = str.split(/\r?\n/); // split the string into an array of lines
+    const wrappedLines = lines.map((line) => `<code-line>${line}</code-line>`); // wrap each line in a "code-line" tag
+    return wrappedLines.join("\n"); // join the wrapped lines back into a single string with line breaks
+  }
+
+  const decodeEntity = (inputStr) => {
+    var textarea = document.createElement("textarea");
+    textarea.innerHTML = inputStr;
+    return textarea.value;
+  }
+
+  if (copyURLBtn) {
+    copyURLBtn.addEventListener("click", () => {
+      copyToClipboard(url, copyURLBtn, "Copy URL");
+    })
+  }
+  if (copyRedirectBtn) {
+    copyRedirectBtn.addEventListener("click", () => {
+      copyToClipboard(redirect_url, copyRedirectBtn, "Copy Redirect");
+    })
+  }
+
+  if (copyTextBtn) {
+    copyTextBtn.addEventListener("click", () => {
+      const decodeContent = decodeEntity(content)
+      copyToClipboard(decodeContent, copyTextBtn, "Copy Text");
+    })
+  }
+
+  // {% if pasta.encrypt_client %}
+
   const decryptDiv = document.getElementById('decryption');
   const decryptButton = document.getElementById('decrypt-button');
   const passwordField = document.getElementById("password-field");
   const downloadButton = document.getElementById('download-button');
 
-  if (decryptButton) {
-      decryptButton.addEventListener('click', () => {
-        password = passwordField.value;
+  // {% if pasta.file.is_some() %}
+  // Set up event listener for download link click
+  downloadButton.addEventListener('click', async (event) => {
+    event.preventDefault(); // prevent default click behavior
 
-        content = contentDecrypted = escapeHtml(decryptWithPassword(password, content));
-        if (contentDecrypted) {
-          contentElement.innerHTML = contentDecrypted;
-          // {% if pasta.extension == "auto" %}
-          hljs.highlightAll();
-          // {%- endif %}
-        }
-      });
-  }
+    if (passwordField.value.trim() == "") {
+      passwordField.focus();
+      return false;
+    }
+
+    // Fetch encrypted file from server
+    const formData = new FormData();
+
+    // {% if pasta.encrypted_key.is_some() %}
+    let key = decryptWithPassword(passwordField.value.trim(), "{{ pasta.encrypted_key.as_ref().unwrap() }}");
+    // {%- endif %}
+    formData.append('password', key);
+
+    const response = await fetch('{{ args.public_path_as_str() }}/secure_file/{{ pasta.id_as_animals() }}', {
+      method: 'POST',
+      body: formData,
+    })
+
+    // {% if pasta.file.is_some() %}
+    const encryptedFile = await response.text();
+
+    // Decrypt file contents
+    const decryptedContents = decryptFileWithPassword(passwordField.value.trim(), encryptedFile);
+    if (!decryptedContents) {
+      throw new Error('Failed to decrypt file');
+    }
+
+    // Create blob from decrypted file contents
+    const decryptedBlob = new Blob([decryptedContents], { type: 'application/octet-stream' });
+
+    // Create data URI for decrypted file
+    // const dataUri = `data:application/octet-stream;${encodeURIComponent(decryptedContents)}`;
+
+    // Create temporary anchor element
+    const tempAnchorEl = document.createElement('a');
+    // tempAnchorEl.href = dataUri;
+    tempAnchorEl.href = URL.createObjectURL(decryptedBlob);
+    tempAnchorEl.download = '{{pasta.file.as_ref().unwrap().display_name()}}';
+
+    // Programmatically click anchor element to trigger download
+    tempAnchorEl.click();
+
+    // {%- endif %}
+  });
+  // {% endif  %}
+
+  decryptButton.addEventListener("click", () => {
+    password = passwordField.value;
+
+    content = contentDecrypted = escapeHtml(decryptWithPassword(password, content));
+    if (contentDecrypted) {
+      contentElement.innerHTML = contentDecrypted;
+      // {% if pasta.extension == "auto" %}
+      hljs.highlightAll();
+      // {% endif  %}
+      contentElement.innerHTML = wrapStringInCodeLines(contentElement.innerHTML);
+      // decryptDiv.style.display = 'none';
+    }
+  });
 
   function decryptWithPassword(password, encryptedHex) {
     const passwordBytes = aesjs.utils.utf8.toBytes(password.padStart(32, "#"));
@@ -253,10 +401,9 @@ justify-content: center; align-items: center;">
     const res = aesjs.utils.utf8.fromBytes(decryptedBytes);
 
     if (res.endsWith("!0K")) {
-      return res.substring(0, res.length - 3);
+      return res.substring(0, res.length - "!0K".length);
     } else {
-      alert("Decryption failed. Check password.");
-      return "";
+      return null;
     }
   }
 
@@ -267,254 +414,92 @@ justify-content: center; align-items: center;">
     const decryptedBytes = aesCtr.decrypt(encryptedBytes);
     return decryptedBytes;
   }
+// {% endif %}
 
-  // View switch logic
-  const view = new URLSearchParams(window.location.search).get('view');
-  
+// {% if pasta.attachments.is_some() %}
   const galleryView = document.getElementById('gallery-view');
   const listView = document.getElementById('list-view');
   const viewSelector = document.getElementById('view-selector');
 
-  if (viewSelector) {
-      // Set initial value
-      viewSelector.value = view || 'gallery';
-      
-      // Handle change
-      viewSelector.addEventListener('change', (e) => {
-          const newView = e.target.value;
-          const currentUrl = new URL(window.location.href);
-          currentUrl.searchParams.set('view', newView);
-          window.history.pushState({}, '', currentUrl); // Update URL without reload
-
-          // Apply view change immediately
-          if (galleryView && listView) {
-              if (newView === 'list') {
-                  galleryView.style.display = 'none';
-                  listView.style.display = 'block';
-              } else if (newView === 'stream') {
-                  galleryView.style.setProperty('display', 'grid', 'important');
-                  galleryView.classList.add('stream-view');
-                  listView.style.display = 'none';
-              } else {
-                  galleryView.style.setProperty('display', 'grid', 'important');
-                  galleryView.classList.remove('stream-view');
-                  listView.style.display = 'none';
-              }
-          }
-      });
-  }
-  
-  // Set initial visibility
-  if (galleryView && listView) {
-      if (view === 'list') {
-          galleryView.style.display = 'none';
-          listView.style.display = 'block';
-      } else if (view === 'stream') {
-          galleryView.style.setProperty('display', 'grid', 'important');
-          galleryView.classList.add('stream-view');
-          listView.style.display = 'none';
+  function applyViewChange(newView) {
+    if (galleryView && listView) {
+      galleryView.classList.remove('stream-view');
+      if (newView === 'list') {
+        galleryView.style.display = 'none';
+        listView.style.display = 'block';
+      } else if (newView === 'stream') {
+        galleryView.style.display = 'grid';
+        galleryView.classList.add('stream-view');
+        listView.style.display = 'none';
       } else {
-          galleryView.style.setProperty('display', 'grid', 'important');
-          galleryView.classList.remove('stream-view');
-          listView.style.display = 'none';
+        galleryView.style.display = 'grid';
+        listView.style.display = 'none';
       }
+    }
   }
 
-  // Encrypted Download Logic
-  // {% if pasta.encrypt_client %}
-  // Attach listeners to all download links for encrypted files
-  document.querySelectorAll('.download-link').forEach(link => {
-      link.addEventListener('click', async (event) => {
-        event.preventDefault();
-        
-        if (passwordField.value.trim() == "") {
-          passwordField.focus();
-          return false;
-        }
+  const currentView = new URLSearchParams(window.location.search).get('view');
+  if (viewSelector) {
+    viewSelector.value = currentView || 'gallery';
+    viewSelector.addEventListener('change', (e) => {
+      const newView = e.target.value;
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('view', newView);
+      window.history.pushState({}, '', currentUrl);
+      applyViewChange(newView);
+    });
+  }
+  applyViewChange(currentView || 'gallery');
+// {% endif %}
 
-        const filename = link.getAttribute('data-filename');
-        const url = link.href;
-        
-        const response = await fetch(url);
-        const encryptedFile = await response.arrayBuffer();
-        const encryptedBytes = new Uint8Array(encryptedFile);
-        
-        // Decrypt
-        const hex = Array.from(encryptedBytes).map(b => b.toString(16).padStart(2, "0")).join("");
-        const decryptedContents = decryptFileWithPassword(passwordField.value.trim(), hex);
-        
-        if (!decryptedContents) {
-             alert("Decryption failed. Check password.");
-             return;
-        }
-
-        const decryptedBlob = new Blob([decryptedContents], { type: 'application/octet-stream' });
-        const tempAnchorEl = document.createElement('a');
-        tempAnchorEl.href = URL.createObjectURL(decryptedBlob);
-        tempAnchorEl.download = filename;
-        tempAnchorEl.click();
-      });
-  });
-
+// {% if pasta.encrypt_client && pasta.attachments.is_some() %}
   const downloadAllEncryptedBtn = document.getElementById('download-all-encrypted-button');
   if (downloadAllEncryptedBtn) {
-      downloadAllEncryptedBtn.addEventListener('click', async (event) => {
-          event.preventDefault();
-
-          if (passwordField.value.trim() == "") {
-              passwordField.focus();
-              return false;
-          }
-
-          downloadAllEncryptedBtn.textContent = "Processing...";
-          downloadAllEncryptedBtn.disabled = true;
-
-          try {
-              const zip = new JSZip();
-              const links = Array.from(document.querySelectorAll('.download-link'));
-              // Deduplicate by filename
-              const uniqueLinks = new Map();
-              links.forEach(link => {
-                  const filename = link.getAttribute('data-filename');
-                  if (!uniqueLinks.has(filename)) {
-                      uniqueLinks.set(filename, link.href);
-                  }
-              });
-
-              const promises = [];
-
-              for (const [filename, url] of uniqueLinks) {
-                  promises.push(new Promise(async (resolve, reject) => {
-                      try {
-                          const response = await fetch(url);
-                          const encryptedFile = await response.arrayBuffer();
-                          const encryptedBytes = new Uint8Array(encryptedFile);
-
-                          const hex = Array.from(encryptedBytes).map(b => b.toString(16).padStart(2, "0")).join("");
-                          const decryptedContents = decryptFileWithPassword(passwordField.value.trim(), hex);
-
-                          if (decryptedContents) {
-                              zip.file(filename, decryptedContents);
-                          } else {
-                              console.error(`Failed to decrypt ${filename}`);
-                          }
-                          resolve();
-                      } catch (e) {
-                          console.error(`Error processing ${filename}`, e);
-                          resolve(); // Continue even if one fails
-                      }
-                  }));
-              }
-
-              await Promise.all(promises);
-
-              const content = await zip.generateAsync({type:"blob"});
-              const tempAnchorEl = document.createElement('a');
-              tempAnchorEl.href = URL.createObjectURL(content);
-              tempAnchorEl.download = "{{pasta.id_as_animals()}}.zip";
-              tempAnchorEl.click();
-
-              downloadAllEncryptedBtn.textContent = "Download all (Decrypted Zip)";
-              downloadAllEncryptedBtn.disabled = false;
-          } catch (e) {
-              console.error("Zip generation failed", e);
-              alert("Failed to generate zip. See console.");
-              downloadAllEncryptedBtn.textContent = "Download all (Decrypted Zip)";
-              downloadAllEncryptedBtn.disabled = false;
-          }
-      });
-  }
-
-  const singleDownloadBtn = document.getElementById('download-button');
-  if (singleDownloadBtn) {
-      singleDownloadBtn.addEventListener('click', async (event) => {
-        event.preventDefault();
-        
-        if (passwordField.value.trim() == "") {
-          passwordField.focus();
-          return false;
+    downloadAllEncryptedBtn.addEventListener('click', async (event) => {
+      event.preventDefault();
+      if (passwordField.value.trim() == "") { passwordField.focus(); return false; }
+      downloadAllEncryptedBtn.textContent = "Processing...";
+      downloadAllEncryptedBtn.disabled = true;
+      try {
+        const zip = new JSZip();
+        const links = Array.from(document.querySelectorAll('.download-link'));
+        const uniqueLinks = new Map();
+        links.forEach(link => {
+          const filename = link.getAttribute('data-filename');
+          if (!uniqueLinks.has(filename)) uniqueLinks.set(filename, link.href);
+        });
+        const promises = [];
+        for (const [filename, url] of uniqueLinks) {
+          promises.push(fetch(url)
+            .then(r => r.arrayBuffer())
+            .then(buf => {
+              const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+              const dec = decryptFileWithPassword(passwordField.value.trim(), hex);
+              if (dec) zip.file(filename, dec);
+            }));
         }
-
-        const originalText = singleDownloadBtn.innerHTML;
-        singleDownloadBtn.textContent = "Decrypting...";
-        singleDownloadBtn.disabled = true;
-
-        try {
-             const url = `{{ args.public_path_as_str()  }}/raw/{{pasta.id_as_animals()}}`;
-             let filename = `{{ pasta.id_as_animals() }}`;
-             // Try to guess extension from content type if possible, or just use .enc
-             if (filename.endsWith(".enc")) {
-                 filename = filename.substring(0, filename.length - 4);
-             }
-
-            // Fetch encrypted file from server using POST and password
-            const formData = new FormData();
-            
-            let passwordToSend = passwordField.value.trim();
-            // {% if pasta.encrypted_key.is_some() %}
-            try {
-                 passwordToSend = decryptWithPassword(passwordField.value.trim(), "{{ pasta.encrypted_key.as_ref().unwrap() }}");
-            } catch (e) {
-                 console.error("Failed to decrypt key", e);
-            }
-            // {%- endif %}
-            
-            formData.append('password', passwordToSend);
-
-            const response = await fetch(url, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error(`Server returned ${response.status} ${response.statusText}`);
-            }
-            
-            let hex = await response.text();
-            
-            if (hex.trim().startsWith("<")) {
-                const preview = hex.trim().substring(0, 100);
-                console.error("Server returned HTML:", preview);
-                throw new Error("Server returned HTML (likely error page): " + preview);
-            }
-
-            hex = hex.trim(); 
-            
-            if (hex.length === 0) {
-                 throw new Error("Decryption failed: File is empty.");
-            }
-            
-            const decryptedContents = decryptFileWithPassword(passwordField.value.trim(), hex);
-            
-            if (!decryptedContents) {
-                 alert("Decryption failed. Check password.");
-                 singleDownloadBtn.innerHTML = originalText;
-                 singleDownloadBtn.disabled = false;
-                 return;
-            }
-
-            const decryptedBlob = new Blob([decryptedContents], { type: 'application/octet-stream' });
-            const tempAnchorEl = document.createElement('a');
-            tempAnchorEl.href = URL.createObjectURL(decryptedBlob);
-            tempAnchorEl.download = filename;
-            tempAnchorEl.click();
-            
-            singleDownloadBtn.innerHTML = originalText;
-            singleDownloadBtn.disabled = false;
-
-        } catch (e) {
-            console.error("Download failed", e);
-            alert("Download error: " + e.message);
-            singleDownloadBtn.innerHTML = originalText;
-            singleDownloadBtn.disabled = false;
-        }
-      });
+        await Promise.all(promises);
+        const content = await zip.generateAsync({type:"blob"});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(content);
+        a.download = "{{pasta.id_as_animals()}}.zip";
+        a.click();
+      } catch (e) {
+        alert("Failed to generate zip. See console.");
+        console.error(e);
+      }
+      downloadAllEncryptedBtn.textContent = "Download all (Decrypted Zip)";
+      downloadAllEncryptedBtn.disabled = false;
+    });
   }
-  // {%- endif %}
+// {% endif %}
 </script>
 
 <style>
-  .code-container {
+  code-line {
+    counter-increment: line;
+    text-align: right;
+    float: left;
     clear: left;
   }
 
@@ -534,28 +519,27 @@ justify-content: center; align-items: center;">
     user-select: none;
   }
 
-  code-line {
-    display: block;
-    counter-increment: line;
+  #code {
+    min-height: 2rem;
   }
 
   #embed {
-    background-color: #f7f7f7;
+    background-color: #b0b9cc0d;
     border-radius: 6px;
     margin-top: 1rem;
     margin-bottom: 1rem;
     width: fit-content;
-    padding: 10px;
-    padding-left: 1.2rem;
-    padding-right: 1.2rem;
+    margin-left: auto;
+    margin-right: auto;
+    max-height: 480px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
-  #decryption-button-container {
-    margin-bottom: 1rem;
-    display: block;
-  }
-
-  .small-button {
+  .download-button {
+    margin-left: 1rem;
+    font-size: small;
     padding: 4px;
     padding-left: 0.8rem;
     padding-right: 0.8rem;
@@ -563,14 +547,19 @@ justify-content: center; align-items: center;">
   }
 
   .code-container {
-    background-color: #f7f7f7;
-    border-radius: 6px;
-    padding: 1rem;
-    font-size: 0.9rem;
-    overflow-x: auto;
+    position: relative;
   }
 
-  .file-button {
+  .hidden {
+    display: none;
+  }
+
+  #view-selector {
+    padding-right: 2rem;
+  }
+
+  .small-button {
+    font-size: small;
     padding: 4px;
     padding-left: 0.8rem;
     padding-right: 0.8rem;
@@ -584,8 +573,7 @@ justify-content: center; align-items: center;">
   }
 
   .file-card {
-    background-color: var(--background-body); 
-    /* border removed as requested */
+    background-color: var(--background-body);
     border-radius: 8px;
     padding: 0.5rem;
     display: flex;
@@ -622,21 +610,17 @@ justify-content: center; align-items: center;">
     object-fit: contain;
     max-height: 80vh;
   }
-
-  /* Adjust video to containment if controls are needed, but user asked for cropped previews. 
-     If controls are hidden by cropping, it's a trade-off. 
-     Let's keep cover for uniformity as requested. */
 </style>
 
-{% if ! args.pure_html %}
+{% if !args.pure_html %}
 <style>
   #decryption {
-    background-color: #f7f7f7;
+    background-color: #b0b9cc0d;
     border-radius: 6px;
     padding: 10px;
     width: fit-content;
   }
 </style>
-{%- endif %}
+{% endif %}
 
 {% include "footer.html" %}

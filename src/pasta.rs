@@ -1,5 +1,6 @@
 use bytesize::ByteSize;
 use chrono::{Datelike, Local, TimeZone, Timelike};
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::path::Path;
@@ -29,6 +30,14 @@ impl PastaFile {
 
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    pub fn url_encoded_name(&self) -> String {
+        utf8_percent_encode(&self.name, NON_ALPHANUMERIC).to_string()
+    }
+
+    pub fn display_name(&self) -> &str {
+        self.name.strip_suffix(".enc").unwrap_or(&self.name)
     }
 
     pub fn is_image(&self) -> bool {

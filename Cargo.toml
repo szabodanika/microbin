@@ -45,6 +45,7 @@ rust-embed = "8.3.0"
 rustls = { version = "0.23", default-features = false, features = ["custom-provider"], optional = true }
 rustls-rustcrypto = { version = "0.0.2-alpha", optional = true }
 
+percent-encoding = "2.3"
 sanitize-filename = "0.5.0"
 serde_json = "1.0.114"
 serde = { version = "1.0.197", features = ["derive"] }
