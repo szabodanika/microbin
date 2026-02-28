@@ -105,7 +105,12 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(data.clone())
             .wrap(middleware::NormalizePath::trim())
-            .wrap(middleware::Logger::default())
+            .wrap(
+                middleware::Logger::new(r#"%{r}a "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#)
+            // `%{r}a` is actix's built‑in "real ip" token, which uses
+            // ConnectionInfo::realip_remote_addr(). it picks up headers like
+            // X-Real-IP / X-Forwarded-For when the framework is behind a proxy.
+            )
             // Conditional / Public Services
             .service(pasta_endpoint::getpasta)
             .service(pasta_endpoint::postpasta)
