@@ -2072,6 +2072,7 @@ dependencies = [
  "mime_guess",
  "once_cell",
  "openssl",
+ "percent-encoding",
  "qrcode-generator",
  "rand",
  "reqwest",
