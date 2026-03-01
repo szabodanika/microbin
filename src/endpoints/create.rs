@@ -23,6 +23,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 struct IndexTemplate<'a> {
     args: &'a Args,
     status: String,
+    default_privacy_value: String,
 }
 
 #[get("/")]
@@ -31,6 +32,7 @@ pub async fn index() -> impl Responder {
         IndexTemplate {
             args: &ARGS,
             status: String::from(""),
+            default_privacy_value: ARGS.default_privacy.as_ref().map_or_else(|| String::from("public"), |s| s.clone()),
         }
         .render()
         .unwrap(),
@@ -45,6 +47,7 @@ pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
         IndexTemplate {
             args: &ARGS,
             status,
+            default_privacy_value: ARGS.default_privacy.as_ref().map_or_else(|| String::from("public"), |s| s.clone()),
         }
         .render()
         .unwrap(),
