@@ -145,23 +145,23 @@
             <label for="privacy">Privacy <sup> <a href="{{ args.public_path_as_str() }}/guide#privacy">?</a></sup></label><br>
             <select style="width: 100%;" name="privacy" id="privacy">
                 <optgroup label="Unencrypted (no password)">
-                    <option value="public">Public</option>
+                    <option value="public"{% if default_privacy_value == "public" %} selected{% endif %}>Public</option>
                     {% if args.private %}
-                    <option value="unlisted">Unlisted</option>
+                    <option value="unlisted"{% if default_privacy_value == "unlisted" %} selected{% endif %}>Unlisted</option>
                     {%- endif %}
                 </optgroup>
                 {% if args.enable_readonly %}
                 <optgroup label="Unencrypted (protected)">
-                    <option value="readonly">Read-only</option>
+                    <option value="readonly"{% if default_privacy_value == "readonly" %} selected{% endif %}>Read-only</option>
                 </optgroup>
                 {%- endif %}
                 {% if args.encryption_client_side || args.encryption_server_side %}
                 <optgroup label="Encrypted">
                     {% if args.encryption_server_side %}
-                    <option value="private">Private</option>
+                    <option value="private"{% if default_privacy_value == "private" %} selected{% endif %}>Private</option>
                     {%- endif %}
                     {% if args.encryption_client_side%}
-                    <option value="secret">Secret</option>
+                    <option value="secret"{% if default_privacy_value == "secret" %} selected{% endif %}>Secret</option>
                     {%- endif %}
                 </optgroup>
                 {%- endif %}
