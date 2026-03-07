@@ -5,6 +5,7 @@ use std::convert::Infallible;
 use std::fmt;
 use std::net::IpAddr;
 use std::str::FromStr;
+use crate::fs;
 
 lazy_static! {
     pub static ref ARGS: Args = Args::parse();
@@ -14,16 +15,16 @@ lazy_static! {
 #[clap(author, version, about, long_about = None)]
 pub struct Args {
     #[clap(long, env = "MICROBIN_BASIC_AUTH_USERNAME")]
-    pub auth_basic_username: Option<String>,
+    pub auth_basic_username: Option<SecretArg>,
 
     #[clap(long, env = "MICROBIN_BASIC_AUTH_PASSWORD")]
-    pub auth_basic_password: Option<String>,
+    pub auth_basic_password: Option<SecretArg>,
 
     #[clap(long, env = "MICROBIN_ADMIN_USERNAME", default_value = "admin")]
-    pub auth_admin_username: String,
+    pub auth_admin_username: SecretArg,
 
     #[clap(long, env = "MICROBIN_ADMIN_PASSWORD", default_value = "m1cr0b1n")]
-    pub auth_admin_password: String,
+    pub auth_admin_password: SecretArg,
 
     #[clap(long, env = "MICROBIN_EDITABLE")]
     pub editable: bool,
@@ -68,7 +69,7 @@ pub struct Args {
     pub short_path: Option<PublicUrl>,
 
     #[clap(long, env = "MICROBIN_UPLOADER_PASSWORD")]
-    pub uploader_password: Option<String>,
+    pub uploader_password: Option<SecretArg>,
 
     #[clap(long, env = "MICROBIN_READONLY")]
     pub readonly: bool,
@@ -179,8 +180,8 @@ impl Args {
         Args {
             auth_basic_username: None,
             auth_basic_password: None,
-            auth_admin_username: String::from(""),
-            auth_admin_password: String::from(""),
+            auth_admin_username: crate::args::SecretArg(String::from("")),
+            auth_admin_password: crate::args::SecretArg(String::from("")),
             editable: self.editable,
             footer_text: self.footer_text,
             hide_footer: self.hide_footer,
@@ -232,6 +233,33 @@ pub struct PublicUrl(pub String);
 impl fmt::Display for PublicUrl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct SecretArg(pub String);
+
+impl FromStr for SecretArg {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Some(path) = s.strip_prefix("file://").or_else(|| s.strip_prefix("file:")) {
+            // Read value from file
+            fs::read_to_string(path)
+                .map(|content| SecretArg(content.trim().to_string()))
+                .map_err(|e| format!("Failed to read secret from {}: {}", path, e))
+        } else {
+            // Use the raw string provided
+            Ok(SecretArg(s.to_string()))
+        }
+    }
+}
+
+// Allow it to be treated like a string automatically
+impl std::ops::Deref for SecretArg {
+    type Target = String;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
