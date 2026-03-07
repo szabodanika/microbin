@@ -10,7 +10,9 @@
 
 MicroBin is a super tiny, feature-rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
-### Check out the Public Test Server at [pub.microbin.eu](https://pub.microbin.eu)!
+## Get your own MicroBin server at [my.microbin.eu](https://my.microbin.eu)!
+
+Test MicroBin at [pub.microbin.eu](https://pub.microbin.eu)!
 
 ### Or host MicroBin yourself
 
@@ -37,12 +39,13 @@ On our website [microbin.eu](https://microbin.eu), you will find the following:
 ## Features
 
 - Entirely self-contained executable, MicroBin is a single file!
-- Server-side and client-side encryption
+- Server-side and client-side E2E encryption
 - File uploads (e.g. `server.com/file/pig-dog-cat`)
 - Raw text serving (e.g. `server.com/raw/pig-dog-cat`)
 - QR code support
 - URL shortening and redirection
 - Animal names instead of random numbers for upload identifiers (64 animals)
+- Multiple attachments
 - SQLite and JSON database support
 - Private and public, editable and uneditable, automatically and never expiring uploads
 - Automatic dark mode and custom styling support with very little CSS and only vanilla JS (see [`water.css`](https://github.com/kognise/water.css))
@@ -53,7 +56,7 @@ On our website [microbin.eu](https://microbin.eu), you will find the following:
 In MicroBin, an upload can be:
 
 - A text that you want to paste from one machine to another, e.g. some code,
-- A file that you want to share, e.g. a video that is too large for Discord, a zip with a code project in it or an image,
+- Files that you want to share, e.g. a video that is too large for Discord, a zip with a code project in it or an image,
 - A URL redirection.
 
 ## When is MicroBin useful?
