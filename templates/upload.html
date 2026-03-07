@@ -22,15 +22,27 @@
   {% if pasta.editable %}
   <a style="margin-right: 1rem" href="{{ args.public_path_as_str()  }}/remove/{{pasta.id_as_animals()}}">Remove</a>
   {%- endif %}
+ 
 </div>
-<div style="float: right">
-  <a style="margin-right: 0.5rem"
-    href="{{ args.public_path_as_str()  }}/upload/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
+<div style="float: right; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+  <a href="{{ args.public_path_as_str()  }}/upload/{{pasta.id_as_animals()}}"><i>{{pasta.id_as_animals()}}</i></a>
   {% if args.public_path_as_str() != "" %}
-  <button id="copy-url-button" class="small-button" style="margin-right: 0">
-    Copy URL
-  </button>
+  <button id="copy-url-button" class="small-button">Copy URL</button>
   {%- endif %}
+  {% if pasta.encrypt_client && pasta.attachments.is_some() %}
+  <button id="download-all-encrypted-button" class="small-button">Download all (Decrypted Zip)</button>
+  {%- endif %}
+  {% if pasta.attachments.is_some() %}
+  <select style="margin-left: 1rem" id="view-selector" class="small-button">
+    <option value="gallery">Gallery</option>
+    <option value="stream">Stream</option>
+    <option value="list">List</option>
+  </select>
+  {%- endif %}
+  {% if !pasta.encrypt_client && pasta.attachments.is_some() %}
+  <button id="download-all-unencrypted-button" class="small-button" onclick="window.location.href='{{ args.public_path_as_str() }}/archive/{{pasta.id_as_animals()}}'">Download all as ZIP</button>
+  {%- endif %}
+  
 </div>
 
 <br>
@@ -58,7 +70,7 @@ justify-content: center; align-items: center;">
     <button class="small-button" id="download-button" style="margin-right:
   0.5rem">
       <b>
-        Download {{pasta.file.as_ref().unwrap().name()}}
+        Download {{pasta.file.as_ref().unwrap().display_name()}}
         [{{pasta.file.as_ref().unwrap().size}}]
       </b>
     </button>
@@ -83,7 +95,7 @@ justify-content: center; align-items: center;">
 </div>
 {%- endif %}
 
-{% if pasta.file.is_some() && !pasta.file_embeddable() && !pasta.encrypt_client %}
+{% if pasta.file.is_some() && !pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
 <span style="margin-left: auto; margin-right: auto; display: flex;
     justify-content: center; align-items: center;">
   <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
@@ -98,7 +110,7 @@ justify-content: center; align-items: center;">
 
 
 {% if pasta.file.is_some() && pasta.file.as_ref().unwrap().is_image() &&
-pasta.file_embeddable() && !pasta.encrypt_client %}
+pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
 <img id="embed" src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" style="max-height: 50vh; max-width: 100%; height: auto; width: auto;" />
 <span style="margin-left: auto; margin-right: auto; display: flex;
   justify-content: center; align-items: center;">
@@ -114,7 +126,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
 
 
 {% if pasta.file.is_some() && pasta.file.as_ref().unwrap().is_video() &&
-pasta.file_embeddable() && !pasta.encrypt_client %}
+pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
 <video id="embed" controls src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" height="300"></video>
 <span style="margin-left: auto; margin-right: auto; display: flex;
   justify-content: center; align-items: center;">
@@ -126,6 +138,61 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     </button>
   </a>
 </span>
+{%- endif %}
+
+{% if pasta.attachments.is_some() %}
+<div id="gallery-view" class="gallery-grid" style="display: grid; margin-top: 2rem;">
+    {% if pasta.file.is_some() %}
+    <div style="max-width: 100%; overflow: hidden;">
+        {% let file = pasta.file.as_ref().unwrap() %}
+        {% include "assets/file_card.html" %}
+    </div>
+    {% endif %}
+    {% for file in pasta.attachments.as_ref().unwrap() %}
+        {% include "assets/file_card.html" %}
+    {% endfor %}
+</div>
+
+<div id="list-view" style="display: none; margin-top: 2rem;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 1px solid #ccc;">
+                <th style="padding: 8px;">Filename</th>
+                <th style="padding: 8px;">Size</th>
+                <th style="padding: 8px;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if pasta.file.is_some() %}
+            {% let file = pasta.file.as_ref().unwrap() %}
+            <tr>
+                <td style="padding: 8px;">{{ file.name() }}</td>
+                <td style="padding: 8px;">{{ file.size }}</td>
+                <td style="padding: 8px;">
+                    {% if !pasta.encrypt_client %}
+                    <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}"
+                       class="download-link" data-filename="{{ file.name() }}"
+                       {% if !pasta.encrypt_server %}download{% endif %}>Download</a>
+                    {% else %}<em>Encrypted</em>{% endif %}
+                </td>
+            </tr>
+            {% endif %}
+            {% for file in pasta.attachments.as_ref().unwrap() %}
+            <tr>
+                <td style="padding: 8px;">{{ file.name() }}</td>
+                <td style="padding: 8px;">{{ file.size }}</td>
+                <td style="padding: 8px;">
+                    {% if !pasta.encrypt_client %}
+                    <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}"
+                       class="download-link" data-filename="{{ file.name() }}"
+                       {% if !pasta.encrypt_server %}download{% endif %}>Download</a>
+                    {% else %}<em>Encrypted</em>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {%- endif %}
 
 <div>
@@ -143,6 +210,9 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
 
 <script type="text/javascript" src="{{ args.public_path_as_str() }}/static/highlight/highlight.min.js"></script>
 <link rel="stylesheet" href="{{ args.public_path_as_str()}}/static/highlight/highlight.min.css">
+{% if pasta.encrypt_client && pasta.attachments.is_some() %}
+<script type="text/javascript" src="{{ args.public_path_as_str() }}/static/jszip.min.js"></script>
+{%- endif %}
 
 <script>
   const copyURLBtn = document.getElementById("copy-url-button")
@@ -181,13 +251,13 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
   function fallbackCopyTextToClipboard(text, buttonElement, originalLabel) {
     var textArea = document.createElement("textarea");
     textArea.value = text;
-    
+
     // Ensure it's not visible but part of the DOM
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
     textArea.style.top = "0";
     document.body.appendChild(textArea);
-    
+
     textArea.focus();
     textArea.select();
 
@@ -250,7 +320,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
       copyToClipboard(decodeContent, copyTextBtn, "Copy Text");
     })
   }
-  
+
   // {% if pasta.encrypt_client %}
 
   const decryptDiv = document.getElementById('decryption');
@@ -300,14 +370,14 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     const tempAnchorEl = document.createElement('a');
     // tempAnchorEl.href = dataUri;
     tempAnchorEl.href = URL.createObjectURL(decryptedBlob);
-    tempAnchorEl.download = '{{pasta.file.as_ref().unwrap().name()}}';
+    tempAnchorEl.download = '{{pasta.file.as_ref().unwrap().display_name()}}';
 
     // Programmatically click anchor element to trigger download
     tempAnchorEl.click();
 
     // {%- endif %}
   });
-  // {% endif  %} 
+  // {% endif  %}
 
   decryptButton.addEventListener("click", () => {
     password = passwordField.value;
@@ -317,7 +387,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
       contentElement.innerHTML = contentDecrypted;
       // {% if pasta.extension == "auto" %}
       hljs.highlightAll();
-      // {% endif  %} 
+      // {% endif  %}
       contentElement.innerHTML = wrapStringInCodeLines(contentElement.innerHTML);
       // decryptDiv.style.display = 'none';
     }
@@ -343,6 +413,84 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     const aesCtr = new aesjs.ModeOfOperation.ctr(passwordBytes);
     const decryptedBytes = aesCtr.decrypt(encryptedBytes);
     return decryptedBytes;
+  }
+// {% endif %}
+
+// {% if pasta.attachments.is_some() %}
+  const galleryView = document.getElementById('gallery-view');
+  const listView = document.getElementById('list-view');
+  const viewSelector = document.getElementById('view-selector');
+
+  function applyViewChange(newView) {
+    if (galleryView && listView) {
+      galleryView.classList.remove('stream-view');
+      if (newView === 'list') {
+        galleryView.style.display = 'none';
+        listView.style.display = 'block';
+      } else if (newView === 'stream') {
+        galleryView.style.display = 'grid';
+        galleryView.classList.add('stream-view');
+        listView.style.display = 'none';
+      } else {
+        galleryView.style.display = 'grid';
+        listView.style.display = 'none';
+      }
+    }
+  }
+
+  const currentView = new URLSearchParams(window.location.search).get('view');
+  if (viewSelector) {
+    viewSelector.value = currentView || 'gallery';
+    viewSelector.addEventListener('change', (e) => {
+      const newView = e.target.value;
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('view', newView);
+      window.history.pushState({}, '', currentUrl);
+      applyViewChange(newView);
+    });
+  }
+  applyViewChange(currentView || 'gallery');
+// {% endif %}
+
+// {% if pasta.encrypt_client && pasta.attachments.is_some() %}
+  const downloadAllEncryptedBtn = document.getElementById('download-all-encrypted-button');
+  if (downloadAllEncryptedBtn) {
+    downloadAllEncryptedBtn.addEventListener('click', async (event) => {
+      event.preventDefault();
+      if (passwordField.value.trim() == "") { passwordField.focus(); return false; }
+      downloadAllEncryptedBtn.textContent = "Processing...";
+      downloadAllEncryptedBtn.disabled = true;
+      try {
+        const zip = new JSZip();
+        const links = Array.from(document.querySelectorAll('.download-link'));
+        const uniqueLinks = new Map();
+        links.forEach(link => {
+          const filename = link.getAttribute('data-filename');
+          if (!uniqueLinks.has(filename)) uniqueLinks.set(filename, link.href);
+        });
+        const promises = [];
+        for (const [filename, url] of uniqueLinks) {
+          promises.push(fetch(url)
+            .then(r => r.arrayBuffer())
+            .then(buf => {
+              const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+              const dec = decryptFileWithPassword(passwordField.value.trim(), hex);
+              if (dec) zip.file(filename, dec);
+            }));
+        }
+        await Promise.all(promises);
+        const content = await zip.generateAsync({type:"blob"});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(content);
+        a.download = "{{pasta.id_as_animals()}}.zip";
+        a.click();
+      } catch (e) {
+        alert("Failed to generate zip. See console.");
+        console.error(e);
+      }
+      downloadAllEncryptedBtn.textContent = "Download all (Decrypted Zip)";
+      downloadAllEncryptedBtn.disabled = false;
+    });
   }
 // {% endif %}
 </script>
@@ -376,7 +524,7 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
   }
 
   #embed {
-    background-color: #f7f7f7;
+    background-color: #b0b9cc0d;
     border-radius: 6px;
     margin-top: 1rem;
     margin-bottom: 1rem;
@@ -406,6 +554,10 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     display: none;
   }
 
+  #view-selector {
+    padding-right: 2rem;
+  }
+
   .small-button {
     font-size: small;
     padding: 4px;
@@ -413,12 +565,57 @@ pasta.file_embeddable() && !pasta.encrypt_client %}
     padding-right: 0.8rem;
     cursor: pointer;
   }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .file-card {
+    background-color: var(--background-body);
+    border-radius: 8px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .embed-media {
+    width: 100%;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .gallery-grid .embed-media {
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+  }
+
+  .stream-view {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2rem !important;
+  }
+
+  .stream-view .file-card {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .stream-view .embed-media {
+    aspect-ratio: auto;
+    object-fit: contain;
+    max-height: 80vh;
+  }
 </style>
 
 {% if !args.pure_html %}
 <style>
   #decryption {
-    background-color: #f7f7f7;
+    background-color: #b0b9cc0d;
     border-radius: 6px;
     padding: 10px;
     width: fit-content;

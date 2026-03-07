@@ -253,7 +253,7 @@ fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse
             return response;
         // send error if we're trying to open a non-url pasta as a redirect
         } else {
-            HttpResponse::Ok()
+            return HttpResponse::Ok()
                 .content_type("text/html; charset=utf-8")
                 .body(ErrorTemplate { args: &ARGS }.render().unwrap());
         }

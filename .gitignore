@@ -13,3 +13,7 @@ pasta_data/*
 microbin_data/*
 *.env
 **/**/microbin-data
+/.agent
+/node_modules
+/playwright-report
+/test-results

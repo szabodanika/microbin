@@ -42,11 +42,15 @@ pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
             last_read INTEGER NOT NULL,
             read_count INTEGER NOT NULL,
             burn_after_reads INTEGER NOT NULL,
+            attachments TEXT,
             pasta_type TEXT NOT NULL
         );",
         params![],
     )
     .expect("Failed to create SQLite table for Pasta!");
+
+    // Migration: Add attachments column if it doesn't exist
+    let _ = conn.execute("ALTER TABLE pasta ADD COLUMN attachments TEXT", params![]);
 
     for pasta in pasta_data.iter() {
         conn.execute(
@@ -67,8 +71,9 @@ pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
                 last_read,
                 read_count,
                 burn_after_reads,
-                pasta_type
-            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
+                pasta_type,
+                attachments
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
             params![
                 pasta.id,
                 pasta.content,
@@ -87,6 +92,7 @@ pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
                 pasta.read_count,
                 pasta.burn_after_reads,
                 pasta.pasta_type,
+                serde_json::to_string(&pasta.attachments).unwrap_or("".to_string()),
             ],
         )
         .expect("Failed to insert pasta.");
@@ -116,11 +122,15 @@ pub fn select_all_from_db() -> Vec<Pasta> {
             last_read INTEGER NOT NULL,
             read_count INTEGER NOT NULL,
             burn_after_reads INTEGER NOT NULL,
+            attachments TEXT,
             pasta_type TEXT NOT NULL
         );",
         params![],
     )
     .expect("Failed to create SQLite table for Pasta!");
+
+    // Migration: Add attachments column if it doesn't exist
+    let _ = conn.execute("ALTER TABLE pasta ADD COLUMN attachments TEXT", params![]);
 
     let mut stmt = conn
         .prepare("SELECT * FROM pasta ORDER BY created ASC")
@@ -157,6 +167,10 @@ pub fn select_all_from_db() -> Vec<Pasta> {
                 read_count: row.get(14)?,
                 burn_after_reads: row.get(15)?,
                 pasta_type: row.get(16)?,
+                attachments: match row.get::<_, Option<String>>(17) {
+                    Ok(Some(json)) => serde_json::from_str(&json).unwrap_or(None),
+                    _ => None,
+                },
             })
         })
         .expect("Failed to select Pastas from SQLite database.");
@@ -189,11 +203,15 @@ pub fn insert(pasta: &Pasta) {
             last_read INTEGER NOT NULL,
             read_count INTEGER NOT NULL,
             burn_after_reads INTEGER NOT NULL,
+            attachments TEXT,
             pasta_type TEXT NOT NULL
         );",
         params![],
     )
     .expect("Failed to create SQLite table for Pasta!");
+
+    // Migration: Add attachments column if it doesn't exist
+    let _ = conn.execute("ALTER TABLE pasta ADD COLUMN attachments TEXT", params![]);
 
     conn.execute(
         "INSERT INTO pasta (
@@ -213,8 +231,9 @@ pub fn insert(pasta: &Pasta) {
                 last_read,
                 read_count,
                 burn_after_reads,
-                pasta_type
-            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
+                pasta_type,
+                attachments
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
         params![
             pasta.id,
             pasta.content,
@@ -233,6 +252,7 @@ pub fn insert(pasta: &Pasta) {
             pasta.read_count,
             pasta.burn_after_reads,
             pasta.pasta_type,
+            serde_json::to_string(&pasta.attachments).unwrap_or("".to_string()),
         ],
     )
     .expect("Failed to insert pasta.");
@@ -259,7 +279,8 @@ pub fn update(pasta: &Pasta) {
             last_read = ?14,
             read_count = ?15,
             burn_after_reads = ?16,
-            pasta_type = ?17
+            pasta_type = ?17,
+            attachments = ?18
         WHERE id = ?1;",
         params![
             pasta.id,
@@ -279,6 +300,7 @@ pub fn update(pasta: &Pasta) {
             pasta.read_count,
             pasta.burn_after_reads,
             pasta.pasta_type,
+            serde_json::to_string(&pasta.attachments).unwrap_or("".to_string()),
         ],
     )
     .expect("Failed to update pasta.");

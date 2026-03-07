@@ -45,11 +45,14 @@ rust-embed = "8.3.0"
 rustls = { version = "0.23", default-features = false, features = ["custom-provider"], optional = true }
 rustls-rustcrypto = { version = "0.0.2-alpha", optional = true }
 
+percent-encoding = "2.3"
 sanitize-filename = "0.5.0"
 serde_json = "1.0.114"
 serde = { version = "1.0.197", features = ["derive"] }
 syntect = { version = "5.2.0", default-features = false }
 webpki-roots = { version = "0.26", optional = true }
+zip = "2.4.2"
+tempfile = "3.25.0"
 bytes = "1.11.0"
 
 [dependencies.openssl]

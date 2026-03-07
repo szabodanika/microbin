@@ -4,7 +4,7 @@ use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use qrcode_generator::QrCodeEcc;
 use std::fs::{self, File};
 use std::io::{BufReader, Read, Write};
-use std::path::Path;
+
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::Pasta;
@@ -144,11 +144,7 @@ pub fn encrypt_file(
     let ciphertext = mc.encrypt_bytes_to_bytes(&input_data[..]);
 
     // Write the encrypted data to a new file with the .enc extension
-    let mut f = File::create(
-        Path::new(input_file_path)
-            .with_file_name("data")
-            .with_extension("enc"),
-    )?;
+    let mut f = File::create(format!("{}.enc", input_file_path))?;
     f.write_all(ciphertext.as_slice())?;
 
     // Delete the original input file

@@ -133,6 +133,9 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_ENCRYPTION_SERVER_SIDE")]
     pub encryption_server_side: bool,
 
+    #[clap(long, env = "MICROBIN_DEFAULT_PRIVACY")]
+    pub default_privacy: Option<String>,
+
     #[clap(
         long,
         env = "MICROBIN_MAX_FILE_SIZE_ENCRYPTED_MB",
@@ -146,6 +149,11 @@ pub struct Args {
         default_value_t = 2048
     )]
     pub max_file_size_unencrypted_mb: usize,
+
+
+
+    #[clap(long, env = "MICROBIN_DEFAULT_VIEW", default_value = "gallery")]
+    pub default_view: String,
 }
 
 impl Args {
@@ -208,9 +216,12 @@ impl Args {
             disable_telemetry: self.disable_telemetry,
             encryption_client_side: self.encryption_client_side,
             encryption_server_side: self.encryption_server_side,
+            default_privacy: None,
             max_file_size_encrypted_mb: self.max_file_size_encrypted_mb,
             max_file_size_unencrypted_mb: self.max_file_size_unencrypted_mb,
             disable_update_checking: self.disable_update_checking,
+
+            default_view: self.default_view,
         }
     }
 }

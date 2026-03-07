@@ -1,0 +1,43 @@
+<div class="file-card">
+{% if !pasta.encrypt_client && !pasta.encrypt_server %}
+    {% if file.is_image() %}
+    <a href="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}&preview=true" target="_blank" style="width: 100%; display: block;">
+        <img class="embed-media" src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}" />
+    </a>
+    {% else if file.is_video() %}
+    <video class="embed-media" controls src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}"></video>
+    {% else %}
+    <div class="embed-media" style="display: flex; align-items: center; justify-content: center; background-color: #eee; color: #555;">
+        <span>{{ file.extension() }}</span>
+    </div>
+    {% endif %}
+{% else %}
+    <div class="embed-media" style="display: flex; align-items: center; justify-content: center; background-color: #eee; color: #555;">
+        {% if pasta.encrypt_server %}
+        <span>{{ file.extension() }}</span>
+        {% else %}
+        <span>LOCKED</span>
+        {% endif %}
+    </div>
+{% endif %}
+
+<div style="margin-top: 0.5rem; display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; gap: 0.5rem;">
+  <div style="display: flex; flex-direction: column; overflow: hidden; align-items: flex-start; flex-grow: 1;">
+      <small style="font-size: small; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;" title="{{file.display_name()}}">{{file.display_name()}}</small>
+      <small style="font-size: x-small; color: gray;">{{file.size}}</small>
+  </div>
+  {% if !pasta.encrypt_client && pasta.encrypt_server %}
+  <a href="#" class="download-link" data-filename="{{ file.name() }}" data-url="{{ args.public_path_as_str() }}/secure_file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}">
+      <button class="download-button" style="margin-left: 0; padding: 4px 8px; font-size: small;">
+        Download
+      </button>
+  </a>
+  {% else if !pasta.encrypt_client && !pasta.encrypt_server %}
+  <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}" class="download-link" download data-filename="{{ file.name() }}">
+    <button class="download-button" style="margin-left: 0; padding: 4px 8px; font-size: small;">
+      Download
+    </button>
+  </a>
+  {% endif %}
+</div>
+</div>

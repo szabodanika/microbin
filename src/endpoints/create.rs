@@ -1,9 +1,10 @@
-use crate::pasta::PastaFile;
+use crate::pasta::{Pasta, PastaFile};
 use crate::util::animalnumbers::to_animal_names;
 use crate::util::db::insert;
 use crate::util::hashids::to_hashids;
 use crate::util::misc::{encrypt, encrypt_file, is_valid_url};
-use crate::{AppState, Pasta, ARGS};
+use crate::args::{Args, ARGS};
+use crate::AppState;
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
 use actix_web::cookie::Cookie;
@@ -20,8 +21,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[derive(Template)]
 #[template(path = "index.html")]
 struct IndexTemplate<'a> {
-    args: &'a ARGS,
+    args: &'a Args,
     status: String,
+    default_privacy_value: String,
 }
 
 #[get("/")]
@@ -30,6 +32,7 @@ pub async fn index() -> impl Responder {
         IndexTemplate {
             args: &ARGS,
             status: String::from(""),
+            default_privacy_value: ARGS.default_privacy.as_ref().map_or_else(|| String::from("public"), |s| s.clone()),
         }
         .render()
         .unwrap(),
@@ -44,6 +47,7 @@ pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
         IndexTemplate {
             args: &ARGS,
             status,
+            default_privacy_value: ARGS.default_privacy.as_ref().map_or_else(|| String::from("public"), |s| s.clone()),
         }
         .render()
         .unwrap(),
@@ -72,13 +76,10 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
     }
 }
 
-
 pub async fn create(
     data: web::Data<AppState>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    // Lock acquisition moved to the end of the function to prevent holding DB lock during I/O
-
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
         Err(_) => {
@@ -104,6 +105,7 @@ pub async fn create(
         last_read: timenow,
         pasta_type: String::from(""),
         expiration: expiration_to_timestamp(&ARGS.default_expiry, timenow),
+        attachments: None,
     };
 
     let mut random_key: String = String::from("");
@@ -265,7 +267,15 @@ pub async fn create(
 
                 file.size = ByteSize::b(size as u64);
 
-                new_pasta.file = Some(file);
+                if new_pasta.file.is_none() {
+                    new_pasta.file = Some(file);
+                } else {
+                    if new_pasta.attachments.is_none() {
+                        new_pasta.attachments = Some(Vec::new());
+                    }
+                    new_pasta.attachments.as_mut().unwrap().push(file);
+                }
+                
                 new_pasta.pasta_type = String::from("text");
             }
             field => {
@@ -297,17 +307,29 @@ pub async fn create(
         }
     }
 
-    if new_pasta.file.is_some() && new_pasta.encrypt_server && !new_pasta.readonly {
-        let filepath = format!(
-            "{}/attachments/{}/{}",
-            ARGS.data_dir,
-            &new_pasta.id_as_animals(),
-            &new_pasta.file.as_ref().unwrap().name()
-        );
-        if new_pasta.encrypt_client {
-            encrypt_file(&random_key, &filepath).expect("Failed to encrypt file with random key")
-        } else {
-            encrypt_file(&plain_key, &filepath).expect("Failed to encrypt file with plain key")
+    if new_pasta.encrypt_server && !new_pasta.readonly {
+        let mut files_to_encrypt: Vec<&PastaFile> = Vec::new();
+        if let Some(file) = &new_pasta.file {
+            files_to_encrypt.push(file);
+        }
+        if let Some(attachments) = &new_pasta.attachments {
+            for attachment in attachments {
+                files_to_encrypt.push(attachment);
+            }
+        }
+
+        for file in files_to_encrypt {
+             let filepath = format!(
+                "{}/attachments/{}/{}",
+                ARGS.data_dir,
+                &new_pasta.id_as_animals(),
+                &file.name()
+            );
+            if new_pasta.encrypt_client {
+                encrypt_file(&random_key, &filepath).expect("Failed to encrypt file with random key")
+            } else {
+                encrypt_file(&plain_key, &filepath).expect("Failed to encrypt file with plain key")
+            }
         }
     }
 
@@ -315,11 +337,14 @@ pub async fn create(
     
     let mut pastas = data.pastas.lock().unwrap();
 
-    pastas.push(new_pasta);
+    {
+        let mut pastas = data.pastas.lock().unwrap();
+        pastas.push(new_pasta);
 
-    for (_, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
-            insert(Some(&pastas), Some(pasta));
+        for (_, pasta) in pastas.iter().enumerate() {
+            if pasta.id == id {
+                insert(Some(&pastas), Some(pasta));
+            }
         }
     }
 
@@ -331,7 +356,7 @@ pub async fn create(
 
     if encrypt_server {
         Ok(HttpResponse::Found()
-            .append_header(("Location", format!("/auth/{}/success", slug)))
+            .append_header(("Location", format!("{}/auth/{}/success", ARGS.public_path_as_str(), slug)))
             .finish())
     } else {
         // Generate time-limited token for initial view using Hashids

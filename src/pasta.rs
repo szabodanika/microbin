@@ -1,5 +1,6 @@
 use bytesize::ByteSize;
 use chrono::{Datelike, Local, TimeZone, Timelike};
+use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::path::Path;
@@ -10,7 +11,7 @@ use crate::util::animalnumbers::to_animal_names;
 use crate::util::hashids::to_hashids;
 use crate::util::syntaxhighlighter::html_highlight;
 
-#[derive(Serialize, Deserialize, PartialEq, Debug, Eq)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Eq, Clone)]
 pub struct PastaFile {
     pub name: String,
     pub size: ByteSize,
@@ -29,6 +30,14 @@ impl PastaFile {
 
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    pub fn url_encoded_name(&self) -> String {
+        utf8_percent_encode(&self.name, NON_ALPHANUMERIC).to_string()
+    }
+
+    pub fn display_name(&self) -> &str {
+        self.name.strip_suffix(".enc").unwrap_or(&self.name)
     }
 
     pub fn is_image(&self) -> bool {
@@ -51,6 +60,14 @@ impl PastaFile {
     pub fn embeddable(&self) -> bool {
         self.is_image() || self.is_video()
     }
+
+    pub fn extension(&self) -> String {
+        std::path::Path::new(&self.name)
+            .extension()
+            .and_then(std::ffi::OsStr::to_str)
+            .unwrap_or("FILE")
+            .to_uppercase()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -58,6 +75,8 @@ pub struct Pasta {
     pub id: u64,
     pub content: String,
     pub file: Option<PastaFile>,
+    #[serde(default)]
+    pub attachments: Option<Vec<PastaFile>>,
     pub extension: String,
     pub private: bool,
     pub readonly: bool,
@@ -87,11 +106,15 @@ impl Pasta {
     }
 
     pub fn total_size_as_string(&self) -> String {
-        let total_size_bytes = if self.has_file() {
-            self.file.as_ref().unwrap().size.as_u64() as usize + self.content.as_bytes().len()
-        } else {
-            self.content.as_bytes().len()
-        };
+        let mut total_size_bytes = self.content.as_bytes().len();
+        if let Some(file) = &self.file {
+            total_size_bytes += file.size.as_u64() as usize;
+        }
+        if let Some(attachments) = &self.attachments {
+            for attachment in attachments {
+                total_size_bytes += attachment.size.as_u64() as usize;
+            }
+        }
 
         if total_size_bytes < 1024 {
             format!("{} B", total_size_bytes)

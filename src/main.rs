@@ -2,7 +2,7 @@ extern crate core;
 
 use crate::args::ARGS;
 use crate::endpoints::{
-    admin, auth_admin, auth_upload, create, edit, errors, file, guide, list,
+    admin, archive, auth_admin, auth_upload, create, edit, errors, file, guide, list,
     pasta as pasta_endpoint, qr, remove, static_resources,
 };
 use crate::pasta::Pasta;
@@ -38,6 +38,7 @@ pub mod util {
 
 pub mod endpoints {
     pub mod admin;
+    pub mod archive;
     pub mod auth_admin;
     pub mod auth_upload;
     pub mod create;
@@ -104,7 +105,12 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(data.clone())
             .wrap(middleware::NormalizePath::trim())
-            .wrap(middleware::Logger::default())
+            .wrap(
+                middleware::Logger::new(r#"%{r}a "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#)
+            // `%{r}a` is actix's built‑in "real ip" token, which uses
+            // ConnectionInfo::realip_remote_addr(). it picks up headers like
+            // X-Real-IP / X-Forwarded-For when the framework is behind a proxy.
+            )
             // Conditional / Public Services
             .service(pasta_endpoint::getpasta)
             .service(pasta_endpoint::postpasta)
@@ -116,6 +122,7 @@ async fn main() -> std::io::Result<()> {
             .service(pasta_endpoint::shortredirecturl)
             .service(qr::getqr)
             .service(file::get_file)
+            .service(archive::get_archive)
             .service(file::post_secure_file)
             .service(static_resources::static_resources)
             .service(guide::guide)

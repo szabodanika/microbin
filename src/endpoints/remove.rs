@@ -3,7 +3,7 @@ use actix_web::{get, post, web, Error, HttpResponse};
 
 use crate::args::ARGS;
 use crate::endpoints::errors::ErrorTemplate;
-use crate::pasta::PastaFile;
+
 use crate::util::animalnumbers::to_u64;
 use crate::util::auth;
 use crate::util::db::delete;
@@ -36,29 +36,15 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
                     .finish();
             }
 
-            // remove the file itself
-            if let Some(PastaFile { name, .. }) = &pasta.file {
-                if fs::remove_file(format!(
-                    "{}/attachments/{}/{}",
-                    ARGS.data_dir,
-                    pasta.id_as_animals(),
-                    name
-                ))
-                .is_err()
-                {
-                    log::error!("Failed to delete file {}!", name)
-                }
-
-                // and remove the containing directory
-                if fs::remove_dir(format!(
-                    "{}/attachments/{}/",
-                    ARGS.data_dir,
-                    pasta.id_as_animals()
-                ))
-                .is_err()
-                {
-                    log::error!("Failed to delete directory {}!", name)
-                }
+            // remove the directory and all its contents
+            if fs::remove_dir_all(format!(
+                "{}/attachments/{}/",
+                ARGS.data_dir,
+                pasta.id_as_animals()
+            ))
+            .is_err()
+            {
+                log::error!("Failed to delete directory for {}!", pasta.id_as_animals())
             }
 
             // remove it from in-memory pasta list
@@ -126,30 +112,16 @@ pub async fn post_remove(
                     }
 
                     if is_password_correct {
-                        // remove the file itself
-                        if let Some(PastaFile { name, .. }) = &pasta.file {
-                            if fs::remove_file(format!(
-                                "{}/attachments/{}/{}",
-                                ARGS.data_dir,
-                                pasta.id_as_animals(),
-                                name
-                            ))
-                            .is_err()
-                            {
-                                log::error!("Failed to delete file {}!", name)
-                            }
-
-                            // and remove the containing directory
-                            if fs::remove_dir(format!(
-                                "{}/attachments/{}/",
-                                ARGS.data_dir,
-                                pasta.id_as_animals()
-                            ))
-                            .is_err()
-                            {
-                                log::error!("Failed to delete directory {}!", name)
-                            }
-                        }
+                // remove the directory and all its contents
+                if fs::remove_dir_all(format!(
+                    "{}/attachments/{}/",
+                    ARGS.data_dir,
+                    pasta.id_as_animals()
+                ))
+                .is_err()
+                {
+                    log::error!("Failed to delete directory for {}!", pasta.id_as_animals())
+                }
 
                         // remove it from in-memory pasta list
                         pastas.remove(i);

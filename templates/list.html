@@ -66,7 +66,12 @@
                         <a style="margin-right:1rem"
                             href="{{ args.public_path_as_str()}}/raw/{{pasta.id_as_animals()}}">Text</a>
                         {%- endif %}
-                        {% if pasta.file.is_some() %}
+                        {% if pasta.attachments.is_some() %}
+                        <a style="margin-right:1rem"
+                            href="{{ args.public_path_as_str() }}/upload/{{pasta.id_as_animals()}}">
+                            {{ 1 + pasta.attachments.as_ref().unwrap().len() }} Files
+                        </a>
+                        {% else if pasta.file.is_some() %}
                         <a style="margin-right:1rem"
                             href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}">
                             {% if pasta.file.as_ref().unwrap().is_image() %}
