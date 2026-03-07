@@ -32,7 +32,6 @@ On our website [microbin.eu](https://microbin.eu), you will find the following:
 
 - [Screenshots](https://microbin.eu/screenshots/)
 - [Guide and Documentation](https://microbin.eu/docs/intro)
-- [Donations and Sponsorships](https://microbin.eu/sponsorship)
 - [Roadmap](https://microbin.eu/roadmap)
 
 ## Features
