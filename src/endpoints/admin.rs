@@ -46,7 +46,7 @@ pub async fn post_admin(
         }
     }
 
-    if username != ARGS.auth_admin_username || password != ARGS.auth_admin_password {
+    if username != **ARGS.auth_admin_username || password != *ARGS.auth_admin_password {
         return Ok(HttpResponse::Found()
             .append_header(("Location", format!("{}/auth_admin/incorrect", ARGS.public_path_as_str())))
             .finish());
@@ -68,7 +68,7 @@ pub async fn post_admin(
         message = "Warning: No public URL set with --public-path parameter. QR code and URL Copying functions have been disabled"
     }
 
-    if ARGS.auth_admin_username == "admin" && ARGS.auth_admin_password == "m1cr0b1n" {
+    if *ARGS.auth_admin_username == "admin" && *ARGS.auth_admin_password == "m1cr0b1n" {
         status = "WARNING";
         message = "Warning: You are using the default admin login details. This is a security risk, please change them."
     }

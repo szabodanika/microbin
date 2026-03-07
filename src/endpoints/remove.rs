@@ -89,7 +89,7 @@ pub async fn post_remove(
                 if password != *"" {
                     let mut is_password_correct = false;
 
-                    if password == ARGS.auth_admin_password {
+                    if password == *ARGS.auth_admin_password {
                         is_password_correct = true;
                     }
 

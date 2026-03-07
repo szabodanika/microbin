@@ -17,7 +17,7 @@ pub async fn auth_validator(
         creds.password(),
     ) {
         (Some(conf_user), Some(conf_pwd), Some(cred_pwd))
-            if creds.user_id() == conf_user && conf_pwd == cred_pwd =>
+            if creds.user_id() == **conf_user && **conf_pwd == cred_pwd =>
         {
             Ok(req)
         }
