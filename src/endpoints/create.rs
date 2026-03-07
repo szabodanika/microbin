@@ -72,15 +72,12 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
     }
 }
 
-/// receives a file through http Post on url /upload/a-b-c with a, b and c
-/// different animals. The client sends the post in response to a form.
-// TODO: form field order might need to be changed. In my testing the attachment 
-// data is nestled between password encryption key etc <21-10-24, dvdsk> 
+
 pub async fn create(
     data: web::Data<AppState>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    let mut pastas = data.pastas.lock().unwrap();
+    // Lock acquisition moved to the end of the function to prevent holding DB lock during I/O
 
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
@@ -235,12 +232,16 @@ pub async fn create(
                     }
                 };
 
-                std::fs::create_dir_all(format!(
+                if let Err(e) = std::fs::create_dir_all(format!(
                     "{}/attachments/{}",
                     ARGS.data_dir,
                     &new_pasta.id_as_animals()
-                ))
-                .unwrap();
+                )) {
+                    log::error!("Failed to create directory: {}", e);
+                    return Err(actix_web::error::ErrorInternalServerError(
+                        "Failed to create attachment directory",
+                    ));
+                }
 
                 let filepath = format!(
                     "{}/attachments/{}/{}",
@@ -311,6 +312,8 @@ pub async fn create(
     }
 
     let encrypt_server = new_pasta.encrypt_server;
+    
+    let mut pastas = data.pastas.lock().unwrap();
 
     pastas.push(new_pasta);
 
