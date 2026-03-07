@@ -234,12 +234,16 @@ pub async fn create(
                     }
                 };
 
-                std::fs::create_dir_all(format!(
+                if let Err(e) = std::fs::create_dir_all(format!(
                     "{}/attachments/{}",
                     ARGS.data_dir,
                     &new_pasta.id_as_animals()
-                ))
-                .unwrap();
+                )) {
+                    log::error!("Failed to create directory: {}", e);
+                    return Err(actix_web::error::ErrorInternalServerError(
+                        "Failed to create attachment directory",
+                    ));
+                }
 
                 let filepath = format!(
                     "{}/attachments/{}/{}",
@@ -330,6 +334,8 @@ pub async fn create(
     }
 
     let encrypt_server = new_pasta.encrypt_server;
+    
+    let mut pastas = data.pastas.lock().unwrap();
 
     {
         let mut pastas = data.pastas.lock().unwrap();

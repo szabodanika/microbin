@@ -126,9 +126,6 @@ pub async fn post_edit_private(
     id: web::Path<String>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    // get access to the pasta collection
-    let mut pastas = data.pastas.lock().unwrap();
-
     let id = if ARGS.hash_ids {
         hashid_to_u64(&id).unwrap_or(0)
     } else {
@@ -144,6 +141,9 @@ pub async fn post_edit_private(
             }
         }
     }
+
+    // get access to the pasta collection
+    let mut pastas = data.pastas.lock().unwrap();
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -163,7 +163,7 @@ pub async fn post_edit_private(
         let original_content = pastas[index].content.to_owned();
 
         // decrypt content temporarily
-        if password != *"" {
+        if password != "" {
             let res = decrypt(&original_content, &password);
             if res.is_ok() {
                 pastas[index]
@@ -214,9 +214,6 @@ pub async fn post_submit_edit_private(
     id: web::Path<String>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    // get access to the pasta collection
-    let mut pastas = data.pastas.lock().unwrap();
-
     let id = if ARGS.hash_ids {
         hashid_to_u64(&id).unwrap_or(0)
     } else {
@@ -243,6 +240,9 @@ pub async fn post_submit_edit_private(
             }
         }
     }
+
+    // get access to the pasta collection
+    let mut pastas = data.pastas.lock().unwrap();
 
     // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
@@ -319,10 +319,6 @@ pub async fn post_edit(
         to_u64(&id.into_inner()).unwrap_or(0)
     };
 
-    let mut pastas = data.pastas.lock().unwrap();
-
-    remove_expired(&mut pastas);
-
     let mut new_content = String::from("");
     let mut password = String::from("");
 
@@ -344,11 +340,15 @@ pub async fn post_edit(
         }
     }
 
+    let mut pastas = data.pastas.lock().unwrap();
+
+    remove_expired(&mut pastas);
+
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
             if pasta.editable && !pasta.encrypt_client {
                 if pastas[i].readonly || pastas[i].encrypt_server {
-                    if password != *"" {
+                    if password != "" {
                         let res = decrypt(pastas[i].encrypted_key.as_ref().unwrap(), &password);
                         if res.is_ok() {
                             pastas[i].content.replace_range(.., &new_content);
