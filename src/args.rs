@@ -106,6 +106,9 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_DEFAULT_EXPIRY", default_value = "24hour")]
     pub default_expiry: String,
 
+    #[clap(long, env = "MICROBIN_MAX_EXPIRY", default_value = "1week")]
+    pub max_expiry: String,
+
     #[clap(long, env = "MICROBIN_DATA_DIR", default_value = "microbin_data")]
     pub data_dir: String,
 
@@ -175,6 +178,26 @@ impl Args {
         }
     }
 
+    pub fn max_expiry_index(&self) -> usize {
+        let options = &[
+            "1min",
+            "10min",
+            "1hour",
+            "24hour",
+            "3days",
+            "1week",
+            "1month",
+            "6months",
+            "1year",
+            "2years",
+            "4years",
+            "8years",
+            "16years",
+            "never",
+        ];
+        options.iter().position(|&x| x == self.max_expiry).unwrap_or(5)
+    }
+
     pub fn without_secrets(self) -> Args {
         Args {
             auth_basic_username: None,
@@ -209,6 +232,7 @@ impl Args {
             eternal_pasta: self.eternal_pasta,
             enable_readonly: self.enable_readonly,
             default_expiry: self.default_expiry,
+            max_expiry: self.max_expiry,
             data_dir: String::from(""),
             no_file_upload: self.no_file_upload,
             custom_css: self.custom_css,

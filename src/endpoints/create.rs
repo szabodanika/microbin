@@ -24,6 +24,7 @@ struct IndexTemplate<'a> {
     args: &'a Args,
     status: String,
     default_privacy_value: String,
+    max_expiry_index: usize,
 }
 
 #[get("/")]
@@ -33,6 +34,7 @@ pub async fn index() -> impl Responder {
             args: &ARGS,
             status: String::from(""),
             default_privacy_value: ARGS.default_privacy.as_ref().map_or_else(|| String::from("public"), |s| s.clone()),
+            max_expiry_index: ARGS.max_expiry_index(),
         }
         .render()
         .unwrap(),
@@ -48,11 +50,29 @@ pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
             args: &ARGS,
             status,
             default_privacy_value: ARGS.default_privacy.as_ref().map_or_else(|| String::from("public"), |s| s.clone()),
+            max_expiry_index: ARGS.max_expiry_index(),
         }
         .render()
         .unwrap(),
     );
 }
+
+const EXPIRATION_OPTIONS: &[&str] = &[
+    "1min",
+    "10min",
+    "1hour",
+    "24hour",
+    "3days",
+    "1week",
+    "1month",
+    "6months",
+    "1year",
+    "2years",
+    "4years",
+    "8years",
+    "16years",
+    "never",
+];
 
 pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
     match expiration {
@@ -62,6 +82,13 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
         "24hour" => timenow + 60 * 60 * 24,
         "3days" => timenow + 60 * 60 * 24 * 3,
         "1week" => timenow + 60 * 60 * 24 * 7,
+        "1month" => timenow + 60 * 60 * 24 * 30,
+        "6months" => timenow + 60 * 60 * 24 * 30 * 6,
+        "1year" => timenow + 60 * 60 * 24 * 365,
+        "2years" => timenow + 60 * 60 * 24 * 365 * 2,
+        "4years" => timenow + 60 * 60 * 24 * 365 * 4,
+        "8years" => timenow + 60 * 60 * 24 * 365 * 8,
+        "16years" => timenow + 60 * 60 * 24 * 365 * 16,
         "never" => {
             if ARGS.eternal_pasta {
                 0
@@ -74,6 +101,12 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
             timenow + 60 * 60 * 24 * 7
         }
     }
+}
+
+pub fn is_valid_expiration(expiration: &str, max_expiry: &str) -> bool {
+    let max_index = EXPIRATION_OPTIONS.iter().position(|&x| x == max_expiry).unwrap_or(5);
+    let current_index = EXPIRATION_OPTIONS.iter().position(|&x| x == expiration).unwrap_or(0);
+    current_index <= max_index
 }
 
 pub async fn create(
@@ -166,11 +199,16 @@ pub async fn create(
                 continue;
             }
             "expiration" => {
+                let mut expiration_str = String::new();
                 while let Some(chunk) = field.try_next().await? {
-                    new_pasta.expiration =
-                        expiration_to_timestamp(std::str::from_utf8(&chunk).unwrap(), timenow);
+                    expiration_str = std::str::from_utf8(&chunk).unwrap().to_string();
                 }
 
+                if !is_valid_expiration(&expiration_str, &ARGS.max_expiry) {
+                    return Err(ErrorBadRequest("Expiration exceeds maximum allowed"));
+                }
+
+                new_pasta.expiration = expiration_to_timestamp(&expiration_str, timenow);
                 continue;
             }
             "burn_after" => {
