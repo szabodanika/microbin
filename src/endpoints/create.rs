@@ -18,8 +18,11 @@ use rand::Rng;
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+// Cap at 2^53 - 1 (JS Number.MAX_SAFE_INTEGER) for compatibility with
+// SQLite signed i64 and JavaScript JSON consumers.
 pub fn generate_pasta_id() -> u64 {
-    rand::thread_rng().gen::<u16>() as u64
+    const MAX_SAFE_ID: u64 = 9_007_199_254_740_991;
+    rand::thread_rng().gen_range(0..=MAX_SAFE_ID)
 }
 
 #[derive(Template)]
@@ -335,7 +338,7 @@ pub async fn create(
         }
     }
 
-    let id = new_pasta.id;
+    let mut id = new_pasta.id;
 
     if plain_key != *"" && new_pasta.readonly {
         new_pasta.encrypted_key = Some(encrypt(id.to_string().as_str(), &plain_key));
@@ -379,6 +382,13 @@ pub async fn create(
 
     {
         let mut pastas = data.pastas.lock().unwrap();
+
+        // Ensure ID uniqueness
+        while pastas.iter().any(|p| p.id == new_pasta.id) {
+            new_pasta.id = generate_pasta_id();
+        }
+        id = new_pasta.id;
+
         pastas.push(new_pasta);
 
         for (_, pasta) in pastas.iter().enumerate() {
