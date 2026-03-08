@@ -26,7 +26,7 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_ADMIN_PASSWORD", default_value = "m1cr0b1n")]
     pub auth_admin_password: SecretArg,
 
-    #[clap(long, env = "MICROBIN_EDITABLE")]
+    #[clap(long, env = "MICROBIN_EDITABLE", action = clap::ArgAction::Set, default_value_t = true)]
     pub editable: bool,
 
     #[clap(long, env = "MICROBIN_FOOTER_TEXT")]
@@ -44,7 +44,7 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_NO_LISTING")]
     pub no_listing: bool,
 
-    #[clap(long, env = "MICROBIN_HIGHLIGHTSYNTAX")]
+    #[clap(long, env = "MICROBIN_HIGHLIGHTSYNTAX", action = clap::ArgAction::Set, default_value_t = true)]
     pub highlightsyntax: bool,
 
     #[clap(short, long, env = "MICROBIN_PORT", default_value_t = 8080)]
@@ -53,7 +53,7 @@ pub struct Args {
     #[clap(short, long, env="MICROBIN_BIND", default_value_t = IpAddr::from([0, 0, 0, 0]))]
     pub bind: IpAddr,
 
-    #[clap(long, env = "MICROBIN_PRIVATE")]
+    #[clap(long, env = "MICROBIN_PRIVATE", action = clap::ArgAction::Set, default_value_t = true)]
     pub private: bool,
 
     #[clap(long, env = "MICROBIN_PURE_HTML")]
@@ -74,7 +74,7 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_READONLY")]
     pub readonly: bool,
 
-    #[clap(long, env = "MICROBIN_SHOW_READ_STATS")]
+    #[clap(long, env = "MICROBIN_SHOW_READ_STATS", action = clap::ArgAction::Set, default_value_t = true)]
     pub show_read_stats: bool,
 
     #[clap(long, env = "MICROBIN_TITLE")]
@@ -86,7 +86,7 @@ pub struct Args {
     #[clap(short, long, env = "MICROBIN_GC_DAYS", default_value_t = 90)]
     pub gc_days: u16,
 
-    #[clap(long, env = "MICROBIN_ENABLE_BURN_AFTER")]
+    #[clap(long, env = "MICROBIN_ENABLE_BURN_AFTER", action = clap::ArgAction::Set, default_value_t = true)]
     pub enable_burn_after: bool,
 
     #[clap(short, long, env = "MICROBIN_DEFAULT_BURN_AFTER", default_value_t = 0)]
@@ -101,7 +101,7 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_ETERNAL_PASTA")]
     pub eternal_pasta: bool,
 
-    #[clap(long, env = "MICROBIN_ENABLE_READONLY")]
+    #[clap(long, env = "MICROBIN_ENABLE_READONLY", action = clap::ArgAction::Set, default_value_t = true)]
     pub enable_readonly: bool,
 
     #[clap(long, env = "MICROBIN_DEFAULT_EXPIRY", default_value = "24hour")]
@@ -131,10 +131,10 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_DISABLE_UPDATE_CHECKING")]
     pub disable_update_checking: bool,
 
-    #[clap(long, env = "MICROBIN_ENCRYPTION_CLIENT_SIDE")]
+    #[clap(long, env = "MICROBIN_ENCRYPTION_CLIENT_SIDE", action = clap::ArgAction::Set, default_value_t = true)]
     pub encryption_client_side: bool,
 
-    #[clap(long, env = "MICROBIN_ENCRYPTION_SERVER_SIDE")]
+    #[clap(long, env = "MICROBIN_ENCRYPTION_SERVER_SIDE", action = clap::ArgAction::Set, default_value_t = true)]
     pub encryption_server_side: bool,
 
     #[clap(long, env = "MICROBIN_DEFAULT_PRIVACY")]

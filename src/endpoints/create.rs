@@ -171,7 +171,7 @@ pub async fn create(
                         _ => true,
                     };
                     new_pasta.readonly = match privacy {
-                        "readonly" => true,
+                        "readonly" if ARGS.enable_readonly => true,
                         _ => false,
                     };
                     new_pasta.encrypt_client = match privacy {
