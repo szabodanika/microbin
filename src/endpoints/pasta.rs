@@ -12,7 +12,13 @@ use actix_web::{get, post, web, Error, HttpRequest, HttpResponse};
 use askama::Template;
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 
+use std::collections::HashMap;
+use std::sync::Mutex as StdMutex;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+lazy_static::lazy_static! {
+    pub static ref OWNER_TOKENS: StdMutex<HashMap<u64, (String, u64)>> = StdMutex::new(HashMap::new());
+}
 
 #[derive(Template)]
 #[template(path = "upload.html", escape = "none")]
@@ -169,25 +175,16 @@ pub async fn getpasta(
 // when creating a pasta, the owner is issued a token with a 15-second expiration
 // this token is used to avoid incrementing the read count of the pasta when the owner views it
 fn verify_owner_token(token: &str, id: &str) -> bool {
-    // decode the token
-    if let Ok(numbers) = crate::util::hashids::HARSH.decode(token) {
-        if numbers.len() == 2 {
-            let expiry = numbers[0];
-            let token_id = numbers[1];
-            let timenow = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+    let pasta_id = if ARGS.hash_ids {
+        hashid_to_u64(id).unwrap_or(0)
+    } else {
+        to_u64(id).unwrap_or(0)
+    };
 
-            // verify the token is valid
-            let target_id = if ARGS.hash_ids {
-                hashid_to_u64(id).unwrap_or(0)
-            } else {
-                to_u64(id).unwrap_or(0)
-            };
-
-            if token_id == target_id && expiry > timenow {
-                // yay, it's valid
-                return true;
-            }
-        }
+    let tokens = OWNER_TOKENS.lock().unwrap();
+    if let Some((stored_token, expiry)) = tokens.get(&pasta_id) {
+        let timenow = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        return token == stored_token && *expiry > timenow;
     }
     false
 }
