@@ -449,3 +449,19 @@ fn decrypt(text_str: &str, key_str: &str) -> Result<String, magic_crypt::MagicCr
 
     mc.decrypt_base64_to_string(text_str)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hashids_forged_token_rejected() {
+        let pasta_id: u64 = 12345;
+        let id_str = crate::util::animalnumbers::to_animal_names(pasta_id);
+        let timenow = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let forged_token = crate::util::hashids::HARSH.encode(&[timenow + 3600, pasta_id]);
+        // A forged Hashids token must NOT be accepted
+        assert!(!verify_owner_token(&forged_token, &id_str),
+            "Forged Hashids token was accepted - owner_token is forgeable!");
+    }
+}
