@@ -422,7 +422,7 @@
             const fileSize = hiddenFileButton.files.item(0).size;
             const fileSizeMb = fileSize / 1024 ** 2;
 
-            if (privacyDropdown.value == "secret") {
+            if (privacyDropdown?.value == "secret") {
                 if (fileSizeMb >
                     parseInt("{{ args.max_file_size_encrypted_mb }}")) {
                     attachFileButton.textContent = "Please select a file smaller than {{ args.max_file_size_encrypted_mb }} MB";
