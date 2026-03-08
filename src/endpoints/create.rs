@@ -18,6 +18,10 @@ use rand::Rng;
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+pub fn generate_pasta_id() -> u64 {
+    rand::thread_rng().gen::<u16>() as u64
+}
+
 #[derive(Template)]
 #[template(path = "index.html")]
 struct IndexTemplate<'a> {
@@ -122,7 +126,7 @@ pub async fn create(
     } as i64;
 
     let mut new_pasta = Pasta {
-        id: rand::thread_rng().gen::<u16>() as u64,
+        id: generate_pasta_id(),
         content: String::from(""),
         file: None,
         extension: String::from(""),
@@ -417,5 +421,17 @@ pub async fn create(
                     .finish(),
             )
             .finish())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_id_not_confined_to_u16() {
+        let ids: Vec<u64> = (0..100).map(|_| generate_pasta_id()).collect();
+        assert!(ids.iter().any(|&id| id > u16::MAX as u64),
+            "All 100 IDs were <= 65535, indicating u16 range constraint");
     }
 }
