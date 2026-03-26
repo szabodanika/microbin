@@ -9,6 +9,7 @@ use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
 use actix_web::cookie::Cookie;
 use actix_web::{get, web, Error, HttpResponse, Responder};
+use uuid::Uuid;
 use askama::Template;
 use bytes::BytesMut;
 use bytesize::ByteSize;
@@ -395,15 +396,16 @@ pub async fn create(
             .append_header(("Location", format!("{}/auth/{}/success", ARGS.public_path_as_str(), slug)))
             .finish())
     } else {
-        // Generate time-limited token for initial view using Hashids
         let timenow = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs();
-        let expiry = timenow + 15; // 15 seconds validity
-        
-        // Use global HARSH instance
-        let encoded_token = crate::util::hashids::HARSH.encode(&[expiry, id]);
+        let encoded_token = Uuid::new_v4().to_string();
+        // Store token server-side so it can't be forged
+        crate::endpoints::pasta::OWNER_TOKENS
+            .lock()
+            .unwrap()
+            .insert(id, (encoded_token.clone(), timenow + 15));
 
         Ok(HttpResponse::Found()
             .append_header((

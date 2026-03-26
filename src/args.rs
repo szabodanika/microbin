@@ -8,7 +8,14 @@ use std::str::FromStr;
 use crate::fs;
 
 lazy_static! {
-    pub static ref ARGS: Args = Args::parse();
+    // Under test, clap would consume the test harness's CLI arguments,
+    // so we initialize with program-name-only defaults instead.
+    pub static ref ARGS: Args = {
+        #[cfg(test)]
+        { Args::parse_from(&["microbin"]) }
+        #[cfg(not(test))]
+        { Args::parse() }
+    };
 }
 
 #[derive(Parser, Debug, Clone, Serialize)]
