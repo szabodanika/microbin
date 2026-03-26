@@ -585,26 +585,24 @@
 
         const dataTransfer = new DataTransfer();
 
-        // Keep existing files
-        for (let i = 0; i < hiddenFileButton.files.length; i++) {
-            dataTransfer.items.add(hiddenFileButton.files[i]);
+        const existingFiles = Array.from(hiddenFileButton.files);
+        for (const file of existingFiles) {
+            dataTransfer.items.add(file);
         }
 
         // Add pasted files, skipping duplicates (same size + type already attached)
         let added = 0;
-        for (const file of pastedFiles) {
-            let isDuplicate = false;
-            for (let i = 0; i < hiddenFileButton.files.length; i++) {
-                if (hiddenFileButton.files[i].size === file.size && hiddenFileButton.files[i].type === file.type) {
-                    isDuplicate = true;
-                    break;
-                }
-            }
+        for (const newFile of pastedFiles) {
+            // Check if this exact file (size + name + type) is already there
+            const isDuplicate = existingFiles.some(oldFile => 
+                oldFile.size === newFile.size && 
+                oldFile.name === newFile.name && 
+                oldFile.type === newFile.type
+            );
+
             if (!isDuplicate) {
-                const ext = (file.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-                const namedFile = new File([file], 'pasted-image-' + timestamp + '.' + ext, { type: file.type });
-                dataTransfer.items.add(namedFile);
+                // We keep the original 'newFile' object to preserve the filename
+                dataTransfer.items.add(newFile);
                 added++;
             }
         }
