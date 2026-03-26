@@ -566,6 +566,59 @@
         }
         evt.preventDefault();
     };
+
+    document.addEventListener('paste', function (evt) {
+        const items = evt.clipboardData?.items;
+        if (!items) return;
+
+        const pastedFiles = [];
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].kind === 'file') {
+                const file = items[i].getAsFile();
+                if (file) pastedFiles.push(file);
+            }
+        }
+
+        if (pastedFiles.length === 0) return;
+
+        evt.preventDefault();
+
+        const dataTransfer = new DataTransfer();
+
+        const existingFiles = Array.from(hiddenFileButton.files);
+        for (const file of existingFiles) {
+            dataTransfer.items.add(file);
+        }
+
+        // Add pasted files, skipping duplicates (same size + type already attached)
+        let added = 0;
+        for (const newFile of pastedFiles) {
+            // Check if this exact file (size + name + type) is already there
+            const isDuplicate = existingFiles.some(oldFile => 
+                oldFile.size === newFile.size && 
+                oldFile.name === newFile.name && 
+                oldFile.type === newFile.type
+            );
+
+            if (!isDuplicate) {
+                // We keep the original 'newFile' object to preserve the filename
+                dataTransfer.items.add(newFile);
+                added++;
+            }
+        }
+
+        if (added === 0) return;
+
+        hiddenFileButton.files = dataTransfer.files;
+
+        if (hiddenFileButton.files.length > 1) {
+            attachFileButton.textContent = "Attached: " + hiddenFileButton.files.length + " files";
+        } else if (hiddenFileButton.files.length === 1) {
+            attachFileButton.textContent = "Attached: " + hiddenFileButton.files[0].name;
+        }
+
+        fileOversized();
+    });
     // {%- endif %}
 
 </script>
