@@ -15,7 +15,7 @@
         {% if pasta.readonly || pasta.encrypt_server %}
         <div style="float: left; height: 90px;">
             <label for="password">Re-enter Password <sup><a href="/guide#password">﹖</a></sup></label><br>
-            <input {% if status=="incorrect" %} autofocus {% endif %} style="width: 130px; height: 28px;"
+            <input {% if status=="incorrect" %} autofocus {% endif %} style="width: 130px;"
                 type="password" id="password" name="password" autocomplete="off" />
             {% if status == "incorrect" %}
             <p>
