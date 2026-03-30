@@ -2,48 +2,43 @@
 
 # BitVault
 
+A privacy-focused, self-hosted pastebin and file sharing service built in Rust. BitVault lets you securely share text snippets, upload files, and shorten URLs — all from a single, lightweight executable with no external dependencies. Everything stays on your server, under your control.
 
-*DISCLAIMER:* This Repo is derived from the great Microbin Project. As the original Project seems to be abandoned, I made some minor updates to my taste - thus removing any telemetry and utilizing some more up to date rust libraries. I might or might not continue development from this point.
-
-*TL:DR:*
-The Main Target of this Project is:
-
- - Maintaining the great
-   [Microbin](https://github.com/szabodanika/microbin) Project
- - Increasing Privacy and removing features, which are not necessary
- - Adding some convenience-features without decreasing the main goals of
-   privacy, simplicity and security
- - A new color-scheme - orange is the obvious choice, because of our
-   ideals
- - Replacing the Animal names with BIP39-words
-
-
-
-BitVault is a super tiny, feature rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
+BitVault is a maintained fork of [Microbin](https://github.com/szabodanika/microbin), with telemetry removed, updated dependencies, and a focus on privacy and simplicity.
 
 TOR HiddenService for demonstration: [http://bvaultb5wmxcxxapep7tnq2zrkjva6ry7uekfcsxpsxts2ve5qmf4iyd.onion/](http://bvaultb5wmxcxxapep7tnq2zrkjva6ry7uekfcsxpsxts2ve5qmf4iyd.onion/)
 
-### Build from source
+## Features
 
-```
-# Install rust and git if necessary (Arch Linux)
+- Single self-contained binary — no runtime dependencies, minimal resource usage
+- Client-side and server-side encryption for secure sharing
+- File uploads and raw content serving (eg. `server.com/file/my-upload`, `server.com/raw/my-upload`)
+- URL shortening and redirection
+- QR code generation for easy mobile access
+- Syntax highlighting for pasted code
+- BIP39 mnemonic words as human-readable upload identifiers
+- SQLite or JSON-file database backend
+- Configurable expiration, visibility, editability, and read-once ("burn after reading") uploads
+- Admin panel with authentication and optional HTTP basic auth
+- Automatic dark mode via [`water.css`](https://github.com/kognise/water.css), custom CSS support
+
+## Build from source
+
+```bash
+# Install rust and git (Arch Linux example)
 sudo pacman -S rust git
 
-# clone repository & build w. cargo
+# Clone and build
 git clone https://github.com/overcuriousity/bitvault
 cd bitvault
 cargo build --release
 cargo run --release
+```
 
-# one-liner to build:
-sudo pacman -S rust git && \
-git clone https://github.com/overcuriousity/bitvault && \
-cd bitvault && \
-cargo build --release
-```
-Create systemd service to run it automatically:
-```
-# Example /etc/systemd/system/bitvault.service
+## Systemd service
+
+```ini
+# /etc/systemd/system/bitvault.service
 [Unit]
 Description=BitVault
 After=network.target
@@ -52,16 +47,12 @@ After=network.target
 Type=simple
 Restart=always
 RootDirectory=/
-
-# This is the user that will be used to run the executable
 User=<insert username>
-# This is where BitVault will save your data
 WorkingDirectory=/home/<insert username>/
-# This is the location of the compiled binary which we did with cargo before 
 ExecStart=/home/<insert username>/bitvault/target/release/bitvault
 
 Environment="BITVAULT_ADMIN_USERNAME=admin"
-Environment="BITVAULT_ADMIN_PASSWORD=changeme
+Environment="BITVAULT_ADMIN_PASSWORD=changeme"
 Environment="BITVAULT_PORT=8080"
 Environment="BITVAULT_BIND=0.0.0.0"
 Environment="BITVAULT_PUBLIC_PATH=https://bitvault.example.org"
@@ -92,55 +83,16 @@ Environment="BITVAULT_MAX_FILE_SIZE_ENCRYPTED_MB=2048"
 Environment="BITVAULT_MAX_FILE_SIZE_UNENCRYPTED_MB=2048"
 # Environment="BITVAULT_BASIC_AUTH_USERNAME=something"
 # Environment="BITVAULT_BASIC_AUTH_PASSWORD=something"
-# Environment="BITVAULT_CUSTOM_CSS="https://myserver.com/custom.css""
+# Environment="BITVAULT_CUSTOM_CSS=https://myserver.com/custom.css"
 Environment="BITVAULT_TITLE=BitVault"
+
 [Install]
 WantedBy=multi-user.target
 ```
 
-On the original developers website [microbin.eu](https://microbin.eu) you will find the following:
+## License
 
-- [Screenshots](https://microbin.eu/screenshots/)
-- [Guide and Documentation](https://microbin.eu/docs/intro)
-- [Donations and Sponsorships](https://microbin.eu/sponsorship)
-- [Roadmap](https://microbin.eu/roadmap)
-
-## Features
-
-- Entirely self-contained executable, BitVault is a single file!
-- Server-side and client-side encryption
-- File uploads (eg. `server.com/file/this-awesome-project`) 
-- Raw text serving (eg. `server.com/raw/this-awesome-project`)
-- QR code support
-- URL shortening and redirection
-- BIP39-words instead of random numbers for upload identifiers (2048 words)
-- SQLite and JSON database support
-- Private and public, editable and uneditable, automatically and never expiring uploads
-- Automatic dark mode and custom styling support with very little CSS and only vanilla JS (see [`water.css`](https://github.com/kognise/water.css))
-- And much more!
-
-## What is an upload?
-
-In BitVault, an upload can be:
-
-- A text that you want to paste from one machine to another, eg. some code,
-- A file that you want to share, eg. a video that is too large for Discord, a zip with a code project in it or an image,
-
-## When is BitVault useful?
-
-You can use BitVault:
-
-- To send long texts to other people
-- To send large files to other people
-- To share secrets or sensitive documents securely
-- As a URL shortener/redirect service
-- To serve content on the web, eg. configuration files for testing, images, or any other file content using the Raw functionality
-- To move files between your desktop and a server you access from the console
-- As a "postbox" service where people can upload their files or texts, but they cannot see or remove what others sent you
-- Or even to take quick notes
-
-
-BitVault is available under the [GPL-3](LICENSE) License, while the original Project was published under [BSD 3-Clause License](ORIGINAL_LICENSE).
+BitVault is available under the [GPL-3](LICENSE) License. The original Microbin project was published under [BSD 3-Clause License](ORIGINAL_LICENSE).
 
 © Dániel Szabó 2022-2023, under BSD-3-Clause
 © Mario Stöckl, from 2024-05-27, under GPL-3 License.
