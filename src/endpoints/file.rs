@@ -77,14 +77,18 @@ pub async fn post_secure_file(
         None => Ok(HttpResponse::NotFound().finish()),
         Some((enc_path, filename, content_type)) => {
             let file = File::open(&enc_path)?;
-            let decrypted_data: Vec<u8> = decrypt_file(&password, &file)?;
-            Ok(HttpResponse::Ok()
-                .content_type(content_type)
-                .append_header((
-                    "Content-Disposition",
-                    format!("attachment; filename=\"{}\"", filename),
-                ))
-                .body(decrypted_data))
+            match decrypt_file(&password, &file) {
+                Ok(decrypted_data) => Ok(HttpResponse::Ok()
+                    .content_type(content_type)
+                    .append_header((
+                        "Content-Disposition",
+                        format!("attachment; filename=\"{}\"", filename),
+                    ))
+                    .body(decrypted_data)),
+                Err(_) => Ok(HttpResponse::Forbidden()
+                    .content_type("text/plain")
+                    .body("Decryption failed. Wrong password?")),
+            }
         }
     }
 }

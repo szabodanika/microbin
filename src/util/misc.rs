@@ -62,8 +62,11 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
     // Throttle orphan-directory cleanup to once per minute — avoid per-request
     // filesystem scans on busy servers.
     let last = LAST_ORPHAN_CLEANUP.load(Ordering::Relaxed);
-    if timenow - last >= ORPHAN_CLEANUP_INTERVAL_SECS {
-        LAST_ORPHAN_CLEANUP.store(timenow, Ordering::Relaxed);
+    if timenow - last >= ORPHAN_CLEANUP_INTERVAL_SECS
+        && LAST_ORPHAN_CLEANUP
+            .compare_exchange(last, timenow, Ordering::AcqRel, Ordering::Relaxed)
+            .is_ok()
+    {
         // Build known directory names under BOTH naming schemes while the lock
         // is still held, then hand off the actual I/O to a background thread so
         // the mutex is not blocked during the filesystem scan/deletes.

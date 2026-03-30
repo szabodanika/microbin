@@ -15,7 +15,7 @@ use askama::Template;
 use bytesize::ByteSize;
 use futures::TryStreamExt;
 use log::warn;
-use rand::Rng;
+
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -113,7 +113,7 @@ pub async fn create(
     } as i64;
 
     let mut new_pasta = Pasta {
-        id: rand::rng().random_range(0..=8589934591),
+        id: rand::random_range(0..=8589934591),
         content: String::from(""),
         file: None,
         attachments: None,
@@ -186,14 +186,16 @@ pub async fn create(
                         }
                     }
                     "expiration" => {
+                        let mut expiration_buf = String::new();
                         while let Some(chunk) = field.try_next().await? {
-                            let expiration_str = std::str::from_utf8(&chunk).unwrap();
-                            if !is_valid_expiration(expiration_str) {
-                                return Err(ErrorBadRequest("Expiration exceeds server maximum."));
-                            }
-                            new_pasta.expiration =
-                                expiration_to_timestamp(expiration_str, timenow);
+                            expiration_buf
+                                .push_str(std::str::from_utf8(&chunk).unwrap());
                         }
+                        if !is_valid_expiration(&expiration_buf) {
+                            return Err(ErrorBadRequest("Expiration exceeds server maximum."));
+                        }
+                        new_pasta.expiration =
+                            expiration_to_timestamp(&expiration_buf, timenow);
                     }
                     "burn_after" => {
                         while let Some(chunk) = field.try_next().await? {
