@@ -76,17 +76,32 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             .flat_map(|p| [to_bip39_words(p.id), to_hashids(p.id)])
             .collect();
         std::thread::spawn(move || {
+            // Only delete directories older than 5 minutes to avoid racing with
+            // uploads in progress (files are written before the pasta is inserted
+            // into shared state, so the id won't be in known_ids yet).
+            const SAFETY_SECS: u64 = 300;
+            let now = SystemTime::now();
+
             if let Ok(entries) = fs::read_dir(&attachments_dir) {
                 for entry in entries.flatten() {
                     if let Some(name) = entry.file_name().to_str().map(|s| s.to_owned()) {
                         if !known_ids.contains(&name) {
                             let path = entry.path();
                             if path.is_dir() {
-                                if fs::remove_dir_all(&path).is_err() {
-                                    log::error!(
-                                        "Failed to remove orphaned attachment dir {:?}",
-                                        path
-                                    );
+                                let dominated = entry.metadata().ok().and_then(|m| {
+                                    m.modified().ok().map(|mt| {
+                                        now.duration_since(mt)
+                                            .map(|d| d.as_secs() >= SAFETY_SECS)
+                                            .unwrap_or(false)
+                                    })
+                                });
+                                if dominated == Some(true) {
+                                    if fs::remove_dir_all(&path).is_err() {
+                                        log::error!(
+                                            "Failed to remove orphaned attachment dir {:?}",
+                                            path
+                                        );
+                                    }
                                 }
                             }
                         }

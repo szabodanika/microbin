@@ -19,14 +19,12 @@
             <label for="expiration">Expiration <sup> <a href="/guide#expiration">?</a></sup></label><br>
             <select style="width: 100%;" name="expiration" id="expiration">
                 <optgroup label="Expire after">
-                    {% if max_expiry_index >= 0 %}
                     {% if args.default_expiry == "1min" %}
                     <option selected value="1min">
                         {%- else %}
                     <option value="1min">
                         {%- endif %} 1 minute
                     </option>
-                    {%- endif %}
                     {% if max_expiry_index >= 1 %}
                     {% if args.default_expiry == "10min" %}
                     <option selected value="10min">
