@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use crate::args::ARGS;
 use crate::util::auth;
 use crate::util::hashids::to_u64 as hashid_to_u64;
-use crate::util::misc::remove_expired;
+use crate::util::misc::{remove_expired, resolve_attachment_id};
 use crate::util::{bip39words::to_u64, misc::decrypt_file};
 use crate::AppState;
 use actix_multipart::Multipart;
@@ -63,7 +63,7 @@ pub async fn post_secure_file(
             };
 
             pasta_file.and_then(|pf| {
-                enc_file_path(&ARGS.data_dir, &pasta.id_as_words(), pf.name()).map(|enc_path| {
+                enc_file_path(&ARGS.data_dir, &resolve_attachment_id(pasta.id), pf.name()).map(|enc_path| {
                     let content_type = mime_guess::from_path(pf.name())
                         .first_or_octet_stream()
                         .to_string();
@@ -155,7 +155,7 @@ pub async fn get_file(
                 let file_path = PathBuf::from(format!(
                     "{}/attachments/{}/{}",
                     ARGS.data_dir,
-                    pastas[index].id_as_words(),
+                    resolve_attachment_id(pastas[index].id),
                     pf.name()
                 ));
                 // Only allow inline for raster image/* and video/* — SVG and

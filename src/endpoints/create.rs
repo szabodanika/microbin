@@ -39,7 +39,7 @@ pub async fn index() -> impl Responder {
             args: &ARGS,
             status: String::from(""),
             max_expiry_index: ARGS.max_expiry_index(),
-            default_privacy_value: ARGS.default_privacy.clone().unwrap_or_else(|| String::from("unlisted")),
+            default_privacy_value: effective_default_privacy(),
         }
         .render()
         .unwrap(),
@@ -55,11 +55,29 @@ pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
             args: &ARGS,
             status,
             max_expiry_index: ARGS.max_expiry_index(),
-            default_privacy_value: ARGS.default_privacy.clone().unwrap_or_else(|| String::from("unlisted")),
+            default_privacy_value: effective_default_privacy(),
         }
         .render()
         .unwrap(),
     );
+}
+
+/// Returns the effective default privacy value, falling back to "unlisted"
+/// when the configured default requires a feature that is disabled.
+fn effective_default_privacy() -> String {
+    let pref = ARGS.default_privacy.as_deref().unwrap_or("unlisted");
+    let available = match pref {
+        "readonly" => ARGS.enable_readonly,
+        "private" => ARGS.encryption_server_side,
+        "secret" => ARGS.encryption_client_side,
+        "public" | "unlisted" => true,
+        _ => false,
+    };
+    if available {
+        pref.to_string()
+    } else {
+        String::from("unlisted")
+    }
 }
 
 pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
@@ -329,6 +347,12 @@ pub async fn create(
                 continue;
             }
         }
+    }
+
+    // Client-side encryption only supports a single primary file in the UI
+    // decrypt flow; drop any extra attachments that should not have been sent.
+    if new_pasta.encrypt_client {
+        new_pasta.attachments = None;
     }
 
     if ARGS.readonly && ARGS.uploader_password.is_some() {

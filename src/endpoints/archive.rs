@@ -3,7 +3,7 @@
 use crate::args::ARGS;
 use crate::util::bip39words::to_u64;
 use crate::util::hashids::to_u64 as hashid_to_u64;
-use crate::util::misc::remove_expired;
+use crate::util::misc::{remove_expired, resolve_attachment_id};
 use crate::AppState;
 use actix_web::{get, web, Error, HttpResponse};
 use std::io::Write;
@@ -14,7 +14,7 @@ pub async fn get_archive(
     id: web::Path<String>,
 ) -> Result<HttpResponse, Error> {
     // Collect needed metadata under the lock, then drop it before blocking I/O
-    let (file_names, id_words) = {
+    let (file_names, attachment_id, id_words) = {
         let mut pastas = data.pastas.lock().unwrap();
 
         let id_intern = if ARGS.hash_ids {
@@ -62,14 +62,14 @@ pub async fn get_archive(
                 if total_bytes > cap {
                     return Ok(HttpResponse::PayloadTooLarge().finish());
                 }
-                (names, p.id_as_words())
+                (names, resolve_attachment_id(p.id), p.id_as_words())
             }
         }
     }; // lock dropped here
 
     let data_dir = ARGS.data_dir.clone();
     let archive_name = format!("{}.zip", id_words);
-    let id_words_closure = id_words;
+    let id_words_closure = attachment_id;
 
     let zip_bytes = web::block(move || -> Result<Vec<u8>, std::io::Error> {
         let buf = std::io::Cursor::new(Vec::new());

@@ -97,6 +97,22 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
     }
 }
 
+/// Resolve the attachment sub-directory name for a pasta ID, trying both naming
+/// schemes in case `BITVAULT_HASH_IDS` was toggled between restarts.
+pub fn resolve_attachment_id(id: u64) -> String {
+    let primary = if ARGS.hash_ids { to_hashids(id) } else { to_bip39_words(id) };
+    let primary_dir = format!("{}/attachments/{}", ARGS.data_dir, primary);
+    if Path::new(&primary_dir).exists() {
+        return primary;
+    }
+    let alt = if ARGS.hash_ids { to_bip39_words(id) } else { to_hashids(id) };
+    let alt_dir = format!("{}/attachments/{}", ARGS.data_dir, alt);
+    if Path::new(&alt_dir).exists() {
+        return alt;
+    }
+    primary
+}
+
 pub fn string_to_qr_svg(str: &str) -> String {
     qrcode_generator::to_svg_to_string(str, QrCodeEcc::Low, 256, None::<&str>).unwrap()
 }
