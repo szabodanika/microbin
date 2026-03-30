@@ -42,65 +42,51 @@ pub async fn post_secure_file(
 
     let password = auth::password_from_multipart(payload).await?;
 
-    let mut pastas = data.pastas.lock().unwrap();
+    // Collect the enc path and filename under the lock, then drop it before
+    // any blocking filesystem I/O (File::open + decrypt_file reads the file).
+    let file_info: Option<(String, String, String)> = {
+        let mut pastas = data.pastas.lock().unwrap();
+        remove_expired(&mut pastas);
 
-    let id = id_intern;
-
-    remove_expired(&mut pastas);
-
-    let mut index: usize = 0;
-    let mut found: bool = false;
-    for (i, pasta) in pastas.iter().enumerate() {
-        if pasta.id == id {
-            index = i;
-            found = true;
-            break;
-        }
-    }
-
-    if found {
         let fname = query.get("fname").cloned();
 
-        // Determine which file to serve
-        let pasta_file = if let Some(ref fname) = fname {
-            // Check primary file
-            if pastas[index].file.as_ref().map(|f| f.name() == fname).unwrap_or(false) {
-                pastas[index].file.as_ref()
+        pastas.iter().find(|p| p.id == id_intern).and_then(|pasta| {
+            let pasta_file = if let Some(ref fname) = fname {
+                if pasta.file.as_ref().map(|f| f.name() == fname).unwrap_or(false) {
+                    pasta.file.as_ref()
+                } else {
+                    pasta.attachments.as_ref()
+                        .and_then(|a| a.iter().find(|f| f.name() == fname))
+                }
             } else {
-                // Check attachments
-                pastas[index].attachments.as_ref()
-                    .and_then(|a| a.iter().find(|f| f.name() == fname))
-            }
-        } else {
-            pastas[index].file.as_ref()
-        };
-
-        if let Some(pasta_file) = pasta_file {
-            let enc_path = match enc_file_path(
-                &ARGS.data_dir,
-                &pastas[index].id_as_words(),
-                pasta_file.name(),
-            ) {
-                Some(p) => p,
-                None => return Ok(HttpResponse::NotFound().finish()),
+                pasta.file.as_ref()
             };
+
+            pasta_file.and_then(|pf| {
+                enc_file_path(&ARGS.data_dir, &pasta.id_as_words(), pf.name()).map(|enc_path| {
+                    let content_type = mime_guess::from_path(pf.name())
+                        .first_or_octet_stream()
+                        .to_string();
+                    (enc_path, pf.name().to_string(), content_type)
+                })
+            })
+        })
+    }; // lock dropped here
+
+    match file_info {
+        None => Ok(HttpResponse::NotFound().finish()),
+        Some((enc_path, filename, content_type)) => {
             let file = File::open(&enc_path)?;
             let decrypted_data: Vec<u8> = decrypt_file(&password, &file)?;
-
-            let content_type = mime_guess::from_path(pasta_file.name())
-                .first_or_octet_stream()
-                .to_string();
-
-            return Ok(HttpResponse::Ok()
+            Ok(HttpResponse::Ok()
                 .content_type(content_type)
                 .append_header((
                     "Content-Disposition",
-                    format!("attachment; filename=\"{}\"", pasta_file.name()),
+                    format!("attachment; filename=\"{}\"", filename),
                 ))
-                .body(decrypted_data));
+                .body(decrypted_data))
         }
     }
-    Ok(HttpResponse::NotFound().finish())
 }
 
 #[get("/file/{id}")]
@@ -167,11 +153,14 @@ pub async fn get_file(
                 pasta_file.name()
             ));
 
-            // Only allow inline (preview) for image/* and video/* — serving
-            // arbitrary content inline on the same origin (HTML, SVG, JS…)
-            // is a stored-XSS vector.
+            // Only allow inline (preview) for raster image/* and video/* —
+            // serving SVG or arbitrary content inline on the same origin is a
+            // stored-XSS vector (SVG can carry embedded scripts).
             let ct = mime_guess::from_path(pasta_file.name()).first_or_octet_stream();
-            let safe_for_inline = ct.type_().as_str() == "image" || ct.type_().as_str() == "video";
+            let safe_for_inline = (ct.type_().as_str() == "image"
+                && ct.subtype().as_str() != "svg+xml"
+                && ct.subtype().as_str() != "svg")
+                || ct.type_().as_str() == "video";
             let disposition_type = if preview_requested && safe_for_inline {
                 header::DispositionType::Inline
             } else {

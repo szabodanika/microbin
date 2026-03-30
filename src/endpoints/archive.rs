@@ -37,16 +37,26 @@ pub async fn get_archive(
             }
             Some(p) => {
                 let mut names: Vec<String> = Vec::new();
+                let mut total_bytes: u64 = 0;
                 if let Some(ref f) = p.file {
                     names.push(f.name().to_owned());
+                    total_bytes = total_bytes.saturating_add(f.size.as_u64());
                 }
                 if let Some(ref attachments) = p.attachments {
                     for a in attachments {
                         names.push(a.name().to_owned());
+                        total_bytes = total_bytes.saturating_add(a.size.as_u64());
                     }
                 }
                 if names.is_empty() {
                     return Ok(HttpResponse::NotFound().finish());
+                }
+                // Enforce a total archive size cap — ZIP is built in memory, so
+                // reject before blocking I/O to avoid OOM on large sets.
+                let cap = (ARGS.max_file_size_unencrypted_mb as u64)
+                    .saturating_mul(1024 * 1024 * 10);
+                if total_bytes > cap {
+                    return Ok(HttpResponse::PayloadTooLarge().finish());
                 }
                 (names, p.id_as_words())
             }

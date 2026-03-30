@@ -45,11 +45,14 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             // remove from database
             delete(None, Some(p.id));
 
-            // remove the attachment directory entirely (handles single file, attachments, and .enc variants)
-            let dir = format!("{}/attachments/{}", ARGS.data_dir, p.id_as_words());
-            if Path::new(&dir).exists() {
-                if fs::remove_dir_all(&dir).is_err() {
-                    log::error!("Failed to delete attachment directory {}!", dir);
+            // Attempt deletion under both naming schemes in case BITVAULT_HASH_IDS
+            // was toggled between restarts (directory was created under the other scheme).
+            for id_str in [to_bip39_words(p.id), to_hashids(p.id)] {
+                let dir = format!("{}/attachments/{}", ARGS.data_dir, id_str);
+                if Path::new(&dir).exists() {
+                    if fs::remove_dir_all(&dir).is_err() {
+                        log::error!("Failed to delete attachment directory {}!", dir);
+                    }
                 }
             }
             false

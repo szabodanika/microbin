@@ -459,6 +459,21 @@
         });
     }
 
+    // "secret" mode uses client-side encryption which only supports a single
+    // file (the JS decrypt flow in upload.html is per-pasta, not per-attachment).
+    // Disable multi-file selection when that mode is active.
+    function applyMultipleAttr() {
+        if (privacyDropdown && privacyDropdown.value === 'secret') {
+            hiddenFileButton.removeAttribute('multiple');
+        } else {
+            hiddenFileButton.setAttribute('multiple', '');
+        }
+    }
+    if (privacyDropdown) {
+        privacyDropdown.addEventListener('change', applyMultipleAttr);
+        applyMultipleAttr(); // set initial state
+    }
+
     hiddenFileButton.addEventListener('change', function () {
         if (this.files.length === 1) {
             attachFileButton.textContent = "Attached: " + this.files[0].name;
@@ -470,19 +485,33 @@
 
     dropContainer.ondragover = dropContainer.ondragenter = function (evt) {
         evt.preventDefault();
-        if (hiddenFileButton.files.length == 0) {
-            attachFileButton.textContent = "Drop your file here";
+        const existing = hiddenFileButton.files.length;
+        if (existing === 0) {
+            attachFileButton.textContent = "Drop file(s) here";
         } else {
-            attachFileButton.textContent = "Drop your file here to replace " + hiddenFileButton.files[0].name;
+            attachFileButton.textContent = "Drop to add to " + existing + " already selected";
         }
     };
 
     dropContainer.ondrop = function (evt) {
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(evt.dataTransfer.files[0]);
-        hiddenFileButton.files = dataTransfer.files;
-        attachFileButton.textContent = "Attached: " + hiddenFileButton.files[0].name;
         evt.preventDefault();
+        const dt = new DataTransfer();
+        // Keep existing selection
+        for (let i = 0; i < hiddenFileButton.files.length; i++) {
+            dt.items.add(hiddenFileButton.files[i]);
+        }
+        // Append all dropped files
+        const dropped = evt.dataTransfer.files;
+        for (let i = 0; i < dropped.length; i++) {
+            dt.items.add(dropped[i]);
+        }
+        hiddenFileButton.files = dt.files;
+        if (dt.files.length === 1) {
+            attachFileButton.textContent = "Attached: " + dt.files[0].name;
+        } else {
+            attachFileButton.textContent = "Attached: " + dt.files.length + " files";
+        }
+        fileOversized();
     };
 
     // Clipboard paste support for image uploads
