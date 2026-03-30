@@ -34,14 +34,16 @@ fn open_db() -> Connection {
 
 /// Ensure the attachments column exists — no-op if already present.
 fn migrate_attachments_column(conn: &Connection) {
-    match conn.execute("ALTER TABLE pasta ADD COLUMN attachments TEXT", params![]) {
-        Ok(_) => {}
-        Err(rusqlite::Error::SqliteFailure(_, Some(ref msg)))
-            if msg.contains("duplicate column name") =>
-        {
-            // Column already exists — expected on all but the first post-migration startup.
-        }
-        Err(e) => panic!("Failed to migrate attachments column: {e}"),
+    let has_col = conn
+        .query_row(
+            "SELECT COUNT(*) FROM pragma_table_info('pasta') WHERE name='attachments'",
+            [],
+            |row| row.get::<_, i64>(0),
+        )
+        .unwrap_or(0) > 0;
+    if !has_col {
+        conn.execute("ALTER TABLE pasta ADD COLUMN attachments TEXT", params![])
+            .expect("Failed to migrate attachments column");
     }
 }
 

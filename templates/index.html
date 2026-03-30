@@ -113,13 +113,11 @@
                     {%- endif %}
                 </optgroup>
                 {% if max_expiry_index >= 13 %}
-                {% if !args.eternal_pasta %} {% if args.default_expiry ==
-                "never" %}
+                {% if args.default_expiry == "never" %}
                 <option selected value="never">
                     {%- else %}
                 <option value="never">{%- endif %} Never Expire
                 </option>
-                {%- endif %}
                 {%- endif %}
             </select>
         </div>
@@ -461,10 +459,23 @@
 
     // "secret" mode uses client-side encryption which only supports a single
     // file (the JS decrypt flow in upload.html is per-pasta, not per-attachment).
-    // Disable multi-file selection when that mode is active.
+    // Disable multi-file selection when that mode is active, and trim any
+    // already-selected files down to one when the user switches into secret mode.
+    function isSecret() {
+        return privacyDropdown && privacyDropdown.value === 'secret';
+    }
+    function trimToSingleFile() {
+        if (hiddenFileButton.files.length > 1) {
+            const dt = new DataTransfer();
+            dt.items.add(hiddenFileButton.files[0]);
+            hiddenFileButton.files = dt.files;
+            attachFileButton.textContent = "Attached: " + hiddenFileButton.files[0].name;
+        }
+    }
     function applyMultipleAttr() {
-        if (privacyDropdown && privacyDropdown.value === 'secret') {
+        if (isSecret()) {
             hiddenFileButton.removeAttribute('multiple');
+            trimToSingleFile();
         } else {
             hiddenFileButton.setAttribute('multiple', '');
         }
@@ -496,14 +507,18 @@
     dropContainer.ondrop = function (evt) {
         evt.preventDefault();
         const dt = new DataTransfer();
-        // Keep existing selection
-        for (let i = 0; i < hiddenFileButton.files.length; i++) {
-            dt.items.add(hiddenFileButton.files[i]);
-        }
-        // Append all dropped files
         const dropped = evt.dataTransfer.files;
-        for (let i = 0; i < dropped.length; i++) {
-            dt.items.add(dropped[i]);
+        if (isSecret()) {
+            // Secret mode: replace with the first dropped file only.
+            if (dropped.length > 0) dt.items.add(dropped[0]);
+        } else {
+            // Keep existing selection and append all dropped files.
+            for (let i = 0; i < hiddenFileButton.files.length; i++) {
+                dt.items.add(hiddenFileButton.files[i]);
+            }
+            for (let i = 0; i < dropped.length; i++) {
+                dt.items.add(dropped[i]);
+            }
         }
         hiddenFileButton.files = dt.files;
         if (dt.files.length === 1) {
@@ -520,28 +535,35 @@
         const items = evt.clipboardData && evt.clipboardData.items;
         if (!items) return;
         const dt = new DataTransfer();
-        // Keep existing files
-        for (let i = 0; i < hiddenFileButton.files.length; i++) {
-            dt.items.add(hiddenFileButton.files[i]);
-        }
         let added = 0;
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].kind === 'file') {
-                const pastedFile = items[i].getAsFile();
-                if (!pastedFile) continue;
-                // Deduplicate by name+size+type
-                let duplicate = false;
-                for (let j = 0; j < dt.files.length; j++) {
-                    if (dt.files[j].name === pastedFile.name &&
-                        dt.files[j].size === pastedFile.size &&
-                        dt.files[j].type === pastedFile.type) {
-                        duplicate = true;
-                        break;
-                    }
+        if (isSecret()) {
+            // Secret mode: replace with the first pasted file only.
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].kind === 'file') {
+                    const pastedFile = items[i].getAsFile();
+                    if (pastedFile) { dt.items.add(pastedFile); added++; break; }
                 }
-                if (!duplicate) {
-                    dt.items.add(pastedFile);
-                    added++;
+            }
+        } else {
+            // Keep existing files and append pasted ones (deduplicated).
+            for (let i = 0; i < hiddenFileButton.files.length; i++) {
+                dt.items.add(hiddenFileButton.files[i]);
+            }
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].kind === 'file') {
+                    const pastedFile = items[i].getAsFile();
+                    if (!pastedFile) continue;
+                    // Deduplicate by name+size+type
+                    let duplicate = false;
+                    for (let j = 0; j < dt.files.length; j++) {
+                        if (dt.files[j].name === pastedFile.name &&
+                            dt.files[j].size === pastedFile.size &&
+                            dt.files[j].type === pastedFile.type) {
+                            duplicate = true;
+                            break;
+                        }
+                    }
+                    if (!duplicate) { dt.items.add(pastedFile); added++; }
                 }
             }
         }
