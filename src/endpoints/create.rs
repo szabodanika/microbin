@@ -316,9 +316,8 @@ pub async fn create(
         }
     }
 
-    // Acquire the lock only after all file I/O is complete
-    let mut pastas = data.pastas.lock().unwrap();
-
+    // Perform all encryption before acquiring the lock — crypto and file I/O
+    // only touch new_pasta (local) and the filesystem, not shared state.
     let id = new_pasta.id;
 
     if plain_key != *"" && new_pasta.readonly {
@@ -368,6 +367,9 @@ pub async fn create(
     }
 
     let encrypt_server = new_pasta.encrypt_server;
+
+    // Now acquire the lock — only needed to mutate shared in-memory state and DB
+    let mut pastas = data.pastas.lock().unwrap();
 
     pastas.push(new_pasta);
 

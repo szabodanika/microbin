@@ -5,7 +5,7 @@
 
 {% if encrypt_client %}
 
-<form id="auth-form" method="POST" action="/{{path}}/{{id}}" enctype="multipart/form-data">
+<form id="auth-form" method="POST" action="/{{path}}/{{id}}{% if query_string != "" %}?{{query_string}}{% endif %}" enctype="multipart/form-data">
   {% if status == "success" %}
   <b>
     Success!
@@ -63,7 +63,7 @@
 
 {% else %}
 
-<form id="auth-form" method="POST" action="/{{path}}/{{id}}" enctype="multipart/form-data">
+<form id="auth-form" method="POST" action="/{{path}}/{{id}}{% if query_string != "" %}?{{query_string}}{% endif %}" enctype="multipart/form-data">
   {% if status == "success" %}
   <b>
     Success!

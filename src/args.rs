@@ -126,9 +126,6 @@ pub struct Args {
     #[clap(long, env = "BITVAULT_DEFAULT_PRIVACY")]
     pub default_privacy: Option<String>,
 
-    #[clap(long, env = "BITVAULT_DEFAULT_VIEW", default_value = "gallery")]
-    pub default_view: String,
-
     #[clap(long, env = "BITVAULT_ENCRYPTION_CLIENT_SIDE")]
     pub encryption_client_side: bool,
 
@@ -209,7 +206,6 @@ impl Args {
             hash_ids: self.hash_ids,
             max_expiry: self.max_expiry,
             default_privacy: self.default_privacy,
-            default_view: self.default_view,
             encryption_client_side: self.encryption_client_side,
             encryption_server_side: self.encryption_server_side,
             max_file_size_encrypted_mb: self.max_file_size_encrypted_mb,

@@ -411,22 +411,19 @@
     }
 
     function fileOversized() {
-        if (hiddenFileButton.files.length > 0) {
-            const fileSize = hiddenFileButton.files.item(0).size;
-            const fileSizeMb = fileSize / 1024 ** 2;
-
-            if (privacyDropdown.value == "secret") {
-                if (fileSizeMb >
-                    parseInt("{{ args.max_file_size_encrypted_mb }}")) {
-                    attachFileButton.textContent = "Please select a file smaller than {{ args.max_file_size_encrypted_mb }} MB";
-                    this.value = "";
+        const maxEncMb = parseInt("{{ args.max_file_size_encrypted_mb }}");
+        const maxUnencMb = parseInt("{{ args.max_file_size_unencrypted_mb }}");
+        const isSecret = privacyDropdown.value == "secret";
+        for (let i = 0; i < hiddenFileButton.files.length; i++) {
+            const fileSizeMb = hiddenFileButton.files.item(i).size / 1024 ** 2;
+            if (isSecret) {
+                if (fileSizeMb > maxEncMb) {
+                    attachFileButton.textContent = "Please select files smaller than {{ args.max_file_size_encrypted_mb }} MB each";
                     return true;
                 }
             } else {
-                if (fileSizeMb >
-                    parseInt("{{ args.max_file_size_unencrypted_mb }}")) {
-                    attachFileButton.textContent = "Please select a file smaller than {{ args.max_file_size_unencrypted_mb }} MB";
-                    this.value = "";
+                if (fileSizeMb > maxUnencMb) {
+                    attachFileButton.textContent = "Please select files smaller than {{ args.max_file_size_unencrypted_mb }} MB each";
                     return true;
                 }
             }
@@ -436,25 +433,29 @@
 
     function encryptFile() {
         return new Promise((resolve, reject) => {
-            if (hiddenFileButton.files.length > 0) {
-                const file = hiddenFileButton.files[0];
-
+            const files = Array.from(hiddenFileButton.files);
+            if (files.length === 0) {
+                resolve();
+                return;
+            }
+            const encryptPromises = files.map(file => new Promise((res, rej) => {
                 const reader = new FileReader();
                 reader.onload = function (event) {
-                    const encryptedContents = encryptFileWithPassword(passwordField.value.trim(), new Uint8Array(event.target.result));
-
-                    // Replace selected file with its encrypted version
-                    const encryptedFile = new File([encryptedContents], file.name, { type: file.type });
-
-                    let container = new DataTransfer();
-                    container.items.add(encryptedFile);
-                    hiddenFileButton.files = container.files;
-                    resolve(encryptedFile);
+                    const encryptedContents = encryptFileWithPassword(
+                        passwordField.value.trim(),
+                        new Uint8Array(event.target.result)
+                    );
+                    res(new File([encryptedContents], file.name, { type: file.type }));
                 };
+                reader.onerror = rej;
                 reader.readAsArrayBuffer(file);
-            } else {
+            }));
+            Promise.all(encryptPromises).then(encryptedFiles => {
+                const container = new DataTransfer();
+                encryptedFiles.forEach(f => container.items.add(f));
+                hiddenFileButton.files = container.files;
                 resolve();
-            }
+            }).catch(reject);
         });
     }
 
@@ -518,6 +519,7 @@
         if (added > 0) {
             hiddenFileButton.files = dt.files;
             attachFileButton.textContent = "Attached: " + dt.files.length + " file(s)";
+            fileOversized();
         }
     });
     // Access Paste button functionality

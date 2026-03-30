@@ -7,7 +7,11 @@ use qrcode_generator::QrCodeEcc;
 use std::fs::{self, File};
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
+use std::sync::atomic::{AtomicI64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+static LAST_ORPHAN_CLEANUP: AtomicI64 = AtomicI64::new(0);
+const ORPHAN_CLEANUP_INTERVAL_SECS: i64 = 60;
 
 use crate::Pasta;
 
@@ -51,18 +55,23 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
         }
     });
 
-    // Remove orphaned attachment directories (dirs with no corresponding pasta)
-    let attachments_dir = format!("{}/attachments", ARGS.data_dir);
-    if let Ok(entries) = fs::read_dir(&attachments_dir) {
-        let known_ids: std::collections::HashSet<String> =
-            pastas.iter().map(|p| p.id_as_words()).collect();
-        for entry in entries.flatten() {
-            if let Some(name) = entry.file_name().to_str().map(|s| s.to_owned()) {
-                if !known_ids.contains(&name) {
-                    let path = entry.path();
-                    if path.is_dir() {
-                        if fs::remove_dir_all(&path).is_err() {
-                            log::error!("Failed to remove orphaned attachment dir {:?}", path);
+    // Throttle orphan-directory cleanup to once per minute — avoid per-request
+    // filesystem scans on busy servers.
+    let last = LAST_ORPHAN_CLEANUP.load(Ordering::Relaxed);
+    if timenow - last >= ORPHAN_CLEANUP_INTERVAL_SECS {
+        LAST_ORPHAN_CLEANUP.store(timenow, Ordering::Relaxed);
+        let attachments_dir = format!("{}/attachments", ARGS.data_dir);
+        if let Ok(entries) = fs::read_dir(&attachments_dir) {
+            let known_ids: std::collections::HashSet<String> =
+                pastas.iter().map(|p| p.id_as_words()).collect();
+            for entry in entries.flatten() {
+                if let Some(name) = entry.file_name().to_str().map(|s| s.to_owned()) {
+                    if !known_ids.contains(&name) {
+                        let path = entry.path();
+                        if path.is_dir() {
+                            if fs::remove_dir_all(&path).is_err() {
+                                log::error!("Failed to remove orphaned attachment dir {:?}", path);
+                            }
                         }
                     }
                 }

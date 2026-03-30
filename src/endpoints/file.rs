@@ -13,13 +13,15 @@ use actix_multipart::Multipart;
 use actix_web::http::header;
 use actix_web::{get, post, web, Error, HttpResponse};
 
-fn enc_file_path(data_dir: &str, id_as_words: &str, filename: &str) -> String {
+fn enc_file_path(data_dir: &str, id_as_words: &str, filename: &str) -> Option<String> {
     let new_path = format!("{}/attachments/{}/{}.enc", data_dir, id_as_words, filename);
     let legacy_path = format!("{}/attachments/{}/data.enc", data_dir, id_as_words);
     if std::path::Path::new(&new_path).exists() {
-        new_path
+        Some(new_path)
+    } else if std::path::Path::new(&legacy_path).exists() {
+        Some(legacy_path)
     } else {
-        legacy_path
+        None
     }
 }
 
@@ -70,11 +72,14 @@ pub async fn post_secure_file(
         };
 
         if let Some(pasta_file) = pasta_file {
-            let enc_path = enc_file_path(
+            let enc_path = match enc_file_path(
                 &ARGS.data_dir,
                 &pastas[index].id_as_words(),
                 pasta_file.name(),
-            );
+            ) {
+                Some(p) => p,
+                None => return Ok(HttpResponse::NotFound().finish()),
+            };
             let file = File::open(&enc_path)?;
             let decrypted_data: Vec<u8> = decrypt_file(&password, &file)?;
 
@@ -123,11 +128,15 @@ pub async fn get_file(
 
     if found {
         if pastas[index].encrypt_server {
+            let mut location = format!("/auth_file/{}", pastas[index].id_as_words());
+            if let Some(qs) = request.uri().query() {
+                if !qs.is_empty() {
+                    location.push('?');
+                    location.push_str(qs);
+                }
+            }
             return Ok(HttpResponse::Found()
-                .append_header((
-                    "Location",
-                    format!("/auth_file/{}", pastas[index].id_as_words()),
-                ))
+                .append_header(("Location", location))
                 .finish());
         }
 
