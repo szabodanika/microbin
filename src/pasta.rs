@@ -2,6 +2,7 @@
 // (c) 2024-05-27 Mario Stöckl - derived from the original Microbin Project by Daniel Szabo
 use bytesize::ByteSize;
 use chrono::{Datelike, Local, TimeZone, Timelike};
+use sanitize_filename;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::path::Path;
@@ -21,8 +22,14 @@ pub struct PastaFile {
 impl PastaFile {
     pub fn from_unsanitized(path: &str) -> Result<Self, &'static str> {
         let path = Path::new(path);
-        let name = path.file_name().ok_or("Path did not contain a file name")?;
-        let name = name.to_string_lossy().replace(' ', "_");
+        let raw = path.file_name().ok_or("Path did not contain a file name")?;
+        // sanitize_filename removes characters that are unsafe on any platform
+        // (path separators, Windows-reserved chars, null bytes, etc.)
+        let name = sanitize_filename::sanitize(raw.to_string_lossy().as_ref())
+            .replace(' ', "_");
+        if name.is_empty() {
+            return Err("Filename sanitized to empty string");
+        }
         Ok(Self {
             name,
             size: ByteSize::b(0),
@@ -60,6 +67,8 @@ pub struct Pasta {
     pub id: u64,
     pub content: String,
     pub file: Option<PastaFile>,
+    #[serde(default)]
+    pub attachments: Option<Vec<PastaFile>>,
     pub extension: String,
     pub private: bool,
     pub readonly: bool,
@@ -88,11 +97,18 @@ impl Pasta {
         self.file.is_some()
     }
 
+    pub fn has_attachments(&self) -> bool {
+        self.attachments.as_ref().map(|a| !a.is_empty()).unwrap_or(false)
+    }
+
     pub fn total_size_as_string(&self) -> String {
+        let attachment_size: usize = self.attachments.as_ref()
+            .map(|a| a.iter().map(|f| f.size.as_u64() as usize).sum())
+            .unwrap_or(0);
         let total_size_bytes = if self.has_file() {
-            self.file.as_ref().unwrap().size.as_u64() as usize + self.content.as_bytes().len()
+            self.file.as_ref().unwrap().size.as_u64() as usize + self.content.as_bytes().len() + attachment_size
         } else {
-            self.content.as_bytes().len()
+            self.content.as_bytes().len() + attachment_size
         };
 
         if total_size_bytes < 1024 {

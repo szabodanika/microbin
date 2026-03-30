@@ -1,13 +1,18 @@
 // DISCLAIMER
 // (c) 2024-05-27 Mario Stöckl - derived from the original Microbin Project by Daniel Szabo
 use crate::args::ARGS;
+use crate::util::{bip39words::to_bip39_words, hashids::to_hashids};
 use linkify::{LinkFinder, LinkKind};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use qrcode_generator::QrCodeEcc;
 use std::fs::{self, File};
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
+use std::sync::atomic::{AtomicI64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
+
+static LAST_ORPHAN_CLEANUP: AtomicI64 = AtomicI64::new(0);
+const ORPHAN_CLEANUP_INTERVAL_SECS: i64 = 60;
 
 use crate::Pasta;
 
@@ -40,33 +45,87 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             // remove from database
             delete(None, Some(p.id));
 
-            // remove the file itself
-            if let Some(file) = &p.file {
-                if fs::remove_file(format!(
-                    "{}/attachments/{}/{}",
-                    ARGS.data_dir,
-                    p.id_as_words(),
-                    file.name()
-                ))
-                .is_err()
-                {
-                    log::error!("Failed to delete file {}!", file.name())
-                }
-
-                // and remove the containing directory
-                if fs::remove_dir(format!(
-                    "{}/attachments/{}/",
-                    ARGS.data_dir,
-                    p.id_as_words()
-                ))
-                .is_err()
-                {
-                    log::error!("Failed to delete directory {}!", file.name())
+            // Attempt deletion under both naming schemes in case BITVAULT_HASH_IDS
+            // was toggled between restarts (directory was created under the other scheme).
+            for id_str in [to_bip39_words(p.id), to_hashids(p.id)] {
+                let dir = format!("{}/attachments/{}", ARGS.data_dir, id_str);
+                if Path::new(&dir).exists() {
+                    if fs::remove_dir_all(&dir).is_err() {
+                        log::error!("Failed to delete attachment directory {}!", dir);
+                    }
                 }
             }
             false
         }
     });
+
+    // Throttle orphan-directory cleanup to once per minute — avoid per-request
+    // filesystem scans on busy servers.
+    let last = LAST_ORPHAN_CLEANUP.load(Ordering::Relaxed);
+    if timenow - last >= ORPHAN_CLEANUP_INTERVAL_SECS
+        && LAST_ORPHAN_CLEANUP
+            .compare_exchange(last, timenow, Ordering::AcqRel, Ordering::Relaxed)
+            .is_ok()
+    {
+        // Build known directory names under BOTH naming schemes while the lock
+        // is still held, then hand off the actual I/O to a background thread so
+        // the mutex is not blocked during the filesystem scan/deletes.
+        let attachments_dir = format!("{}/attachments", ARGS.data_dir);
+        let known_ids: std::collections::HashSet<String> = pastas
+            .iter()
+            .flat_map(|p| [to_bip39_words(p.id), to_hashids(p.id)])
+            .collect();
+        std::thread::spawn(move || {
+            // Only delete directories older than 5 minutes to avoid racing with
+            // uploads in progress (files are written before the pasta is inserted
+            // into shared state, so the id won't be in known_ids yet).
+            const SAFETY_SECS: u64 = 300;
+            let now = SystemTime::now();
+
+            if let Ok(entries) = fs::read_dir(&attachments_dir) {
+                for entry in entries.flatten() {
+                    if let Some(name) = entry.file_name().to_str().map(|s| s.to_owned()) {
+                        if !known_ids.contains(&name) {
+                            let path = entry.path();
+                            if path.is_dir() {
+                                let dominated = entry.metadata().ok().and_then(|m| {
+                                    m.modified().ok().map(|mt| {
+                                        now.duration_since(mt)
+                                            .map(|d| d.as_secs() >= SAFETY_SECS)
+                                            .unwrap_or(false)
+                                    })
+                                });
+                                if dominated == Some(true) {
+                                    if fs::remove_dir_all(&path).is_err() {
+                                        log::error!(
+                                            "Failed to remove orphaned attachment dir {:?}",
+                                            path
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+/// Resolve the attachment sub-directory name for a pasta ID, trying both naming
+/// schemes in case `BITVAULT_HASH_IDS` was toggled between restarts.
+pub fn resolve_attachment_id(id: u64) -> String {
+    let primary = if ARGS.hash_ids { to_hashids(id) } else { to_bip39_words(id) };
+    let primary_dir = format!("{}/attachments/{}", ARGS.data_dir, primary);
+    if Path::new(&primary_dir).exists() {
+        return primary;
+    }
+    let alt = if ARGS.hash_ids { to_bip39_words(id) } else { to_hashids(id) };
+    let alt_dir = format!("{}/attachments/{}", ARGS.data_dir, alt);
+    if Path::new(&alt_dir).exists() {
+        return alt;
+    }
+    primary
 }
 
 pub fn string_to_qr_svg(str: &str) -> String {
@@ -115,12 +174,9 @@ pub fn encrypt_file(
     // Encrypt the input data
     let ciphertext = mc.encrypt_bytes_to_bytes(&input_data[..]);
 
-    // Write the encrypted data to a new file with the .enc extension
-    let mut f = File::create(
-        Path::new(input_file_path)
-            .with_file_name("data")
-            .with_extension("enc"),
-    )?;
+    // Write the encrypted data to a new file named {original_filename}.enc
+    let enc_path = format!("{}.enc", input_file_path);
+    let mut f = File::create(&enc_path)?;
     f.write_all(ciphertext.as_slice())?;
 
     // Delete the original input file

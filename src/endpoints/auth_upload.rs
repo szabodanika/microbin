@@ -19,6 +19,7 @@ struct AuthPasta<'a> {
     encrypted_key: String,
     encrypt_client: bool,
     path: String,
+    query_string: String,
 }
 
 
@@ -46,6 +47,7 @@ pub async fn auth_upload(data: web::Data<AppState>, id: web::Path<String>) -> Ht
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("upload"),
+                    query_string: String::new(),
                 }
                 .render()
                 .unwrap(),
@@ -86,6 +88,7 @@ pub async fn auth_upload_with_status(
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("upload"),
+                    query_string: String::new(),
                 }
                 .render()
                 .unwrap(),
@@ -121,6 +124,7 @@ pub async fn auth_raw_pasta(data: web::Data<AppState>, id: web::Path<String>) ->
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("raw"),
+                    query_string: String::new(),
                 }
                 .render()
                 .unwrap(),
@@ -161,6 +165,7 @@ pub async fn auth_raw_pasta_with_status(
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("raw"),
+                    query_string: String::new(),
                 }
                 .render()
                 .unwrap(),
@@ -196,6 +201,7 @@ pub async fn auth_edit_private(data: web::Data<AppState>, id: web::Path<String>)
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("edit_private"),
+                    query_string: String::new(),
                 }
                 .render()
                 .unwrap(),
@@ -236,6 +242,7 @@ pub async fn auth_edit_private_with_status(
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("edit_private"),
+                    query_string: String::new(),
                 }
                 .render()
                 .unwrap(),
@@ -249,8 +256,11 @@ pub async fn auth_edit_private_with_status(
 }
 
 #[get("/auth_file/{id}")]
-pub async fn auth_file(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse {
-    // get access to the pasta collection
+pub async fn auth_file(
+    data: web::Data<AppState>,
+    id: web::Path<String>,
+    request: actix_web::HttpRequest,
+) -> HttpResponse {
     let mut pastas = data.pastas.lock().unwrap();
 
     remove_expired(&mut pastas);
@@ -260,6 +270,8 @@ pub async fn auth_file(data: web::Data<AppState>, id: web::Path<String>) -> Http
     } else {
         to_u64(&id).unwrap_or(0)
     };
+
+    let query_string = request.uri().query().unwrap_or("").to_owned();
 
     for (_, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
@@ -271,6 +283,7 @@ pub async fn auth_file(data: web::Data<AppState>, id: web::Path<String>) -> Http
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("secure_file"),
+                    query_string,
                 }
                 .render()
                 .unwrap(),
@@ -287,8 +300,8 @@ pub async fn auth_file(data: web::Data<AppState>, id: web::Path<String>) -> Http
 pub async fn auth_file_with_status(
     data: web::Data<AppState>,
     param: web::Path<(String, String)>,
+    request: actix_web::HttpRequest,
 ) -> HttpResponse {
-    // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
     remove_expired(&mut pastas);
@@ -301,6 +314,8 @@ pub async fn auth_file_with_status(
         to_u64(&id).unwrap_or(0)
     };
 
+    let query_string = request.uri().query().unwrap_or("").to_owned();
+
     for (_i, pasta) in pastas.iter().enumerate() {
         if pasta.id == intern_id {
             return HttpResponse::Ok().content_type("text/html").body(
@@ -311,6 +326,7 @@ pub async fn auth_file_with_status(
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("secure_file"),
+                    query_string,
                 }
                 .render()
                 .unwrap(),
@@ -346,6 +362,7 @@ pub async fn auth_remove_private(data: web::Data<AppState>, id: web::Path<String
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("remove"),
+                    query_string: String::new(),
                 }
                 .render()
                 .unwrap(),
@@ -386,6 +403,7 @@ pub async fn auth_remove_private_with_status(
                     encrypted_key: pasta.encrypted_key.to_owned().unwrap_or_default(),
                     encrypt_client: pasta.encrypt_client,
                     path: String::from("remove"),
+                    query_string: String::new(),
                 }
                 .render()
                 .unwrap(),

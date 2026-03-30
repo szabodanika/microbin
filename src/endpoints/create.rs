@@ -1,5 +1,6 @@
 // DISCLAIMER
 // (c) 2024-05-27 Mario Stöckl - derived from the original Microbin Project by Daniel Szabo
+use crate::args::EXPIRATION_OPTIONS;
 use crate::pasta::PastaFile;
 use crate::util::bip39words::to_bip39_words;
 use crate::util::db::insert;
@@ -14,9 +15,10 @@ use askama::Template;
 use bytesize::ByteSize;
 use futures::TryStreamExt;
 use log::warn;
-use rand::Rng;
+
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
+
 
 
 #[derive(Template)]
@@ -24,6 +26,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 struct IndexTemplate<'a> {
     args: &'a ARGS,
     status: String,
+    max_expiry_index: usize,
+    default_privacy_value: String,
 }
 
 
@@ -34,6 +38,8 @@ pub async fn index() -> impl Responder {
         IndexTemplate {
             args: &ARGS,
             status: String::from(""),
+            max_expiry_index: ARGS.max_expiry_index(),
+            default_privacy_value: effective_default_privacy(),
         }
         .render()
         .unwrap(),
@@ -48,10 +54,30 @@ pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
         IndexTemplate {
             args: &ARGS,
             status,
+            max_expiry_index: ARGS.max_expiry_index(),
+            default_privacy_value: effective_default_privacy(),
         }
         .render()
         .unwrap(),
     );
+}
+
+/// Returns the effective default privacy value, falling back to "unlisted"
+/// when the configured default requires a feature that is disabled.
+fn effective_default_privacy() -> String {
+    let pref = ARGS.default_privacy.as_deref().unwrap_or("unlisted");
+    let available = match pref {
+        "readonly" => ARGS.enable_readonly,
+        "private" => ARGS.encryption_server_side,
+        "secret" => ARGS.encryption_client_side,
+        "public" | "unlisted" => true,
+        _ => false,
+    };
+    if available {
+        pref.to_string()
+    } else {
+        String::from("unlisted")
+    }
 }
 
 pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
@@ -62,6 +88,13 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
         "24hour" => timenow + 60 * 60 * 24,
         "3days" => timenow + 60 * 60 * 24 * 3,
         "1week" => timenow + 60 * 60 * 24 * 7,
+        "1month" => timenow + 60 * 60 * 24 * 30,
+        "6months" => timenow + 60 * 60 * 24 * 183,
+        "1year" => timenow + 60 * 60 * 24 * 365,
+        "2years" => timenow + 60 * 60 * 24 * 365 * 2,
+        "4years" => timenow + 60 * 60 * 24 * 365 * 4,
+        "8years" => timenow + 60 * 60 * 24 * 365 * 8,
+        "16years" => timenow + 60 * 60 * 24 * 365 * 16,
         "never" => {
             if ARGS.eternal_pasta {
                 0
@@ -76,12 +109,19 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
     }
 }
 
+pub fn is_valid_expiration(expiration: &str) -> bool {
+    let max_index = ARGS.max_expiry_index();
+    if let Some(idx) = EXPIRATION_OPTIONS.iter().position(|&o| o == expiration) {
+        idx <= max_index
+    } else {
+        false
+    }
+}
+
 pub async fn create(
     data: web::Data<AppState>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    let mut pastas = data.pastas.lock().unwrap();
-
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
         Err(_) => {
@@ -91,9 +131,10 @@ pub async fn create(
     } as i64;
 
     let mut new_pasta = Pasta {
-        id: rand::thread_rng().gen_range(0..=8589934591),
+        id: rand::random_range(0..=8589934591),
         content: String::from(""),
         file: None,
+        attachments: None,
         extension: String::from(""),
         private: true, 
         readonly: false,
@@ -163,15 +204,21 @@ pub async fn create(
                         }
                     }
                     "expiration" => {
+                        let mut expiration_buf = String::new();
                         while let Some(chunk) = field.try_next().await? {
-                            new_pasta.expiration =
-                                expiration_to_timestamp(std::str::from_utf8(&chunk).unwrap(), timenow);
+                            expiration_buf
+                                .push_str(std::str::from_utf8(&chunk).unwrap());
                         }
+                        if !is_valid_expiration(&expiration_buf) {
+                            return Err(ErrorBadRequest("Expiration exceeds server maximum."));
+                        }
+                        new_pasta.expiration =
+                            expiration_to_timestamp(&expiration_buf, timenow);
                     }
                     "burn_after" => {
                         while let Some(chunk) = field.try_next().await? {
                             new_pasta.burn_after_reads = match std::str::from_utf8(&chunk).unwrap() {
-                                "1" => 2,
+                                "1" => 1,
                                 "10" => 10,
                                 "100" => 100,
                                 "1000" => 1000,
@@ -227,7 +274,31 @@ pub async fn create(
                                 continue;
                             }
                         };
-        
+
+                        // Deduplicate: if a file with the same sanitized name was
+                        // already added, auto-rename to avoid overwriting it on disk.
+                        {
+                            let existing: Vec<&str> = new_pasta.file.iter().map(|f| f.name())
+                                .chain(new_pasta.attachments.iter().flatten().map(|f| f.name()))
+                                .collect();
+                            if existing.contains(&file.name()) {
+                                let name = file.name.clone();
+                                let (stem, ext) = match name.rfind('.') {
+                                    Some(pos) => (&name[..pos], &name[pos..]),
+                                    None => (name.as_str(), ""),
+                                };
+                                let mut counter = 1u32;
+                                loop {
+                                    let candidate = format!("{} ({}){}", stem, counter, ext);
+                                    if !existing.contains(&candidate.as_str()) {
+                                        file.name = candidate;
+                                        break;
+                                    }
+                                    counter += 1;
+                                }
+                            }
+                        }
+
                         std::fs::create_dir_all(format!(
                             "{}/attachments/{}",
                             ARGS.data_dir,
@@ -257,7 +328,13 @@ pub async fn create(
         
                         file.size = ByteSize::b(size as u64);
         
-                        new_pasta.file = Some(file);
+                        if new_pasta.file.is_none() {
+                            new_pasta.file = Some(file);
+                        } else {
+                            new_pasta.attachments
+                                .get_or_insert_with(Vec::new)
+                                .push(file);
+                        }
                         new_pasta.pasta_type = String::from("text");
                     }
                     unknown_field => {
@@ -272,6 +349,12 @@ pub async fn create(
         }
     }
 
+    // Client-side encryption only supports a single primary file in the UI
+    // decrypt flow; drop any extra attachments that should not have been sent.
+    if new_pasta.encrypt_client {
+        new_pasta.attachments = None;
+    }
+
     if ARGS.readonly && ARGS.uploader_password.is_some() {
         if uploader_password != ARGS.uploader_password.as_ref().unwrap().to_owned() {
             return Ok(HttpResponse::Found()
@@ -280,6 +363,8 @@ pub async fn create(
         }
     }
 
+    // Perform all encryption before acquiring the lock — crypto and file I/O
+    // only touch new_pasta (local) and the filesystem, not shared state.
     let id = new_pasta.id;
 
     if plain_key != *"" && new_pasta.readonly {
@@ -308,7 +393,30 @@ pub async fn create(
         }
     }
 
+    if new_pasta.encrypt_server && !new_pasta.readonly {
+        if let Some(ref attachments) = new_pasta.attachments {
+            for attachment in attachments {
+                let filepath = format!(
+                    "{}/attachments/{}/{}",
+                    ARGS.data_dir,
+                    &new_pasta.id_as_words(),
+                    attachment.name()
+                );
+                if new_pasta.encrypt_client {
+                    encrypt_file(&random_key, &filepath)
+                        .expect("Failed to encrypt attachment with random key");
+                } else {
+                    encrypt_file(&plain_key, &filepath)
+                        .expect("Failed to encrypt attachment with plain key");
+                }
+            }
+        }
+    }
+
     let encrypt_server = new_pasta.encrypt_server;
+
+    // Now acquire the lock — only needed to mutate shared in-memory state and DB
+    let mut pastas = data.pastas.lock().unwrap();
 
     pastas.push(new_pasta);
 
