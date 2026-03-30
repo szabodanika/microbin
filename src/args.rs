@@ -123,7 +123,11 @@ pub struct Args {
     #[clap(long, env = "BITVAULT_MAX_EXPIRY", default_value = "1week")]
     pub max_expiry: String,
 
-    #[clap(long, env = "BITVAULT_DEFAULT_PRIVACY")]
+    #[clap(
+        long,
+        env = "BITVAULT_DEFAULT_PRIVACY",
+        value_parser = clap::builder::PossibleValuesParser::new(["public", "unlisted", "readonly", "private", "secret"])
+    )]
     pub default_privacy: Option<String>,
 
     #[clap(long, env = "BITVAULT_ENCRYPTION_CLIENT_SIDE")]

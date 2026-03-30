@@ -29,9 +29,11 @@ pub async fn get_archive(
         match pasta {
             None => return Ok(HttpResponse::NotFound().finish()),
             Some(p) if p.encrypt_server => {
-                return Ok(HttpResponse::Found()
-                    .append_header(("Location", format!("/auth_file/{}", p.id_as_words())))
-                    .finish());
+                // Archive download for server-encrypted pastas is not supported:
+                // there is no auth flow that ends in an authenticated ZIP download.
+                // Return 403 rather than redirecting to /auth_file which only handles
+                // single-file decryption.
+                return Ok(HttpResponse::Forbidden().finish());
             }
             Some(p) => {
                 let mut names: Vec<String> = Vec::new();
@@ -64,7 +66,14 @@ pub async fn get_archive(
         for name in &file_names {
             let file_path = format!("{}/attachments/{}/{}", data_dir, id_words_closure, name);
             let file_data = std::fs::read(&file_path)?;
-            zip.start_file(name, options)?;
+            // Sanitize the entry name: strip path separators so unzip tools
+            // cannot write outside the target directory (zip-slip).
+            let entry_name = name
+                .replace(['/', '\\'], "_")
+                .trim_start_matches('.')
+                .to_string();
+            let entry_name = if entry_name.is_empty() { "file".to_string() } else { entry_name };
+            zip.start_file(entry_name, options)?;
             zip.write_all(&file_data)?;
         }
 

@@ -32,13 +32,19 @@ pub async fn post_secure_file(
     query: web::Query<std::collections::HashMap<String, String>>,
     payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    let mut pastas = data.pastas.lock().unwrap();
-
-    let id = if ARGS.hash_ids {
+    // Resolve ID and read the request body BEFORE locking — body reading is
+    // async I/O and must not hold the shared-state mutex.
+    let id_intern = if ARGS.hash_ids {
         hashid_to_u64(&id).unwrap_or(0)
     } else {
         to_u64(&id.into_inner()).unwrap_or(0)
     };
+
+    let password = auth::password_from_multipart(payload).await?;
+
+    let mut pastas = data.pastas.lock().unwrap();
+
+    let id = id_intern;
 
     remove_expired(&mut pastas);
 
@@ -51,8 +57,6 @@ pub async fn post_secure_file(
             break;
         }
     }
-
-    let password = auth::password_from_multipart(payload).await?;
 
     if found {
         let fname = query.get("fname").cloned();
@@ -141,7 +145,7 @@ pub async fn get_file(
         }
 
         let fname = query.get("fname").cloned();
-        let inline = query.get("preview").map(|v| v == "true").unwrap_or(false);
+        let preview_requested = query.get("preview").map(|v| v == "true").unwrap_or(false);
 
         // Determine which file to serve
         let pasta_file = if let Some(ref fname) = fname {
@@ -163,7 +167,12 @@ pub async fn get_file(
                 pasta_file.name()
             ));
 
-            let disposition_type = if inline {
+            // Only allow inline (preview) for image/* and video/* — serving
+            // arbitrary content inline on the same origin (HTML, SVG, JS…)
+            // is a stored-XSS vector.
+            let ct = mime_guess::from_path(pasta_file.name()).first_or_octet_stream();
+            let safe_for_inline = ct.type_().as_str() == "image" || ct.type_().as_str() == "video";
+            let disposition_type = if preview_requested && safe_for_inline {
                 header::DispositionType::Inline
             } else {
                 header::DispositionType::Attachment
@@ -176,7 +185,12 @@ pub async fn get_file(
                     pasta_file.name().to_string(),
                 )],
             });
-            return Ok(file_response.into_response(&request));
+            let mut response = file_response.into_response(&request);
+            response.headers_mut().insert(
+                actix_web::http::header::X_CONTENT_TYPE_OPTIONS,
+                actix_web::http::header::HeaderValue::from_static("nosniff"),
+            );
+            return Ok(response);
         }
     }
 

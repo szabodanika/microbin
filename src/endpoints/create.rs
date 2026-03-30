@@ -257,7 +257,31 @@ pub async fn create(
                                 continue;
                             }
                         };
-        
+
+                        // Deduplicate: if a file with the same sanitized name was
+                        // already added, auto-rename to avoid overwriting it on disk.
+                        {
+                            let existing: Vec<&str> = new_pasta.file.iter().map(|f| f.name())
+                                .chain(new_pasta.attachments.iter().flatten().map(|f| f.name()))
+                                .collect();
+                            if existing.contains(&file.name()) {
+                                let name = file.name.clone();
+                                let (stem, ext) = match name.rfind('.') {
+                                    Some(pos) => (&name[..pos], &name[pos..]),
+                                    None => (name.as_str(), ""),
+                                };
+                                let mut counter = 1u32;
+                                loop {
+                                    let candidate = format!("{} ({}){}", stem, counter, ext);
+                                    if !existing.contains(&candidate.as_str()) {
+                                        file.name = candidate;
+                                        break;
+                                    }
+                                    counter += 1;
+                                }
+                            }
+                        }
+
                         std::fs::create_dir_all(format!(
                             "{}/attachments/{}",
                             ARGS.data_dir,

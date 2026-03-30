@@ -1,6 +1,7 @@
 // DISCLAIMER
 // (c) 2024-05-27 Mario Stöckl - derived from the original Microbin Project by Daniel Szabo
 use crate::args::ARGS;
+use crate::util::{bip39words::to_bip39_words, hashids::to_hashids};
 use linkify::{LinkFinder, LinkKind};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use qrcode_generator::QrCodeEcc;
@@ -62,8 +63,14 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
         LAST_ORPHAN_CLEANUP.store(timenow, Ordering::Relaxed);
         let attachments_dir = format!("{}/attachments", ARGS.data_dir);
         if let Ok(entries) = fs::read_dir(&attachments_dir) {
-            let known_ids: std::collections::HashSet<String> =
-                pastas.iter().map(|p| p.id_as_words()).collect();
+            // Build known directory names under BOTH naming schemes (BIP39 and
+            // hashids). If BITVAULT_HASH_IDS is ever toggled between restarts,
+            // existing directories keep their old-scheme name. Using both
+            // prevents them from being incorrectly deleted as orphans.
+            let known_ids: std::collections::HashSet<String> = pastas
+                .iter()
+                .flat_map(|p| [to_bip39_words(p.id), to_hashids(p.id)])
+                .collect();
             for entry in entries.flatten() {
                 if let Some(name) = entry.file_name().to_str().map(|s| s.to_owned()) {
                     if !known_ids.contains(&name) {
