@@ -1,5 +1,6 @@
 // DISCLAIMER
 // (c) 2024-05-27 Mario Stöckl - derived from the original Microbin Project by Daniel Szabo
+use crate::args::EXPIRATION_OPTIONS;
 use crate::pasta::PastaFile;
 use crate::util::bip39words::to_bip39_words;
 use crate::util::db::insert;
@@ -19,10 +20,6 @@ use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 
-pub const EXPIRATION_OPTIONS: &[&str] = &[
-    "1min", "10min", "1hour", "24hour", "3days", "1week",
-    "1month", "6months", "1year", "2years", "4years", "8years", "16years", "never",
-];
 
 #[derive(Template)]
 #[template(path = "index.html")]

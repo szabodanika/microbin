@@ -133,46 +133,50 @@ pub async fn get_file(
         let fname = query.get("fname").cloned();
         let preview_requested = query.get("preview").map(|v| v == "true").unwrap_or(false);
 
-        // Determine which file to serve
-        let pasta_file = if let Some(ref fname) = fname {
-            if pastas[index].file.as_ref().map(|f| f.name() == fname).unwrap_or(false) {
-                pastas[index].file.as_ref()
+        // Collect path, filename, and disposition info under the lock, then
+        // drop it before the blocking NamedFile::open syscall.
+        let file_info: Option<(PathBuf, String, bool)> = {
+            let pasta_file = if let Some(ref fname) = fname {
+                if pastas[index].file.as_ref().map(|f| f.name() == fname).unwrap_or(false) {
+                    pastas[index].file.as_ref()
+                } else {
+                    pastas[index].attachments.as_ref()
+                        .and_then(|a| a.iter().find(|f| f.name() == fname))
+                }
             } else {
-                pastas[index].attachments.as_ref()
-                    .and_then(|a| a.iter().find(|f| f.name() == fname))
-            }
-        } else {
-            pastas[index].file.as_ref()
+                pastas[index].file.as_ref()
+            };
+
+            pasta_file.map(|pf| {
+                let file_path = PathBuf::from(format!(
+                    "{}/attachments/{}/{}",
+                    ARGS.data_dir,
+                    pastas[index].id_as_words(),
+                    pf.name()
+                ));
+                // Only allow inline for raster image/* and video/* — SVG and
+                // arbitrary content served inline is a stored-XSS vector.
+                let ct = mime_guess::from_path(pf.name()).first_or_octet_stream();
+                let use_inline = preview_requested
+                    && ((ct.type_().as_str() == "image"
+                        && ct.subtype().as_str() != "svg+xml"
+                        && ct.subtype().as_str() != "svg")
+                        || ct.type_().as_str() == "video");
+                (file_path, pf.name().to_string(), use_inline)
+            })
         };
+        drop(pastas); // release lock before I/O
 
-        if let Some(pasta_file) = pasta_file {
-            let file_path = PathBuf::from(format!(
-                "{}/attachments/{}/{}",
-                ARGS.data_dir,
-                pastas[index].id_as_words(),
-                pasta_file.name()
-            ));
-
-            // Only allow inline (preview) for raster image/* and video/* —
-            // serving SVG or arbitrary content inline on the same origin is a
-            // stored-XSS vector (SVG can carry embedded scripts).
-            let ct = mime_guess::from_path(pasta_file.name()).first_or_octet_stream();
-            let safe_for_inline = (ct.type_().as_str() == "image"
-                && ct.subtype().as_str() != "svg+xml"
-                && ct.subtype().as_str() != "svg")
-                || ct.type_().as_str() == "video";
-            let disposition_type = if preview_requested && safe_for_inline {
+        if let Some((file_path, filename, use_inline)) = file_info {
+            let disposition_type = if use_inline {
                 header::DispositionType::Inline
             } else {
                 header::DispositionType::Attachment
             };
-
             let file_response = actix_files::NamedFile::open(file_path)?;
             let file_response = file_response.set_content_disposition(header::ContentDisposition {
                 disposition: disposition_type,
-                parameters: vec![header::DispositionParam::Filename(
-                    pasta_file.name().to_string(),
-                )],
+                parameters: vec![header::DispositionParam::Filename(filename)],
             });
             let mut response = file_response.into_response(&request);
             response.headers_mut().insert(

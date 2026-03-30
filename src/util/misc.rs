@@ -64,29 +64,33 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
     let last = LAST_ORPHAN_CLEANUP.load(Ordering::Relaxed);
     if timenow - last >= ORPHAN_CLEANUP_INTERVAL_SECS {
         LAST_ORPHAN_CLEANUP.store(timenow, Ordering::Relaxed);
+        // Build known directory names under BOTH naming schemes while the lock
+        // is still held, then hand off the actual I/O to a background thread so
+        // the mutex is not blocked during the filesystem scan/deletes.
         let attachments_dir = format!("{}/attachments", ARGS.data_dir);
-        if let Ok(entries) = fs::read_dir(&attachments_dir) {
-            // Build known directory names under BOTH naming schemes (BIP39 and
-            // hashids). If BITVAULT_HASH_IDS is ever toggled between restarts,
-            // existing directories keep their old-scheme name. Using both
-            // prevents them from being incorrectly deleted as orphans.
-            let known_ids: std::collections::HashSet<String> = pastas
-                .iter()
-                .flat_map(|p| [to_bip39_words(p.id), to_hashids(p.id)])
-                .collect();
-            for entry in entries.flatten() {
-                if let Some(name) = entry.file_name().to_str().map(|s| s.to_owned()) {
-                    if !known_ids.contains(&name) {
-                        let path = entry.path();
-                        if path.is_dir() {
-                            if fs::remove_dir_all(&path).is_err() {
-                                log::error!("Failed to remove orphaned attachment dir {:?}", path);
+        let known_ids: std::collections::HashSet<String> = pastas
+            .iter()
+            .flat_map(|p| [to_bip39_words(p.id), to_hashids(p.id)])
+            .collect();
+        std::thread::spawn(move || {
+            if let Ok(entries) = fs::read_dir(&attachments_dir) {
+                for entry in entries.flatten() {
+                    if let Some(name) = entry.file_name().to_str().map(|s| s.to_owned()) {
+                        if !known_ids.contains(&name) {
+                            let path = entry.path();
+                            if path.is_dir() {
+                                if fs::remove_dir_all(&path).is_err() {
+                                    log::error!(
+                                        "Failed to remove orphaned attachment dir {:?}",
+                                        path
+                                    );
+                                }
                             }
                         }
                     }
                 }
             }
-        }
+        });
     }
 }
 

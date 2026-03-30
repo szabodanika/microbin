@@ -2,6 +2,7 @@
 // (c) 2024-05-27 Mario Stöckl - derived from the original Microbin Project by Daniel Szabo
 use bytesize::ByteSize;
 use chrono::{Datelike, Local, TimeZone, Timelike};
+use sanitize_filename;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::path::Path;
@@ -21,8 +22,14 @@ pub struct PastaFile {
 impl PastaFile {
     pub fn from_unsanitized(path: &str) -> Result<Self, &'static str> {
         let path = Path::new(path);
-        let name = path.file_name().ok_or("Path did not contain a file name")?;
-        let name = name.to_string_lossy().replace(' ', "_");
+        let raw = path.file_name().ok_or("Path did not contain a file name")?;
+        // sanitize_filename removes characters that are unsafe on any platform
+        // (path separators, Windows-reserved chars, null bytes, etc.)
+        let name = sanitize_filename::sanitize(raw.to_string_lossy().as_ref())
+            .replace(' ', "_");
+        if name.is_empty() {
+            return Err("Filename sanitized to empty string");
+        }
         Ok(Self {
             name,
             size: ByteSize::b(0),

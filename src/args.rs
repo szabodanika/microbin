@@ -12,6 +12,13 @@ lazy_static! {
     pub static ref ARGS: Args = Args::parse();
 }
 
+/// Single source of truth for valid expiry option strings, ordered shortest → longest.
+/// Used by both the CLI value_parser and the server-side validation in `create.rs`.
+pub const EXPIRATION_OPTIONS: &[&str] = &[
+    "1min", "10min", "1hour", "24hour", "3days", "1week",
+    "1month", "6months", "1year", "2years", "4years", "8years", "16years", "never",
+];
+
 #[derive(Parser, Debug, Clone, Serialize)]
 #[clap(author, version, about, long_about = None)]
 pub struct Args {
@@ -120,7 +127,12 @@ pub struct Args {
     #[clap(long, env = "BITVAULT_HASH_IDS")]
     pub hash_ids: bool,
 
-    #[clap(long, env = "BITVAULT_MAX_EXPIRY", default_value = "1week")]
+    #[clap(
+        long,
+        env = "BITVAULT_MAX_EXPIRY",
+        default_value = "1week",
+        value_parser = clap::builder::PossibleValuesParser::new(EXPIRATION_OPTIONS)
+    )]
     pub max_expiry: String,
 
     #[clap(
@@ -218,11 +230,7 @@ impl Args {
     }
 
     pub fn max_expiry_index(&self) -> usize {
-        let options = [
-            "1min", "10min", "1hour", "24hour", "3days", "1week",
-            "1month", "6months", "1year", "2years", "4years", "8years", "16years", "never",
-        ];
-        options.iter().position(|&o| o == self.max_expiry).unwrap_or(5)
+        EXPIRATION_OPTIONS.iter().position(|&o| o == self.max_expiry).unwrap_or(5)
     }
 }
 

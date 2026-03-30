@@ -34,7 +34,15 @@ fn open_db() -> Connection {
 
 /// Ensure the attachments column exists — no-op if already present.
 fn migrate_attachments_column(conn: &Connection) {
-    let _ = conn.execute("ALTER TABLE pasta ADD COLUMN attachments TEXT", params![]);
+    match conn.execute("ALTER TABLE pasta ADD COLUMN attachments TEXT", params![]) {
+        Ok(_) => {}
+        Err(rusqlite::Error::SqliteFailure(_, Some(ref msg)))
+            if msg.contains("duplicate column name") =>
+        {
+            // Column already exists — expected on all but the first post-migration startup.
+        }
+        Err(e) => panic!("Failed to migrate attachments column: {e}"),
+    }
 }
 
 pub fn read_all() -> Vec<Pasta> {

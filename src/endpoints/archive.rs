@@ -53,8 +53,8 @@ pub async fn get_archive(
                 }
                 // Enforce a total archive size cap — ZIP is built in memory, so
                 // reject before blocking I/O to avoid OOM on large sets.
-                let cap = (ARGS.max_file_size_unencrypted_mb as u64)
-                    .saturating_mul(1024 * 1024 * 10);
+                // Use max_file_size_unencrypted_mb as the cap (same as the per-file limit).
+                let cap = (ARGS.max_file_size_unencrypted_mb as u64).saturating_mul(1024 * 1024);
                 if total_bytes > cap {
                     return Ok(HttpResponse::PayloadTooLarge().finish());
                 }
