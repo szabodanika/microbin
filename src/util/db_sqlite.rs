@@ -72,10 +72,10 @@ pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
                 pasta_type
             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
             params![
-                pasta.id as i64,
+                i64::try_from(pasta.id).expect("pasta id exceeds i64::MAX"),
                 pasta.content,
                 pasta.file.as_ref().map_or("", |f| f.name.as_str()),
-                pasta.file.as_ref().map_or(0i64, |f| f.size.as_u64() as i64),
+                pasta.file.as_ref().map_or(0i64, |f| i64::try_from(f.size.as_u64()).expect("file size exceeds i64::MAX")),
                 pasta.extension,
                 pasta.private as i32,
                 pasta.readonly as i32,
@@ -86,8 +86,8 @@ pub fn rewrite_all_to_db(pasta_data: &[Pasta]) {
                 pasta.created,
                 pasta.expiration,
                 pasta.last_read,
-                pasta.read_count as i64,
-                pasta.burn_after_reads as i64,
+                i64::try_from(pasta.read_count).expect("read_count exceeds i64::MAX"),
+                i64::try_from(pasta.burn_after_reads).expect("burn_after_reads exceeds i64::MAX"),
                 pasta.pasta_type,
             ],
         )
@@ -133,10 +133,14 @@ pub fn select_all_from_db() -> Vec<Pasta> {
             let file_name: Option<String> = row.get(2)?;
             let file_size: Option<i64> = row.get(3)?;
             Ok(Pasta {
-                id: row.get::<_, i64>(0)? as u64,
+                id: {
+                    let v = row.get::<_, i64>(0)?;
+                    u64::try_from(v).map_err(|_| rusqlite::Error::IntegralValueOutOfRange(0, v))?
+                },
                 content: row.get(1)?,
                 file: if let (Some(file_name), Some(file_size)) = (file_name, file_size) {
-                    let file_size = file_size as u64;
+                    let file_size = u64::try_from(file_size)
+                        .map_err(|_| rusqlite::Error::IntegralValueOutOfRange(3, file_size))?;
                     if !file_name.is_empty() && file_size != 0 {
                         Some(PastaFile {
                             name: file_name,
@@ -158,8 +162,14 @@ pub fn select_all_from_db() -> Vec<Pasta> {
                 created: row.get(11)?,
                 expiration: row.get(12)?,
                 last_read: row.get(13)?,
-                read_count: row.get::<_, i64>(14)? as u64,
-                burn_after_reads: row.get::<_, i64>(15)? as u64,
+                read_count: {
+                    let v = row.get::<_, i64>(14)?;
+                    u64::try_from(v).map_err(|_| rusqlite::Error::IntegralValueOutOfRange(14, v))?
+                },
+                burn_after_reads: {
+                    let v = row.get::<_, i64>(15)?;
+                    u64::try_from(v).map_err(|_| rusqlite::Error::IntegralValueOutOfRange(15, v))?
+                },
                 pasta_type: row.get(16)?,
             })
         })
@@ -220,10 +230,10 @@ pub fn insert(pasta: &Pasta) {
                 pasta_type
             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
         params![
-            pasta.id as i64,
+            i64::try_from(pasta.id).expect("pasta id exceeds i64::MAX"),
             pasta.content,
             pasta.file.as_ref().map_or("", |f| f.name.as_str()),
-            pasta.file.as_ref().map_or(0i64, |f| f.size.as_u64() as i64),
+            pasta.file.as_ref().map_or(0i64, |f| i64::try_from(f.size.as_u64()).expect("file size exceeds i64::MAX")),
             pasta.extension,
             pasta.readonly as i32,
             pasta.private as i32,
@@ -234,8 +244,8 @@ pub fn insert(pasta: &Pasta) {
             pasta.created,
             pasta.expiration,
             pasta.last_read,
-            pasta.read_count as i64,
-            pasta.burn_after_reads as i64,
+            i64::try_from(pasta.read_count).expect("read_count exceeds i64::MAX"),
+            i64::try_from(pasta.burn_after_reads).expect("burn_after_reads exceeds i64::MAX"),
             pasta.pasta_type,
         ],
     )
@@ -266,10 +276,10 @@ pub fn update(pasta: &Pasta) {
             pasta_type = ?17
         WHERE id = ?1;",
         params![
-            pasta.id as i64,
+            i64::try_from(pasta.id).expect("pasta id exceeds i64::MAX"),
             pasta.content,
             pasta.file.as_ref().map_or("", |f| f.name.as_str()),
-            pasta.file.as_ref().map_or(0i64, |f| f.size.as_u64() as i64),
+            pasta.file.as_ref().map_or(0i64, |f| i64::try_from(f.size.as_u64()).expect("file size exceeds i64::MAX")),
             pasta.extension,
             pasta.readonly as i32,
             pasta.private as i32,
@@ -280,8 +290,8 @@ pub fn update(pasta: &Pasta) {
             pasta.created,
             pasta.expiration,
             pasta.last_read,
-            pasta.read_count as i64,
-            pasta.burn_after_reads as i64,
+            i64::try_from(pasta.read_count).expect("read_count exceeds i64::MAX"),
+            i64::try_from(pasta.burn_after_reads).expect("burn_after_reads exceeds i64::MAX"),
             pasta.pasta_type,
         ],
     )
@@ -295,7 +305,7 @@ pub fn delete_by_id(id: u64) {
     conn.execute(
         "DELETE FROM pasta
         WHERE id = ?1;",
-        params![id as i64],
+        params![i64::try_from(id).expect("pasta id exceeds i64::MAX")],
     )
     .expect("Failed to delete pasta.");
 }
