@@ -1,5 +1,9 @@
-The original Project was published by Daniel Szabo under the BSD-3-Clause License. The original Document is delivered with this repository inside the file ORIGINALLICENSE.txt.
-Changes and Contributions made from 2024-05-27 and after are hereby specified by the below GPL-License:
+The original Project was published by Dániel Szabó under the BSD-3-Clause License.
+The original license is delivered with this repository in the file ORIGINALLICENSE.txt.
+
+Copyright (C) 2024 Mario Stöckl
+Changes and contributions made from 2024-05-27 onward are licensed under the
+GNU General Public License v3.0 as follows:
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

@@ -6,8 +6,6 @@ A privacy-focused, self-hosted pastebin and file sharing service built in Rust. 
 
 BitVault is a maintained fork of [Microbin](https://github.com/szabodanika/microbin), with telemetry removed, updated dependencies, and a focus on privacy and simplicity.
 
-TOR HiddenService for demonstration: [http://bvaultb5wmxcxxapep7tnq2zrkjva6ry7uekfcsxpsxts2ve5qmf4iyd.onion/](http://bvaultb5wmxcxxapep7tnq2zrkjva6ry7uekfcsxpsxts2ve5qmf4iyd.onion/)
-
 ## Features
 
 - Single self-contained binary — no runtime dependencies, minimal resource usage
@@ -92,7 +90,7 @@ WantedBy=multi-user.target
 
 ## License
 
-BitVault is available under the [GPL-3](LICENSE) License. The original Microbin project was published under [BSD 3-Clause License](ORIGINAL_LICENSE).
+BitVault is available under the [GPL-3.0](LICENSE) License. The original Microbin project was published under [BSD 3-Clause License](ORIGINALLICENSE.txt).
 
 © Dániel Szabó 2022-2023, under BSD-3-Clause
 © Mario Stöckl, from 2024-05-27, under GPL-3 License.
