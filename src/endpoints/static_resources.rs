@@ -1,5 +1,5 @@
 // DISCLAIMER
-// (c) 2024-05-27 Mario Stöckl - derived from the original Microbin Project by Daniel Szabo
+// (c) 2024-05-27 overcuriousity - derived from the original Microbin Project by Daniel Szabo
 use actix_web::{web, HttpResponse, Responder};
 use mime_guess::from_path;
 use rust_embed::RustEmbed;

@@ -2,7 +2,7 @@
 name = "bitvault"
 version = "1.2.0"
 edition = "2021"
-authors = ["Mario Stöckl <mario.stoeckl@posteo.de>, originally Daniel Szabo <daniel@microbin.eu> and contributors"]
+authors = ["overcuriousity, originally Daniel Szabo <daniel@microbin.eu> and contributors"]
 license = "GPL-3.0-only"
 description = "Simple, performant and puristic, entirely self-contained Pastebin and URL shortener."
 readme = "README.md"

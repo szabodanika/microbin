@@ -1,5 +1,5 @@
 // DISCLAIMER
-// (c) 2024-05-27 Mario Stöckl - derived from the original Microbin Project by Daniel Szabo
+// (c) 2024-05-27 overcuriousity - derived from the original Microbin Project by Daniel Szabo
 use crate::args::EXPIRATION_OPTIONS;
 use crate::pasta::PastaFile;
 use crate::util::bip39words::to_bip39_words;

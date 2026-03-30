@@ -93,4 +93,4 @@ WantedBy=multi-user.target
 BitVault is available under the [GPL-3.0](LICENSE) License. The original Microbin project was published under [BSD 3-Clause License](ORIGINALLICENSE.txt).
 
 © Dániel Szabó 2022-2023, under BSD-3-Clause
-© Mario Stöckl, from 2024-05-27, under GPL-3 License.
+© overcuriousity, from 2024-05-27, under GPL-3 License.

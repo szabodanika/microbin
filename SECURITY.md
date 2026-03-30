@@ -3,7 +3,7 @@
 ## Version Support
 
 We don´t offer centralized support. The Project is published under GPL-3 and thus should be maintained by the FOSS community.
-There is no guarantee of continued maintenance by Mario Stöckl or the original developer.
+There is no guarantee of continued maintenance by overcuriousity or the original developer.
 
 ## Reporting a Vulnerability
 
