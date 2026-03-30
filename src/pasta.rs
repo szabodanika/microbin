@@ -60,6 +60,8 @@ pub struct Pasta {
     pub id: u64,
     pub content: String,
     pub file: Option<PastaFile>,
+    #[serde(default)]
+    pub attachments: Option<Vec<PastaFile>>,
     pub extension: String,
     pub private: bool,
     pub readonly: bool,
@@ -88,11 +90,18 @@ impl Pasta {
         self.file.is_some()
     }
 
+    pub fn has_attachments(&self) -> bool {
+        self.attachments.as_ref().map(|a| !a.is_empty()).unwrap_or(false)
+    }
+
     pub fn total_size_as_string(&self) -> String {
+        let attachment_size: usize = self.attachments.as_ref()
+            .map(|a| a.iter().map(|f| f.size.as_u64() as usize).sum())
+            .unwrap_or(0);
         let total_size_bytes = if self.has_file() {
-            self.file.as_ref().unwrap().size.as_u64() as usize + self.content.as_bytes().len()
+            self.file.as_ref().unwrap().size.as_u64() as usize + self.content.as_bytes().len() + attachment_size
         } else {
-            self.content.as_bytes().len()
+            self.content.as_bytes().len() + attachment_size
         };
 
         if total_size_bytes < 1024 {

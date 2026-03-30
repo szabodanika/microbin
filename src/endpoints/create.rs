@@ -19,11 +19,18 @@ use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 
+pub const EXPIRATION_OPTIONS: &[&str] = &[
+    "1min", "10min", "1hour", "24hour", "3days", "1week",
+    "1month", "6months", "1year", "2years", "4years", "8years", "16years", "never",
+];
+
 #[derive(Template)]
 #[template(path = "index.html")]
 struct IndexTemplate<'a> {
     args: &'a ARGS,
     status: String,
+    max_expiry_index: usize,
+    default_privacy_value: String,
 }
 
 
@@ -34,6 +41,8 @@ pub async fn index() -> impl Responder {
         IndexTemplate {
             args: &ARGS,
             status: String::from(""),
+            max_expiry_index: ARGS.max_expiry_index(),
+            default_privacy_value: ARGS.default_privacy.clone().unwrap_or_else(|| String::from("unlisted")),
         }
         .render()
         .unwrap(),
@@ -48,6 +57,8 @@ pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
         IndexTemplate {
             args: &ARGS,
             status,
+            max_expiry_index: ARGS.max_expiry_index(),
+            default_privacy_value: ARGS.default_privacy.clone().unwrap_or_else(|| String::from("unlisted")),
         }
         .render()
         .unwrap(),
@@ -62,6 +73,13 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
         "24hour" => timenow + 60 * 60 * 24,
         "3days" => timenow + 60 * 60 * 24 * 3,
         "1week" => timenow + 60 * 60 * 24 * 7,
+        "1month" => timenow + 60 * 60 * 24 * 30,
+        "6months" => timenow + 60 * 60 * 24 * 183,
+        "1year" => timenow + 60 * 60 * 24 * 365,
+        "2years" => timenow + 60 * 60 * 24 * 365 * 2,
+        "4years" => timenow + 60 * 60 * 24 * 365 * 4,
+        "8years" => timenow + 60 * 60 * 24 * 365 * 8,
+        "16years" => timenow + 60 * 60 * 24 * 365 * 16,
         "never" => {
             if ARGS.eternal_pasta {
                 0
@@ -76,12 +94,19 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
     }
 }
 
+pub fn is_valid_expiration(expiration: &str) -> bool {
+    let max_index = ARGS.max_expiry_index();
+    if let Some(idx) = EXPIRATION_OPTIONS.iter().position(|&o| o == expiration) {
+        idx <= max_index
+    } else {
+        false
+    }
+}
+
 pub async fn create(
     data: web::Data<AppState>,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    let mut pastas = data.pastas.lock().unwrap();
-
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
         Err(_) => {
@@ -94,6 +119,7 @@ pub async fn create(
         id: rand::thread_rng().gen_range(0..=8589934591),
         content: String::from(""),
         file: None,
+        attachments: None,
         extension: String::from(""),
         private: true, 
         readonly: false,
@@ -164,14 +190,18 @@ pub async fn create(
                     }
                     "expiration" => {
                         while let Some(chunk) = field.try_next().await? {
+                            let expiration_str = std::str::from_utf8(&chunk).unwrap();
+                            if !is_valid_expiration(expiration_str) {
+                                return Err(ErrorBadRequest("Expiration exceeds server maximum."));
+                            }
                             new_pasta.expiration =
-                                expiration_to_timestamp(std::str::from_utf8(&chunk).unwrap(), timenow);
+                                expiration_to_timestamp(expiration_str, timenow);
                         }
                     }
                     "burn_after" => {
                         while let Some(chunk) = field.try_next().await? {
                             new_pasta.burn_after_reads = match std::str::from_utf8(&chunk).unwrap() {
-                                "1" => 2,
+                                "1" => 1,
                                 "10" => 10,
                                 "100" => 100,
                                 "1000" => 1000,
@@ -257,7 +287,13 @@ pub async fn create(
         
                         file.size = ByteSize::b(size as u64);
         
-                        new_pasta.file = Some(file);
+                        if new_pasta.file.is_none() {
+                            new_pasta.file = Some(file);
+                        } else {
+                            new_pasta.attachments
+                                .get_or_insert_with(Vec::new)
+                                .push(file);
+                        }
                         new_pasta.pasta_type = String::from("text");
                     }
                     unknown_field => {
@@ -279,6 +315,9 @@ pub async fn create(
                 .finish());
         }
     }
+
+    // Acquire the lock only after all file I/O is complete
+    let mut pastas = data.pastas.lock().unwrap();
 
     let id = new_pasta.id;
 
@@ -305,6 +344,26 @@ pub async fn create(
             encrypt_file(&random_key, &filepath).expect("Failed to encrypt file with random key")
         } else {
             encrypt_file(&plain_key, &filepath).expect("Failed to encrypt file with plain key")
+        }
+    }
+
+    if new_pasta.encrypt_server && !new_pasta.readonly {
+        if let Some(ref attachments) = new_pasta.attachments {
+            for attachment in attachments {
+                let filepath = format!(
+                    "{}/attachments/{}/{}",
+                    ARGS.data_dir,
+                    &new_pasta.id_as_words(),
+                    attachment.name()
+                );
+                if new_pasta.encrypt_client {
+                    encrypt_file(&random_key, &filepath)
+                        .expect("Failed to encrypt attachment with random key");
+                } else {
+                    encrypt_file(&plain_key, &filepath)
+                        .expect("Failed to encrypt attachment with plain key");
+                }
+            }
         }
     }
 

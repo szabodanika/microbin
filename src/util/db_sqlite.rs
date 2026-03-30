@@ -159,6 +159,7 @@ pub fn select_all_from_db() -> Vec<Pasta> {
                 read_count: row.get(14)?,
                 burn_after_reads: row.get(15)?,
                 pasta_type: row.get(16)?,
+                attachments: None,
             })
         })
         .expect("Failed to select Pastas from SQLite database.");

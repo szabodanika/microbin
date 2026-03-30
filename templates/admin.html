@@ -7,11 +7,11 @@
 <div style="height: 200px;">
     <div style="float: left">
         <h4>Links</h4>
-        <a href="https://microbin.eu/documentation" style="margin-right: 1rem">Documentation and Help (Original Microbin Project)</a>
+        <a href="https://github.com/overcuriousity/bitvault" style="margin-right: 1rem">Documentation and Help</a>
         <br>
-        <a href="https://github.com/overcuriousity/microbin" style="margin-right: 1rem">Source Code</a>
+        <a href="https://github.com/overcuriousity/bitvault" style="margin-right: 1rem">Source Code</a>
         <br>
-        <a href="https://github.com/overcuriousity/microbin/issues" style="margin-right: 1rem">Feedback</a>
+        <a href="https://github.com/overcuriousity/bitvault/issues" style="margin-right: 1rem">Feedback</a>
     </div>
 
     <div style="float: right">
@@ -33,16 +33,6 @@
     </div>
 </div>
 
-
-<h4>Update</h4>
-{% if update.is_some() %}
-<p><b>Update available</b> {{update.as_ref().unwrap().long_title}}</p>
-<p><b>Date</b> {{update.as_ref().unwrap().date}}</p>
-<p><b>Update type</b> {{update.as_ref().unwrap().update_type}}</p>
-<p><b>Description</b> {{update.as_ref().unwrap().description}}</p>
-{%- else %}
-<p>No updates available.</p>
-{%- endif %}
 
 
 {% if message != "" %}

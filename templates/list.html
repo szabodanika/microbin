@@ -81,6 +81,12 @@
                             {%- endif %}
                         </a>
                         {%- endif %}
+                        {% if pasta.has_attachments() %}
+                        <a style="margin-right:1rem"
+                            href="{{ args.public_path_as_str() }}/archive/{{pasta.id_as_words()}}">
+                            +{{pasta.attachments.as_ref().unwrap().len()}} more
+                        </a>
+                        {%- endif %}
                     </td>
 
                     <td>

@@ -1,6 +1,6 @@
 // DISCLAIMER
 // (c) 2024-05-27 Mario Stöckl - derived from the original Microbin Project by Daniel Szabo
-use std::fs::{File};
+use std::fs::File;
 use std::path::PathBuf;
 
 use crate::args::ARGS;
@@ -13,13 +13,23 @@ use actix_multipart::Multipart;
 use actix_web::http::header;
 use actix_web::{get, post, web, Error, HttpResponse};
 
+fn enc_file_path(data_dir: &str, id_as_words: &str, filename: &str) -> String {
+    let new_path = format!("{}/attachments/{}/{}.enc", data_dir, id_as_words, filename);
+    let legacy_path = format!("{}/attachments/{}/data.enc", data_dir, id_as_words);
+    if std::path::Path::new(&new_path).exists() {
+        new_path
+    } else {
+        legacy_path
+    }
+}
+
 #[post("/secure_file/{id}")]
 pub async fn post_secure_file(
     data: web::Data<AppState>,
     id: web::Path<String>,
+    query: web::Query<std::collections::HashMap<String, String>>,
     payload: Multipart,
 ) -> Result<HttpResponse, Error> {
-    // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
     let id = if ARGS.hash_ids {
@@ -28,10 +38,8 @@ pub async fn post_secure_file(
         to_u64(&id.into_inner()).unwrap_or(0)
     };
 
-    // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
 
-    // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
     let mut found: bool = false;
     for (i, pasta) in pastas.iter().enumerate() {
@@ -45,29 +53,42 @@ pub async fn post_secure_file(
     let password = auth::password_from_multipart(payload).await?;
 
     if found {
-        if let Some(ref pasta_file) = pastas[index].file {
-            let file = File::open(format!(
-                "{}/attachments/{}/data.enc",
-                ARGS.data_dir,
-                pastas[index].id_as_words()
-            ))?;
+        let fname = query.get("fname").cloned();
 
+        // Determine which file to serve
+        let pasta_file = if let Some(ref fname) = fname {
+            // Check primary file
+            if pastas[index].file.as_ref().map(|f| f.name() == fname).unwrap_or(false) {
+                pastas[index].file.as_ref()
+            } else {
+                // Check attachments
+                pastas[index].attachments.as_ref()
+                    .and_then(|a| a.iter().find(|f| f.name() == fname))
+            }
+        } else {
+            pastas[index].file.as_ref()
+        };
+
+        if let Some(pasta_file) = pasta_file {
+            let enc_path = enc_file_path(
+                &ARGS.data_dir,
+                &pastas[index].id_as_words(),
+                pasta_file.name(),
+            );
+            let file = File::open(&enc_path)?;
             let decrypted_data: Vec<u8> = decrypt_file(&password, &file)?;
 
-            // Set the content type based on the file extension
-            let content_type = mime_guess::from_path(&pasta_file.name)
+            let content_type = mime_guess::from_path(pasta_file.name())
                 .first_or_octet_stream()
                 .to_string();
 
-            // Create a response with the decrypted data
-            let response = HttpResponse::Ok()
+            return Ok(HttpResponse::Ok()
                 .content_type(content_type)
                 .append_header((
                     "Content-Disposition",
                     format!("attachment; filename=\"{}\"", pasta_file.name()),
                 ))
-                .body(decrypted_data);
-            return Ok(response);
+                .body(decrypted_data));
         }
     }
     Ok(HttpResponse::NotFound().finish())
@@ -77,9 +98,9 @@ pub async fn post_secure_file(
 pub async fn get_file(
     request: actix_web::HttpRequest,
     id: web::Path<String>,
+    query: web::Query<std::collections::HashMap<String, String>>,
     data: web::Data<AppState>,
 ) -> Result<HttpResponse, Error> {
-    // get access to the pasta collection
     let mut pastas = data.pastas.lock().unwrap();
 
     let id_intern = if ARGS.hash_ids {
@@ -88,10 +109,8 @@ pub async fn get_file(
         to_u64(&id.into_inner()).unwrap_or(0)
     };
 
-    // remove expired pastas (including this one if needed)
     remove_expired(&mut pastas);
 
-    // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
     let mut found: bool = false;
     for (i, pasta) in pastas.iter().enumerate() {
@@ -103,37 +122,52 @@ pub async fn get_file(
     }
 
     if found {
-        if let Some(ref pasta_file) = pastas[index].file {
-            if pastas[index].encrypt_server {
-                return Ok(HttpResponse::Found()
-                    .append_header((
-                        "Location",
-                        format!("/auth_file/{}", pastas[index].id_as_words()),
-                    ))
-                    .finish());
-            }
+        if pastas[index].encrypt_server {
+            return Ok(HttpResponse::Found()
+                .append_header((
+                    "Location",
+                    format!("/auth_file/{}", pastas[index].id_as_words()),
+                ))
+                .finish());
+        }
 
-            // Construct the path to the file
-            let file_path = format!(
+        let fname = query.get("fname").cloned();
+        let inline = query.get("preview").map(|v| v == "true").unwrap_or(false);
+
+        // Determine which file to serve
+        let pasta_file = if let Some(ref fname) = fname {
+            if pastas[index].file.as_ref().map(|f| f.name() == fname).unwrap_or(false) {
+                pastas[index].file.as_ref()
+            } else {
+                pastas[index].attachments.as_ref()
+                    .and_then(|a| a.iter().find(|f| f.name() == fname))
+            }
+        } else {
+            pastas[index].file.as_ref()
+        };
+
+        if let Some(pasta_file) = pasta_file {
+            let file_path = PathBuf::from(format!(
                 "{}/attachments/{}/{}",
                 ARGS.data_dir,
                 pastas[index].id_as_words(),
                 pasta_file.name()
-            );
-            let file_path = PathBuf::from(file_path);
+            ));
 
-            // This will stream the file and set the content type based on the
-            // file path
-            let file_reponse = actix_files::NamedFile::open(file_path)?;
-            let file_reponse = file_reponse.set_content_disposition(header::ContentDisposition {
-                disposition: header::DispositionType::Attachment,
+            let disposition_type = if inline {
+                header::DispositionType::Inline
+            } else {
+                header::DispositionType::Attachment
+            };
+
+            let file_response = actix_files::NamedFile::open(file_path)?;
+            let file_response = file_response.set_content_disposition(header::ContentDisposition {
+                disposition: disposition_type,
                 parameters: vec![header::DispositionParam::Filename(
                     pasta_file.name().to_string(),
                 )],
             });
-            // This takes care of streaming/seeking using the Range
-            // header in the request.
-            return Ok(file_reponse.into_response(&request));
+            return Ok(file_response.into_response(&request));
         }
     }
 

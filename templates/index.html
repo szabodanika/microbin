@@ -55,13 +55,71 @@
                     <option value="1week">
                         {%- endif %} 1 week
                     </option>
+                    {% if max_expiry_index >= 6 %}
+                    {% if args.default_expiry == "1month" %}
+                    <option selected value="1month">
+                        {%- else %}
+                    <option value="1month">
+                        {%- endif %} 1 month
+                    </option>
+                    {%- endif %}
+                    {% if max_expiry_index >= 7 %}
+                    {% if args.default_expiry == "6months" %}
+                    <option selected value="6months">
+                        {%- else %}
+                    <option value="6months">
+                        {%- endif %} 6 months
+                    </option>
+                    {%- endif %}
+                    {% if max_expiry_index >= 8 %}
+                    {% if args.default_expiry == "1year" %}
+                    <option selected value="1year">
+                        {%- else %}
+                    <option value="1year">
+                        {%- endif %} 1 year
+                    </option>
+                    {%- endif %}
+                    {% if max_expiry_index >= 9 %}
+                    {% if args.default_expiry == "2years" %}
+                    <option selected value="2years">
+                        {%- else %}
+                    <option value="2years">
+                        {%- endif %} 2 years
+                    </option>
+                    {%- endif %}
+                    {% if max_expiry_index >= 10 %}
+                    {% if args.default_expiry == "4years" %}
+                    <option selected value="4years">
+                        {%- else %}
+                    <option value="4years">
+                        {%- endif %} 4 years
+                    </option>
+                    {%- endif %}
+                    {% if max_expiry_index >= 11 %}
+                    {% if args.default_expiry == "8years" %}
+                    <option selected value="8years">
+                        {%- else %}
+                    <option value="8years">
+                        {%- endif %} 8 years
+                    </option>
+                    {%- endif %}
+                    {% if max_expiry_index >= 12 %}
+                    {% if args.default_expiry == "16years" %}
+                    <option selected value="16years">
+                        {%- else %}
+                    <option value="16years">
+                        {%- endif %} 16 years
+                    </option>
+                    {%- endif %}
                 </optgroup>
+                {% if max_expiry_index >= 13 %}
                 {% if !args.eternal_pasta %} {% if args.default_expiry ==
                 "never" %}
                 <option selected value="never">
                     {%- else %}
                 <option value="never">{%- endif %} Never Expire
                 </option>
+                {%- endif %}
                 {%- endif %}
             </select>
         </div>
@@ -159,23 +217,23 @@
             <label for="privacy">Privacy <sup> <a href="/guide#privacy">﹖</a></sup></label><br>
             <select style="width: 100%;" name="privacy" id="privacy">
                 <optgroup label="Unencrypted (no password)">
-                    <option value="public">Public</option>
+                    <option value="public"{% if default_privacy_value == "public" %} selected{% endif %}>Public</option>
                     <!--{% if args.private %}-->
-                    <option value="unlisted" selected>Unlisted</option>
+                    <option value="unlisted"{% if default_privacy_value == "unlisted" %} selected{% endif %}>Unlisted</option>
                     <!--{%- endif %}-->
                 </optgroup>
                 {% if args.enable_readonly %}
                 <optgroup label="Unencrypted (protected)">
-                    <option value="readonly">Read-only</option>
+                    <option value="readonly"{% if default_privacy_value == "readonly" %} selected{% endif %}>Read-only</option>
                 </optgroup>
                 {%- endif %}
                 {% if args.encryption_client_side || args.encryption_server_side %}
                 <optgroup label="Encrypted">
                     {% if args.encryption_server_side %}
-                    <option value="private">Private</option>
+                    <option value="private"{% if default_privacy_value == "private" %} selected{% endif %}>Private</option>
                     {%- endif %}
                     {% if args.encryption_client_side%}
-                    <option value="secret">Secret</option>
+                    <option value="secret"{% if default_privacy_value == "secret" %} selected{% endif %}>Secret</option>
                     {%- endif %}
                 </optgroup>
                 {%- endif %}
@@ -201,7 +259,7 @@
             <label for="file" id="attach-file-button-label"><a role="button" id="attach-file-button">Select or drop file
                     attachment</a></label>
             <br>
-            <input type="file" id="file" name="file" />
+            <input type="file" id="file" name="file" multiple />
         </div>
         {% endif %}
         <b>
@@ -401,7 +459,11 @@
     }
 
     hiddenFileButton.addEventListener('change', function () {
-        attachFileButton.textContent = "Attached: " + this.files[0].name;
+        if (this.files.length === 1) {
+            attachFileButton.textContent = "Attached: " + this.files[0].name;
+        } else if (this.files.length > 1) {
+            attachFileButton.textContent = "Attached: " + this.files.length + " files";
+        }
         fileOversized();
     });
 
@@ -421,6 +483,43 @@
         attachFileButton.textContent = "Attached: " + hiddenFileButton.files[0].name;
         evt.preventDefault();
     };
+
+    // Clipboard paste support for image uploads
+    document.addEventListener('paste', function (evt) {
+        if (!hiddenFileButton) return;
+        const items = evt.clipboardData && evt.clipboardData.items;
+        if (!items) return;
+        const dt = new DataTransfer();
+        // Keep existing files
+        for (let i = 0; i < hiddenFileButton.files.length; i++) {
+            dt.items.add(hiddenFileButton.files[i]);
+        }
+        let added = 0;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].kind === 'file') {
+                const pastedFile = items[i].getAsFile();
+                if (!pastedFile) continue;
+                // Deduplicate by name+size+type
+                let duplicate = false;
+                for (let j = 0; j < dt.files.length; j++) {
+                    if (dt.files[j].name === pastedFile.name &&
+                        dt.files[j].size === pastedFile.size &&
+                        dt.files[j].type === pastedFile.type) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (!duplicate) {
+                    dt.items.add(pastedFile);
+                    added++;
+                }
+            }
+        }
+        if (added > 0) {
+            hiddenFileButton.files = dt.files;
+            attachFileButton.textContent = "Attached: " + dt.files.length + " file(s)";
+        }
+    });
     // Access Paste button functionality
     document.getElementById('access-paste-button').addEventListener('click', accessPaste);
     document.getElementById('access-paste-form').addEventListener('keypress', function(event) {

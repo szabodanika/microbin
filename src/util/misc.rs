@@ -40,33 +40,35 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             // remove from database
             delete(None, Some(p.id));
 
-            // remove the file itself
-            if let Some(file) = &p.file {
-                if fs::remove_file(format!(
-                    "{}/attachments/{}/{}",
-                    ARGS.data_dir,
-                    p.id_as_words(),
-                    file.name()
-                ))
-                .is_err()
-                {
-                    log::error!("Failed to delete file {}!", file.name())
-                }
-
-                // and remove the containing directory
-                if fs::remove_dir(format!(
-                    "{}/attachments/{}/",
-                    ARGS.data_dir,
-                    p.id_as_words()
-                ))
-                .is_err()
-                {
-                    log::error!("Failed to delete directory {}!", file.name())
+            // remove the attachment directory entirely (handles single file, attachments, and .enc variants)
+            let dir = format!("{}/attachments/{}", ARGS.data_dir, p.id_as_words());
+            if Path::new(&dir).exists() {
+                if fs::remove_dir_all(&dir).is_err() {
+                    log::error!("Failed to delete attachment directory {}!", dir);
                 }
             }
             false
         }
     });
+
+    // Remove orphaned attachment directories (dirs with no corresponding pasta)
+    let attachments_dir = format!("{}/attachments", ARGS.data_dir);
+    if let Ok(entries) = fs::read_dir(&attachments_dir) {
+        let known_ids: std::collections::HashSet<String> =
+            pastas.iter().map(|p| p.id_as_words()).collect();
+        for entry in entries.flatten() {
+            if let Some(name) = entry.file_name().to_str().map(|s| s.to_owned()) {
+                if !known_ids.contains(&name) {
+                    let path = entry.path();
+                    if path.is_dir() {
+                        if fs::remove_dir_all(&path).is_err() {
+                            log::error!("Failed to remove orphaned attachment dir {:?}", path);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 pub fn string_to_qr_svg(str: &str) -> String {
@@ -115,12 +117,9 @@ pub fn encrypt_file(
     // Encrypt the input data
     let ciphertext = mc.encrypt_bytes_to_bytes(&input_data[..]);
 
-    // Write the encrypted data to a new file with the .enc extension
-    let mut f = File::create(
-        Path::new(input_file_path)
-            .with_file_name("data")
-            .with_extension("enc"),
-    )?;
+    // Write the encrypted data to a new file named {original_filename}.enc
+    let enc_path = format!("{}.enc", input_file_path);
+    let mut f = File::create(&enc_path)?;
     f.write_all(ciphertext.as_slice())?;
 
     // Delete the original input file

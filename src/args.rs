@@ -120,9 +120,14 @@ pub struct Args {
     #[clap(long, env = "BITVAULT_HASH_IDS")]
     pub hash_ids: bool,
 
+    #[clap(long, env = "BITVAULT_MAX_EXPIRY", default_value = "1week")]
+    pub max_expiry: String,
 
-    #[clap(long, env = "BITVAULT_DISABLE_UPDATE_CHECKING")]
-    pub disable_update_checking: bool,
+    #[clap(long, env = "BITVAULT_DEFAULT_PRIVACY")]
+    pub default_privacy: Option<String>,
+
+    #[clap(long, env = "BITVAULT_DEFAULT_VIEW", default_value = "gallery")]
+    pub default_view: String,
 
     #[clap(long, env = "BITVAULT_ENCRYPTION_CLIENT_SIDE")]
     pub encryption_client_side: bool,
@@ -202,14 +207,22 @@ impl Args {
             no_file_upload: self.no_file_upload,
             custom_css: self.custom_css,
             hash_ids: self.hash_ids,
+            max_expiry: self.max_expiry,
+            default_privacy: self.default_privacy,
+            default_view: self.default_view,
             encryption_client_side: self.encryption_client_side,
             encryption_server_side: self.encryption_server_side,
             max_file_size_encrypted_mb: self.max_file_size_encrypted_mb,
             max_file_size_unencrypted_mb: self.max_file_size_unencrypted_mb,
-            disable_update_checking: true,
-            //disable_update_checking: self.disable_update_checking,
-
         }
+    }
+
+    pub fn max_expiry_index(&self) -> usize {
+        let options = [
+            "1min", "10min", "1hour", "24hour", "3days", "1week",
+            "1month", "6months", "1year", "2years", "4years", "8years", "16years", "never",
+        ];
+        options.iter().position(|&o| o == self.max_expiry).unwrap_or(5)
     }
 }
 
