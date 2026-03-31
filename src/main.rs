@@ -4,7 +4,7 @@ extern crate core;
 
 use crate::args::ARGS;
 use crate::endpoints::{
-    admin, archive, auth_admin, auth_upload, create, edit, errors, file, guide, list,
+    admin, api, archive, auth_admin, auth_upload, create, edit, errors, file, guide, list,
     pasta as pasta_endpoint, qr, remove, static_resources,
 };
 use crate::pasta::Pasta;
@@ -37,6 +37,7 @@ pub mod util {
 
 pub mod endpoints {
     pub mod admin;
+    pub mod api;
     pub mod archive;
     pub mod auth_admin;
     pub mod auth_upload;
@@ -136,6 +137,15 @@ async fn main() -> std::io::Result<()> {
             .service(file::post_secure_file)
             .service(archive::get_archive)
             .service(web::resource("/upload").route(web::post().to(create::create)))
+            .service(
+                web::scope("/api/v1")
+                    .route("/health",     web::get().to(api::health))
+                    .route("/paste",      web::post().to(api::create_paste))
+                    .route("/paste/{id}", web::get().to(api::get_paste))
+                    .route("/paste/{id}", web::delete().to(api::delete_paste))
+                    .route("/paste/{id}", web::patch().to(api::update_paste))
+                    .route("/pastes",     web::get().to(api::list_pastes)),
+            )
             .default_service(web::route().to(errors::not_found))
             .wrap(middleware::Logger::new("%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
             .service(remove::remove)

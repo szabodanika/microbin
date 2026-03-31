@@ -88,6 +88,126 @@ Environment="BITVAULT_TITLE=BitVault"
 WantedBy=multi-user.target
 ```
 
+## REST API
+
+BitVault exposes a JSON API under `/api/v1/` for programmatic access and AI agent integration.
+
+### Authentication
+
+Set `BITVAULT_API_KEY` to require a bearer token on all API requests:
+
+```bash
+export BITVAULT_API_KEY=my-secret-token
+```
+
+Pass the token in the `Authorization` header:
+
+```
+Authorization: Bearer my-secret-token
+```
+
+If `BITVAULT_API_KEY` is unset, the API is open (consistent with the web UI when basic auth is also disabled).
+
+### Endpoints
+
+#### `GET /api/v1/health`
+
+No authentication required.
+
+```bash
+curl https://vault.example.com/api/v1/health
+# {"status":"ok","version":"1.2.0"}
+```
+
+#### `POST /api/v1/paste` — Create a paste
+
+```bash
+curl -X POST https://vault.example.com/api/v1/paste \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "SELECT * FROM users;",
+    "extension": "sql",
+    "privacy": "unlisted",
+    "expiration": "1hour"
+  }'
+# {"id":"happy-apple-banana","url":"https://vault.example.com/upload/happy-apple-banana","expires_at":1748736000,"privacy":"unlisted"}
+```
+
+**Fields:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `content` | string | yes | Paste text content |
+| `extension` | string | no | Syntax highlight language (e.g. `"rust"`, `"sql"`) |
+| `privacy` | string | no | `"public"`, `"unlisted"` (default), or `"private"` |
+| `expiration` | string | no | One of: `1min`, `10min`, `1hour`, `24hour`, `3days`, `1week`, `1month`, `6months`, `1year`, `2years`, `4years`, `8years`, `16years`, `never` |
+| `burn_after_reads` | number | no | Auto-delete after N reads (0 = unlimited) |
+| `password` | string | required if `privacy="private"` | Server-side encryption password |
+
+#### `GET /api/v1/paste/{id}` — Get a paste
+
+```bash
+curl https://vault.example.com/api/v1/paste/happy-apple-banana \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+For private (encrypted) pastes, provide the password:
+
+```bash
+curl https://vault.example.com/api/v1/paste/happy-apple-banana \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "X-Pasta-Password: hunter2"
+```
+
+#### `DELETE /api/v1/paste/{id}` — Delete a paste
+
+```bash
+curl -X DELETE https://vault.example.com/api/v1/paste/happy-apple-banana \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+#### `PATCH /api/v1/paste/{id}` — Update a paste (editable pastes only)
+
+```bash
+curl -X PATCH https://vault.example.com/api/v1/paste/happy-apple-banana \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "updated content"}'
+```
+
+#### `GET /api/v1/pastes` — List all pastes
+
+```bash
+curl https://vault.example.com/api/v1/pastes \
+  -H "Authorization: Bearer $API_KEY"
+```
+
+### Error responses
+
+All errors follow this shape:
+
+```json
+{"error": "Human-readable message", "code": "MACHINE_CODE"}
+```
+
+| Code | HTTP Status | Meaning |
+|---|---|---|
+| `API_KEY_REQUIRED` | 401 | Missing or wrong API key |
+| `PASSWORD_REQUIRED` | 401 | Paste is encrypted; `X-Pasta-Password` header missing |
+| `WRONG_PASSWORD` | 403 | Decryption failed |
+| `NOT_FOUND` | 404 | Paste not found or expired |
+| `NOT_EDITABLE` | 400 | PATCH attempted on a non-editable paste |
+| `INVALID_EXPIRATION` | 400 | Expiration value not allowed |
+| `INVALID_PRIVACY` | 400 | Privacy value not supported |
+| `CONTENT_REQUIRED` | 400 | Empty content on create |
+
+### Limitations
+
+- **File upload** is not supported via the API (use the web UI)
+- **Client-side encrypted** (`secret`) and **readonly** pastes cannot be created via the API
+- `secret` pastes returned by `GET /api/v1/paste/{id}` will have ciphertext in `content` — the key never reaches the server
+
 ## License
 
 BitVault is available under the [GPL-3.0](LICENSE) License. The original Microbin project was published under [BSD 3-Clause License](ORIGINALLICENSE.txt).

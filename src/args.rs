@@ -127,6 +127,9 @@ pub struct Args {
     #[clap(long, env = "BITVAULT_HASH_IDS")]
     pub hash_ids: bool,
 
+    #[clap(long, env = "BITVAULT_API_KEY")]
+    pub api_key: Option<String>,
+
     #[clap(
         long,
         env = "BITVAULT_MAX_EXPIRY",
@@ -220,6 +223,7 @@ impl Args {
             no_file_upload: self.no_file_upload,
             custom_css: self.custom_css,
             hash_ids: self.hash_ids,
+            api_key: None,
             max_expiry: self.max_expiry,
             default_privacy: self.default_privacy,
             encryption_client_side: self.encryption_client_side,
