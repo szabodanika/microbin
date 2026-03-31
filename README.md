@@ -108,7 +108,7 @@ Authorization: Bearer my-secret-token
 
 If `BITVAULT_API_KEY` is unset, the API requires no authentication. Consider setting it in any deployment where the data should not be publicly readable.
 
-When `BITVAULT_BASIC_AUTH_USERNAME`/`BITVAULT_BASIC_AUTH_PASSWORD` (web UI Basic Auth) is configured, it also applies to `/api/v1/` routes. API clients must then send both Basic Auth credentials and the `Authorization: Bearer` token (if `BITVAULT_API_KEY` is also set).
+When `BITVAULT_BASIC_AUTH_USERNAME`/`BITVAULT_BASIC_AUTH_PASSWORD` (web UI Basic Auth) is configured, it also applies to all `/api/v1/` routes **except `/health`**. API clients must send Basic Auth credentials alongside the `Authorization: Bearer` token when both are configured.
 
 ### Paste IDs
 
@@ -149,7 +149,7 @@ curl -X POST https://vault.example.com/api/v1/paste \
 | `content` | string | yes | Paste text content |
 | `extension` | string | no | Syntax highlight language (e.g. `"rust"`, `"sql"`) |
 | `privacy` | string | no | `"public"`, `"unlisted"` (default), or `"private"` |
-| `expiration` | string | no | One of: `1min`, `10min`, `1hour`, `24hour`, `3days`, `1week`, `1month`, `6months`, `1year`, `2years`, `4years`, `8years`, `16years`, `never` |
+| `expiration` | string | no | One of: `1min`, `10min`, `1hour`, `24hour`, `3days`, `1week`, `1month`, `6months`, `1year`, `2years`, `4years`, `8years`, `16years`, `never`. Accepted values depend on server configuration (`BITVAULT_MAX_EXPIRY`); `never` may be rejected unless explicitly allowed. |
 | `burn_after_reads` | number | no | Auto-delete after N reads (0 = unlimited) |
 | `password` | string | required if `privacy="private"` | Server-side encryption password |
 

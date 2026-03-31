@@ -91,7 +91,11 @@ fn require_api_key(req: &HttpRequest) -> Result<(), HttpResponse> {
         .headers()
         .get("Authorization")
         .and_then(|v| v.to_str().ok())
-        .and_then(|v| v.strip_prefix("Bearer "));
+        .map(str::trim)
+        .and_then(|v| {
+            let (scheme, token) = v.split_once(' ')?;
+            if scheme.eq_ignore_ascii_case("bearer") { Some(token.trim()) } else { None }
+        });
     if provided == Some(key) {
         Ok(())
     } else {
@@ -117,6 +121,14 @@ fn api_error(status: u16, code: &str, message: &str) -> HttpResponse {
             .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
     )
     .json(body)
+}
+
+pub fn json_error_handler(
+    err: actix_web::error::JsonPayloadError,
+    _req: &HttpRequest,
+) -> actix_web::Error {
+    let response = api_error(400, "INVALID_JSON", &err.to_string());
+    actix_web::error::InternalError::from_response(err, response).into()
 }
 
 fn privacy_string(pasta: &crate::pasta::Pasta) -> &'static str {
@@ -278,7 +290,6 @@ pub async fn create_paste(
         pasta_type,
     };
 
-    let id = new_pasta.id;
     let response = CreatePasteResponse {
         id: new_pasta.id_as_words(),
         url: pasta_url(&new_pasta),
@@ -288,11 +299,8 @@ pub async fn create_paste(
 
     let mut pastas = data.pastas.lock().unwrap();
     pastas.push(new_pasta);
-    for pasta in pastas.iter() {
-        if pasta.id == id {
-            insert(Some(&pastas), Some(pasta));
-            break;
-        }
+    if let Some(pasta) = pastas.last() {
+        insert(Some(&pastas), Some(pasta));
     }
 
     HttpResponse::Created().json(response)
@@ -470,19 +478,21 @@ pub async fn update_paste(
             );
         }
         if pastas[index].readonly {
-            // Readonly paste content is plaintext; validate via encrypted_key (as edit.rs does).
+            // Readonly paste content is plaintext; validate via encrypted_key.
             let encrypted_key = pastas[index].encrypted_key.as_deref().unwrap_or("");
             if !encrypted_key.is_empty() && decrypt(encrypted_key, &password).is_err() {
                 return api_error(403, "WRONG_PASSWORD", "incorrect password");
             }
+            // Keep content as plaintext — readonly pastes are not encrypted at rest.
+            pastas[index].content = body.content.clone();
         } else {
             // Private paste: content is encrypted, validate by decrypting it.
             let content_copy = pastas[index].content.clone();
             if decrypt(&content_copy, &password).is_err() {
                 return api_error(403, "WRONG_PASSWORD", "incorrect password");
             }
+            pastas[index].content = encrypt(&body.content, &password);
         }
-        pastas[index].content = encrypt(&body.content, &password);
     } else {
         pastas[index].content = body.content.clone();
     }
@@ -508,7 +518,7 @@ pub async fn list_pastes(
     let mut pastas = data.pastas.lock().unwrap();
     remove_expired(&mut pastas);
 
-    let list: Vec<PasteListItem> = pastas
+    let mut list: Vec<PasteListItem> = pastas
         .iter()
         .map(|p| PasteListItem {
             id: p.id_as_words(),
@@ -519,6 +529,7 @@ pub async fn list_pastes(
             read_count: p.read_count,
         })
         .collect();
+    list.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
     HttpResponse::Ok().json(list)
 }

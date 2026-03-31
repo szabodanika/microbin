@@ -108,14 +108,19 @@ async fn main() -> std::io::Result<()> {
             .app_data(data.clone())
             .wrap(middleware::NormalizePath::trim())
             .wrap(middleware::Logger::new("%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
+            // /health is always open — register it before the auth-wrapped scope.
+            .service(web::resource("/api/v1/health").route(web::get().to(api::health)))
             .service(
                 web::scope("/api/v1")
+                    .app_data(
+                        web::JsonConfig::default()
+                            .error_handler(api::json_error_handler),
+                    )
                     .wrap(Condition::new(
                         ARGS.auth_basic_username.is_some()
                             && ARGS.auth_basic_username.as_ref().unwrap().trim() != "",
                         HttpAuthentication::basic(util::auth::auth_validator),
                     ))
-                    .route("/health",     web::get().to(api::health))
                     .route("/paste",      web::post().to(api::create_paste))
                     .route("/paste/{id}", web::get().to(api::get_paste))
                     .route("/paste/{id}", web::delete().to(api::delete_paste))
