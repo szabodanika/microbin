@@ -534,6 +534,7 @@ pub async fn list_pastes(
 
     let mut list: Vec<PasteListItem> = pastas
         .iter()
+        .filter(|p| !p.private && !p.encrypt_client && !p.encrypt_server)
         .map(|p| PasteListItem {
             id: p.id_as_words(),
             pasta_type: p.pasta_type.clone(),
