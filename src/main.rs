@@ -119,7 +119,7 @@ async fn main() -> std::io::Result<()> {
                     .wrap(Condition::new(
                         ARGS.auth_basic_username.is_some()
                             && ARGS.auth_basic_username.as_ref().unwrap().trim() != "",
-                        HttpAuthentication::basic(util::auth::auth_validator),
+                        HttpAuthentication::basic(util::auth::api_auth_validator),
                     ))
                     .route("/paste",      web::post().to(api::create_paste))
                     .route("/paste/{id}", web::get().to(api::get_paste))

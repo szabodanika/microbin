@@ -79,6 +79,14 @@ struct HealthResponse {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+/// Constant-time byte comparison to prevent timing attacks on bearer tokens.
+fn ct_eq(a: &[u8], b: &[u8]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    a.iter().zip(b.iter()).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+}
+
 fn require_api_key(req: &HttpRequest) -> Result<(), HttpResponse> {
     let Some(ref key) = ARGS.api_key else {
         return Ok(());
@@ -96,7 +104,7 @@ fn require_api_key(req: &HttpRequest) -> Result<(), HttpResponse> {
             let (scheme, token) = v.split_once(' ')?;
             if scheme.eq_ignore_ascii_case("bearer") { Some(token.trim()) } else { None }
         });
-    if provided == Some(key) {
+    if provided.map(|t| ct_eq(t.as_bytes(), key.as_bytes())).unwrap_or(false) {
         Ok(())
     } else {
         Err(api_error(401, "API_KEY_REQUIRED", "Valid API key required"))
