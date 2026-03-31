@@ -94,7 +94,7 @@ BitVault exposes a JSON API under `/api/v1/` for programmatic access and AI agen
 
 ### Authentication
 
-Set `BITVAULT_API_KEY` to require a bearer token on all API requests:
+Set `BITVAULT_API_KEY` to require a bearer token on all API requests (except `/health`, which is always open):
 
 ```bash
 export BITVAULT_API_KEY=my-secret-token
@@ -106,9 +106,9 @@ Pass the token in the `Authorization` header:
 Authorization: Bearer my-secret-token
 ```
 
-If `BITVAULT_API_KEY` is unset, the API requires no authentication.
+If `BITVAULT_API_KEY` is unset, the API requires no authentication. Consider setting it in any deployment where the data should not be publicly readable.
 
-`BITVAULT_BASIC_AUTH_USERNAME`/`BITVAULT_BASIC_AUTH_PASSWORD` (web UI Basic Auth) does **not** apply to `/api/v1/` routes. The API and the web UI use independent auth mechanisms.
+When `BITVAULT_BASIC_AUTH_USERNAME`/`BITVAULT_BASIC_AUTH_PASSWORD` (web UI Basic Auth) is configured, it also applies to `/api/v1/` routes. API clients must then send both Basic Auth credentials and the `Authorization: Bearer` token (if `BITVAULT_API_KEY` is also set).
 
 ### Paste IDs
 
@@ -124,7 +124,7 @@ No authentication required.
 
 ```bash
 curl https://vault.example.com/api/v1/health
-# {"status":"ok","version":"1.2.0"}
+# {"status":"ok","version":"1.1.4"}
 ```
 
 #### `POST /api/v1/paste` — Create a paste
@@ -218,6 +218,7 @@ All errors follow this shape:
 | `INVALID_EXPIRATION` | 400 | Expiration value not allowed |
 | `INVALID_PRIVACY` | 400 | Privacy value not supported |
 | `CONTENT_REQUIRED` | 400 | Empty content on create |
+| `LISTING_DISABLED` | 403 | `GET /pastes` called but server has listing disabled |
 
 ### Limitations
 

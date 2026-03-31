@@ -178,6 +178,10 @@ fn to_paste_response(pasta: &crate::pasta::Pasta, content: String) -> PasteRespo
 
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
+pub async fn not_found() -> HttpResponse {
+    api_error(404, "NOT_FOUND", "endpoint not found")
+}
+
 pub async fn health() -> HttpResponse {
     HttpResponse::Ok().json(HealthResponse {
         status: "ok",
@@ -495,6 +499,10 @@ pub async fn list_pastes(
 ) -> HttpResponse {
     if let Err(e) = require_api_key(&req) {
         return e;
+    }
+
+    if ARGS.no_listing {
+        return api_error(403, "LISTING_DISABLED", "paste listing is disabled on this server");
     }
 
     let mut pastas = data.pastas.lock().unwrap();

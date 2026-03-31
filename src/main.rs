@@ -97,6 +97,11 @@ async fn main() -> std::io::Result<()> {
         pastas: Mutex::new(read_all()),
     });
 
+    let api_key_set = ARGS.api_key.as_deref().map(|k| !k.trim().is_empty()).unwrap_or(false);
+    let basic_auth_set = ARGS.auth_basic_username.as_deref().map(|u| !u.trim().is_empty()).unwrap_or(false);
+    if !api_key_set && !basic_auth_set {
+        log::warn!("API is accessible without authentication. Set BITVAULT_API_KEY to require a bearer token.");
+    }
 
     HttpServer::new(move || {
         App::new()
@@ -105,12 +110,18 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::new("%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
             .service(
                 web::scope("/api/v1")
+                    .wrap(Condition::new(
+                        ARGS.auth_basic_username.is_some()
+                            && ARGS.auth_basic_username.as_ref().unwrap().trim() != "",
+                        HttpAuthentication::basic(util::auth::auth_validator),
+                    ))
                     .route("/health",     web::get().to(api::health))
                     .route("/paste",      web::post().to(api::create_paste))
                     .route("/paste/{id}", web::get().to(api::get_paste))
                     .route("/paste/{id}", web::delete().to(api::delete_paste))
                     .route("/paste/{id}", web::patch().to(api::update_paste))
-                    .route("/pastes",     web::get().to(api::list_pastes)),
+                    .route("/pastes",     web::get().to(api::list_pastes))
+                    .default_service(web::route().to(api::not_found)),
             )
             .service(
                 web::scope("")
