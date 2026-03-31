@@ -108,7 +108,7 @@ Authorization: Bearer my-secret-token
 
 If `BITVAULT_API_KEY` is unset, the API requires no authentication.
 
-`BITVAULT_AUTH_BASIC_USERNAME`/`BITVAULT_AUTH_BASIC_PASSWORD` (web UI Basic Auth) does **not** apply to `/api/v1/` routes. The API and the web UI use independent auth mechanisms.
+`BITVAULT_BASIC_AUTH_USERNAME`/`BITVAULT_BASIC_AUTH_PASSWORD` (web UI Basic Auth) does **not** apply to `/api/v1/` routes. The API and the web UI use independent auth mechanisms.
 
 ### Paste IDs
 
@@ -177,9 +177,18 @@ curl -X DELETE https://vault.example.com/api/v1/paste/happy-apple-banana \
 
 #### `PATCH /api/v1/paste/{id}` — Update a paste (editable pastes only)
 
+For password-protected pastes, supply the password via `X-Pasta-Password` (preferred) or as a `"password"` field in the JSON body.
+
 ```bash
 curl -X PATCH https://vault.example.com/api/v1/paste/happy-apple-banana \
   -H "Authorization: Bearer $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "updated content"}'
+
+# Password-protected paste:
+curl -X PATCH https://vault.example.com/api/v1/paste/happy-apple-banana \
+  -H "Authorization: Bearer $API_KEY" \
+  -H "X-Pasta-Password: secret123" \
   -H "Content-Type: application/json" \
   -d '{"content": "updated content"}'
 ```
@@ -202,7 +211,7 @@ All errors follow this shape:
 | Code | HTTP Status | Meaning |
 |---|---|---|
 | `API_KEY_REQUIRED` | 401 | Missing or wrong API key |
-| `PASSWORD_REQUIRED` | 401 | Paste is encrypted; `X-Pasta-Password` header missing |
+| `PASSWORD_REQUIRED` | 401 | Paste is password-protected; `X-Pasta-Password` header missing |
 | `WRONG_PASSWORD` | 403 | Decryption failed |
 | `NOT_FOUND` | 404 | Paste not found or expired |
 | `NOT_EDITABLE` | 400 | PATCH attempted on a non-editable paste |

@@ -83,12 +83,16 @@ fn require_api_key(req: &HttpRequest) -> Result<(), HttpResponse> {
     let Some(ref key) = ARGS.api_key else {
         return Ok(());
     };
+    let key = key.trim();
+    if key.is_empty() {
+        return Ok(());
+    }
     let provided = req
         .headers()
         .get("Authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "));
-    if provided == Some(key.as_str()) {
+    if provided == Some(key) {
         Ok(())
     } else {
         Err(api_error(401, "API_KEY_REQUIRED", "Valid API key required"))
@@ -313,15 +317,16 @@ pub async fn get_paste(
         None => return api_error(404, "NOT_FOUND", "paste not found or expired"),
     };
 
-    if pastas[index].encrypt_server && password.is_empty() {
-        return api_error(
-            401,
-            "PASSWORD_REQUIRED",
-            "X-Pasta-Password header required for this paste",
-        );
-    }
-
-    let content = if pastas[index].encrypt_server && !password.is_empty() {
+    // Secret pastes (encrypt_client) are client-encrypted; the server returns ciphertext as-is.
+    // Private pastes (encrypt_server && !encrypt_client) are decrypted server-side.
+    let content = if pastas[index].encrypt_server && !pastas[index].encrypt_client {
+        if password.is_empty() {
+            return api_error(
+                401,
+                "PASSWORD_REQUIRED",
+                "X-Pasta-Password header required for this paste",
+            );
+        }
         match decrypt(&pastas[index].content, &password) {
             Ok(s) => s,
             Err(_) => return api_error(403, "WRONG_PASSWORD", "incorrect password"),
@@ -361,7 +366,10 @@ pub async fn delete_paste(
         None => return api_error(404, "NOT_FOUND", "paste not found or expired"),
     };
 
-    if pastas[index].encrypt_server || pastas[index].readonly {
+    // Private pastes: content is encrypted, validate by decrypting it.
+    // Secret pastes (encrypt_client): server-side key unavailable, allow delete via API key alone.
+    // Readonly pastes: content is plaintext, validate via encrypted_key (if one was set).
+    if pastas[index].encrypt_server && !pastas[index].encrypt_client {
         if password.is_empty() {
             return api_error(
                 401,
@@ -372,6 +380,20 @@ pub async fn delete_paste(
         let content_copy = pastas[index].content.clone();
         if decrypt(&content_copy, &password).is_err() {
             return api_error(403, "WRONG_PASSWORD", "incorrect password");
+        }
+    } else if pastas[index].readonly {
+        let encrypted_key = pastas[index].encrypted_key.as_deref().unwrap_or("");
+        if !encrypted_key.is_empty() {
+            if password.is_empty() {
+                return api_error(
+                    401,
+                    "PASSWORD_REQUIRED",
+                    "X-Pasta-Password header required to delete this paste",
+                );
+            }
+            if decrypt(encrypted_key, &password).is_err() {
+                return api_error(403, "WRONG_PASSWORD", "incorrect password");
+            }
         }
     }
 
@@ -403,7 +425,13 @@ pub async fn update_paste(
         return api_error(400, "CONTENT_REQUIRED", "content must not be empty");
     }
 
-    let password = body.password.as_deref().unwrap_or("").to_string();
+    // Accept password via X-Pasta-Password header (consistent with GET/DELETE) or JSON body field.
+    let password = req
+        .headers()
+        .get("X-Pasta-Password")
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| body.password.as_deref().unwrap_or("").to_string());
     let mut pastas = data.pastas.lock().unwrap();
     let id_num = match resolve_id(&id) {
         Some(n) => n,
@@ -434,12 +462,21 @@ pub async fn update_paste(
             return api_error(
                 401,
                 "PASSWORD_REQUIRED",
-                "password required to update this paste",
+                "X-Pasta-Password header required to update this paste",
             );
         }
-        let content_copy = pastas[index].content.clone();
-        if decrypt(&content_copy, &password).is_err() {
-            return api_error(403, "WRONG_PASSWORD", "incorrect password");
+        if pastas[index].readonly {
+            // Readonly paste content is plaintext; validate via encrypted_key (as edit.rs does).
+            let encrypted_key = pastas[index].encrypted_key.as_deref().unwrap_or("");
+            if !encrypted_key.is_empty() && decrypt(encrypted_key, &password).is_err() {
+                return api_error(403, "WRONG_PASSWORD", "incorrect password");
+            }
+        } else {
+            // Private paste: content is encrypted, validate by decrypting it.
+            let content_copy = pastas[index].content.clone();
+            if decrypt(&content_copy, &password).is_err() {
+                return api_error(403, "WRONG_PASSWORD", "incorrect password");
+            }
         }
         pastas[index].content = encrypt(&body.content, &password);
     } else {
