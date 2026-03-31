@@ -141,11 +141,11 @@ fn pasta_url(pasta: &crate::pasta::Pasta) -> String {
     format!("{}/upload/{}", ARGS.public_path_as_str(), pasta.id_as_words())
 }
 
-fn resolve_id(id: &str) -> u64 {
+fn resolve_id(id: &str) -> Option<u64> {
     if ARGS.hash_ids {
-        hashid_to_u64(id).unwrap_or(0)
+        hashid_to_u64(id).ok()
     } else {
-        to_u64(id).unwrap_or(0)
+        to_u64(id).ok()
     }
 }
 
@@ -301,7 +301,10 @@ pub async fn get_paste(
 
     let password = pasta_password(&req);
     let mut pastas = data.pastas.lock().unwrap();
-    let id_num = resolve_id(&id);
+    let id_num = match resolve_id(&id) {
+        Some(n) => n,
+        None => return api_error(404, "NOT_FOUND", "paste not found or expired"),
+    };
 
     remove_expired(&mut pastas);
 
@@ -346,7 +349,10 @@ pub async fn delete_paste(
 
     let password = pasta_password(&req);
     let mut pastas = data.pastas.lock().unwrap();
-    let id_num = resolve_id(&id);
+    let id_num = match resolve_id(&id) {
+        Some(n) => n,
+        None => return api_error(404, "NOT_FOUND", "paste not found or expired"),
+    };
 
     remove_expired(&mut pastas);
 
@@ -399,7 +405,10 @@ pub async fn update_paste(
 
     let password = body.password.as_deref().unwrap_or("").to_string();
     let mut pastas = data.pastas.lock().unwrap();
-    let id_num = resolve_id(&id);
+    let id_num = match resolve_id(&id) {
+        Some(n) => n,
+        None => return api_error(404, "NOT_FOUND", "paste not found or expired"),
+    };
 
     remove_expired(&mut pastas);
 

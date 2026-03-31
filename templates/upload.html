@@ -379,13 +379,14 @@ if (gotoURL) {
   var el = document.getElementById('expiry-line');
   if (!el) return;
   var ts = +el.dataset.ts * 1000;
+  var intervalId;
   function upd() {
     var d = Math.floor((ts - Date.now()) / 1000);
-    if (d <= 0) { el.textContent = 'Expired'; return; }
+    if (d <= 0) { el.textContent = 'Expired'; clearInterval(intervalId); return; }
     var h = Math.floor(d / 3600), m = Math.floor(d % 3600 / 60), s = d % 60;
     el.textContent = 'Expires in ' + (h ? h + 'h ' : '') + m + 'm ' + s + 's';
   }
-  upd(); setInterval(upd, 1000);
+  upd(); intervalId = setInterval(upd, 1000);
 })();
 </script>
 
