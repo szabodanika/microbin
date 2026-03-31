@@ -1,6 +1,6 @@
 [package]
 name = "bitvault"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2021"
 authors = ["overcuriousity, originally Daniel Szabo <daniel@microbin.eu> and contributors"]
 license = "GPL-3.0-only"

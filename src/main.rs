@@ -108,7 +108,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(data.clone())
             .wrap(middleware::NormalizePath::trim())
             .wrap(middleware::Logger::new("%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
-            // /health is always open — register it before the auth-wrapped scope.
+            // These endpoints are always open — register before the auth-wrapped scopes.
+            .service(web::resource("/openapi.yaml").route(web::get().to(api::openapi_spec)))
             .service(web::resource("/api/v1/health").route(web::get().to(api::health)))
             .service(
                 web::scope("/api/v1")

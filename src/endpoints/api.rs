@@ -202,6 +202,12 @@ pub async fn not_found() -> HttpResponse {
     api_error(404, "NOT_FOUND", "endpoint not found")
 }
 
+pub async fn openapi_spec() -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("application/yaml")
+        .body(include_str!("../../openapi.yaml"))
+}
+
 pub async fn health() -> HttpResponse {
     HttpResponse::Ok().json(HealthResponse {
         status: "ok",

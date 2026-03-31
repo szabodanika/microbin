@@ -1,0 +1,501 @@
+openapi: 3.1.0
+
+info:
+  title: BitVault Paste API
+  version: 1.1.4
+  description: |
+    REST API for BitVault, a self-hosted pastebin with BIP39 word IDs,
+    server-side encryption, and optional HTTP Basic Auth.
+
+    ## Authentication
+
+    Two independent auth layers may be active on a deployment:
+
+    1. **HTTP Basic Auth** — wraps the entire `/api/v1` scope (except `/api/v1/health`).
+       Controlled by `BITVAULT_BASIC_AUTH_USERNAME` / `BITVAULT_BASIC_AUTH_PASSWORD`.
+
+    2. **Bearer token** — per-request API key checked inside each handler.
+       Controlled by `BITVAULT_API_KEY`.  Send as `Authorization: Bearer <key>`.
+
+    When neither is configured the API is open (a warning is logged at startup).
+
+    ### Paste passwords
+    Private (server-encrypted) pastes additionally require the original password
+    for read, update, and delete.  Pass it in the `X-Pasta-Password` header.
+
+  contact:
+    url: https://github.com/overcuriousity/bitvault
+
+servers:
+  - url: "{scheme}://{host}"
+    description: Self-hosted instance
+    variables:
+      scheme:
+        default: https
+        enum: [http, https]
+      host:
+        default: localhost:8080
+
+security:
+  - bearerAuth: []
+  - basicAuth: []
+  - {}
+
+tags:
+  - name: pastes
+    description: Create, read, update, and delete pastes
+  - name: system
+    description: Health and discovery endpoints
+
+paths:
+
+  /openapi.yaml:
+    get:
+      operationId: getOpenApiSpec
+      summary: OpenAPI specification (this document)
+      description: Machine-readable API description served by the application itself.
+      tags: [system]
+      security: []
+      responses:
+        "200":
+          description: OpenAPI 3.1 YAML document
+          content:
+            application/yaml:
+              schema:
+                type: string
+
+  /api/v1/health:
+    get:
+      operationId: getHealth
+      summary: Health check
+      description: Always returns 200. Not protected by any auth.
+      tags: [system]
+      security: []
+      responses:
+        "200":
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/v1/paste:
+    post:
+      operationId: createPaste
+      summary: Create a paste
+      tags: [pastes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePasteRequest"
+      responses:
+        "201":
+          description: Paste created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatePasteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/paste/{id}:
+    parameters:
+      - $ref: "#/components/parameters/pasteId"
+
+    get:
+      operationId: getPaste
+      summary: Retrieve a paste
+      description: |
+        Increments `read_count`. For server-encrypted pastes supply the original
+        password in `X-Pasta-Password`.
+
+        A paste that has reached its `burn_after_reads` limit is automatically
+        deleted and returns 404.
+      tags: [pastes]
+      parameters:
+        - $ref: "#/components/parameters/pastePassword"
+      responses:
+        "200":
+          description: Paste content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasteResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    patch:
+      operationId: updatePaste
+      summary: Update paste content
+      description: |
+        Only works on editable pastes (`BITVAULT_EDITABLE=true`).
+        Client-side encrypted (`secret`) pastes cannot be updated via the API.
+        Supply the password in the header or in the JSON body.
+      tags: [pastes]
+      parameters:
+        - $ref: "#/components/parameters/pastePassword"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePasteRequest"
+      responses:
+        "200":
+          description: Updated paste
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      operationId: deletePaste
+      summary: Delete a paste
+      description: |
+        Removes the paste and any associated file attachments.
+        Password-protected pastes require `X-Pasta-Password`.
+      tags: [pastes]
+      parameters:
+        - $ref: "#/components/parameters/pastePassword"
+      responses:
+        "204":
+          description: Paste deleted
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/pastes:
+    get:
+      operationId: listPastes
+      summary: List all pastes
+      description: |
+        Returns all non-expired pastes sorted by creation time (newest first).
+        Returns 403 when `BITVAULT_NO_LISTING=true` is set on the server.
+
+        Private paste content is not included — use `GET /api/v1/paste/{id}` to
+        retrieve individual pastes.
+      tags: [pastes]
+      responses:
+        "200":
+          description: Array of paste summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PasteListItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        API key set via `BITVAULT_API_KEY` on the server.
+        Required on every request to `/api/v1/*` (except `/api/v1/health`)
+        when the key is configured.
+    basicAuth:
+      type: http
+      scheme: basic
+      description: |
+        HTTP Basic Auth set via `BITVAULT_BASIC_AUTH_USERNAME` /
+        `BITVAULT_BASIC_AUTH_PASSWORD`.  Wraps the entire `/api/v1` scope
+        when configured.
+
+  parameters:
+    pasteId:
+      name: id
+      in: path
+      required: true
+      description: |
+        Paste identifier.  Either three BIP39 words joined by hyphens
+        (e.g. `happy-apple-banana`) or a short hash ID when
+        `BITVAULT_HASH_IDS=true` is set.
+      schema:
+        type: string
+        examples:
+          bip39:
+            value: happy-apple-banana
+          hash:
+            value: aB3kZ9
+
+    pastePassword:
+      name: X-Pasta-Password
+      in: header
+      required: false
+      description: Password for server-encrypted (`private`) pastes.
+      schema:
+        type: string
+
+  schemas:
+
+    HealthResponse:
+      type: object
+      required: [status, version]
+      properties:
+        status:
+          type: string
+          const: ok
+        version:
+          type: string
+          description: Semver string, e.g. "1.1.4"
+          examples:
+            - "1.1.4"
+
+    CreatePasteRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          description: Text content of the paste.
+        extension:
+          type: string
+          description: |
+            Syntax-highlighting language hint (e.g. `rust`, `sql`, `python`).
+            Omit or set to empty string for plain text.
+        privacy:
+          type: string
+          default: unlisted
+          enum: [public, unlisted, private]
+          description: |
+            * `public`   — visible in listings, no encryption
+            * `unlisted` — not in listings, no encryption (default)
+            * `private`  — server-side AES encryption; `password` is required
+        expiration:
+          type: string
+          default: 24hour
+          enum:
+            - 1min
+            - 10min
+            - 1hour
+            - 24hour
+            - 3days
+            - 1week
+            - 1month
+            - 6months
+            - 1year
+            - 2years
+            - 4years
+            - 8years
+            - 16years
+            - never
+          description: |
+            How long before the paste expires.  The server may restrict this
+            via `BITVAULT_MAX_EXPIRY`; values beyond the limit return 400.
+        burn_after_reads:
+          type: integer
+          minimum: 0
+          default: 0
+          description: |
+            Delete the paste automatically after this many reads.
+            `0` means never auto-delete based on reads.
+        password:
+          type: string
+          description: Required when `privacy` is `"private"`.
+
+    CreatePasteResponse:
+      type: object
+      required: [id, url, privacy]
+      properties:
+        id:
+          type: string
+          description: Paste identifier (BIP39 words or hash).
+          examples:
+            - happy-apple-banana
+        url:
+          type: string
+          format: uri
+          description: Canonical URL to view the paste.
+        expires_at:
+          type: integer
+          format: int64
+          nullable: true
+          description: Unix timestamp of expiry, or `null` if the paste never expires.
+        privacy:
+          type: string
+          enum: [public, unlisted, private]
+
+    PasteResponse:
+      type: object
+      required: [id, content, pasta_type, extension, privacy, created_at,
+                 read_count, burn_after_reads, has_file, url]
+      properties:
+        id:
+          type: string
+        content:
+          type: string
+          description: |
+            Decrypted text for `public`/`unlisted` pastes, or the plaintext
+            after server-side decryption for `private` pastes.
+            Client-side encrypted (`secret`) pastes return the raw ciphertext.
+        pasta_type:
+          type: string
+          enum: [text, url, file]
+        extension:
+          type: string
+          description: Syntax-highlighting hint; empty string for plain text.
+        privacy:
+          type: string
+          enum: [public, unlisted, private, readonly, secret]
+        created_at:
+          type: integer
+          format: int64
+          description: Unix timestamp.
+        expires_at:
+          type: integer
+          format: int64
+          nullable: true
+          description: Unix timestamp, or `null` if never expires.
+        read_count:
+          type: integer
+          format: int64
+          minimum: 0
+        burn_after_reads:
+          type: integer
+          format: int64
+          minimum: 0
+          description: "`0` means no burn-after-reads limit."
+        has_file:
+          type: boolean
+          description: Whether the paste has a file attachment (download via web UI).
+        url:
+          type: string
+          format: uri
+
+    PasteListItem:
+      type: object
+      required: [id, pasta_type, privacy, created_at, read_count]
+      properties:
+        id:
+          type: string
+        pasta_type:
+          type: string
+          enum: [text, url, file]
+        privacy:
+          type: string
+          enum: [public, unlisted, private, readonly, secret]
+        created_at:
+          type: integer
+          format: int64
+        expires_at:
+          type: integer
+          format: int64
+          nullable: true
+        read_count:
+          type: integer
+          format: int64
+          minimum: 0
+
+    UpdatePasteRequest:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          description: |
+            Password for server-encrypted pastes.
+            Alternatively use the `X-Pasta-Password` header.
+
+    ErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+          description: Human-readable error message.
+        code:
+          type: string
+          description: Machine-readable error code.
+          enum:
+            - API_KEY_REQUIRED
+            - PASSWORD_REQUIRED
+            - WRONG_PASSWORD
+            - NOT_FOUND
+            - CONTENT_REQUIRED
+            - INVALID_PRIVACY
+            - INVALID_JSON
+            - INVALID_EXPIRATION
+            - NOT_EDITABLE
+            - LISTING_DISABLED
+
+  responses:
+    BadRequest:
+      description: Invalid request — see `code` for details.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            contentRequired:
+              value: {error: "content cannot be empty", code: CONTENT_REQUIRED}
+            invalidExpiration:
+              value: {error: "expiration not allowed by server config", code: INVALID_EXPIRATION}
+            invalidPrivacy:
+              value: {error: "privacy must be public, unlisted, or private", code: INVALID_PRIVACY}
+            invalidJson:
+              value: {error: "invalid JSON", code: INVALID_JSON}
+            notEditable:
+              value: {error: "paste is not editable", code: NOT_EDITABLE}
+
+    Unauthorized:
+      description: Missing or invalid credentials.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            apiKeyRequired:
+              value: {error: "API key required", code: API_KEY_REQUIRED}
+            passwordRequired:
+              value: {error: "password required", code: PASSWORD_REQUIRED}
+
+    Forbidden:
+      description: Wrong password or feature disabled.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            wrongPassword:
+              value: {error: "wrong password", code: WRONG_PASSWORD}
+            listingDisabled:
+              value: {error: "listing is disabled", code: LISTING_DISABLED}
+
+    NotFound:
+      description: Paste not found or expired.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          examples:
+            notFound:
+              value: {error: "paste not found", code: NOT_FOUND}
