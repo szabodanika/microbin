@@ -5,7 +5,13 @@ services:
     ports:
      - "${MICROBIN_PORT}:8080"
     volumes:
-     - ./microbin-data:/app/microbin_data
+     # Named volume: Docker initialises it from the image with the correct
+     # ownership (uid/gid 65532) so the nonroot user can write to it.
+     # To use a bind-mount instead, replace the line below with:
+     #   - ./microbin-data:/app/microbin_data
+     # and ensure the host directory is owned by uid 65532:
+     #   mkdir -p ./microbin-data && chown 65532:65532 ./microbin-data
+     - microbin_data:/app/microbin_data
     environment:
       MICROBIN_BASIC_AUTH_USERNAME: ${MICROBIN_BASIC_AUTH_USERNAME}
       MICROBIN_BASIC_AUTH_PASSWORD: ${MICROBIN_BASIC_AUTH_PASSWORD}
@@ -49,3 +55,6 @@ services:
       MICROBIN_DISABLE_UPDATE_CHECKING: ${MICROBIN_DISABLE_UPDATE_CHECKING}
       MICROBIN_DISABLE_TELEMETRY: ${MICROBIN_DISABLE_TELEMETRY}
       MICROBIN_LIST_SERVER: ${MICROBIN_LIST_SERVER}
+
+volumes:
+  microbin_data:
