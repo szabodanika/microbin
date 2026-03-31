@@ -106,7 +106,13 @@ Pass the token in the `Authorization` header:
 Authorization: Bearer my-secret-token
 ```
 
-If `BITVAULT_API_KEY` is unset, the API is open (consistent with the web UI when basic auth is also disabled).
+If `BITVAULT_API_KEY` is unset, the API requires no authentication.
+
+### Paste IDs
+
+All API endpoints that reference a paste use the same **three BIP39 word** identifier that the web UI displays (e.g. `happy-apple-banana`). This is what `id_as_words()` returns and what appears in browser URLs like `/upload/happy-apple-banana`. Pass it as the `{id}` path segment — hyphens are valid URL characters and no encoding is needed.
+
+When `BITVAULT_HASH_IDS` is enabled, the shorter hash-based IDs are used instead.
 
 ### Endpoints
 
