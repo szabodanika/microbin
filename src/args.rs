@@ -241,6 +241,7 @@ impl Args {
         self.translate_url
             .as_deref()
             .unwrap_or("")
+            .trim()
             .trim_end_matches('/')
             .to_string()
     }
