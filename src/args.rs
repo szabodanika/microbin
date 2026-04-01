@@ -233,7 +233,7 @@ impl Args {
             encryption_server_side: self.encryption_server_side,
             max_file_size_encrypted_mb: self.max_file_size_encrypted_mb,
             max_file_size_unencrypted_mb: self.max_file_size_unencrypted_mb,
-            translate_url: self.translate_url.clone(),
+            translate_url: self.translate_url,
         }
     }
 
