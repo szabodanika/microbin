@@ -164,6 +164,9 @@ pub struct Args {
         default_value_t = 2048
     )]
     pub max_file_size_unencrypted_mb: usize,
+
+    #[clap(long, env = "BITVAULT_TRANSLATE_URL")]
+    pub translate_url: Option<String>,
 }
 
 impl Args {
@@ -230,7 +233,16 @@ impl Args {
             encryption_server_side: self.encryption_server_side,
             max_file_size_encrypted_mb: self.max_file_size_encrypted_mb,
             max_file_size_unencrypted_mb: self.max_file_size_unencrypted_mb,
+            translate_url: self.translate_url.clone(),
         }
+    }
+
+    pub fn translate_url_as_str(&self) -> String {
+        self.translate_url
+            .as_deref()
+            .unwrap_or("")
+            .trim_end_matches('/')
+            .to_string()
     }
 
     pub fn max_expiry_index(&self) -> usize {
