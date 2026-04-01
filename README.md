@@ -83,10 +83,61 @@ Environment="BITVAULT_MAX_FILE_SIZE_UNENCRYPTED_MB=2048"
 # Environment="BITVAULT_BASIC_AUTH_PASSWORD=something"
 # Environment="BITVAULT_CUSTOM_CSS=https://myserver.com/custom.css"
 Environment="BITVAULT_TITLE=BitVault"
+# Environment="BITVAULT_TRANSLATE_URL=https://translate.example.org"
 
 [Install]
 WantedBy=multi-user.target
 ```
+
+## Configuration
+
+All options can be set as environment variables or CLI flags (e.g. `BITVAULT_PORT` / `--port`).
+
+| Environment variable | CLI flag | Default | Description |
+|---|---|---|---|
+| `BITVAULT_PORT` | `--port` / `-p` | `8080` | Port to listen on |
+| `BITVAULT_BIND` | `--bind` / `-b` | `0.0.0.0` | IP address to bind |
+| `BITVAULT_PUBLIC_PATH` | `--public-path` | — | Publicly reachable base URL (e.g. `https://vault.example.org`). Required for QR codes, the Translate link, and Copy URL. |
+| `BITVAULT_SHORT_PATH` | `--short-path` | — | Base URL used for short links; falls back to `PUBLIC_PATH` if unset |
+| `BITVAULT_DATA_DIR` | `--data-dir` | `bitvault_data` | Directory for database and uploaded files |
+| `BITVAULT_ADMIN_USERNAME` | `--auth-admin-username` | `admin` | Admin panel username |
+| `BITVAULT_ADMIN_PASSWORD` | `--auth-admin-password` | `b1tv4u1t` | Admin panel password |
+| `BITVAULT_BASIC_AUTH_USERNAME` | `--auth-basic-username` | — | HTTP Basic Auth username (protects entire UI) |
+| `BITVAULT_BASIC_AUTH_PASSWORD` | `--auth-basic-password` | — | HTTP Basic Auth password |
+| `BITVAULT_API_KEY` | `--api-key` | — | Bearer token required for API access; unset = no auth |
+| `BITVAULT_UPLOADER_PASSWORD` | `--uploader-password` | — | Password required to create new pastes |
+| `BITVAULT_TITLE` | `--title` | — | Custom page title |
+| `BITVAULT_FOOTER_TEXT` | `--footer-text` | — | Custom footer text |
+| `BITVAULT_CUSTOM_CSS` | `--custom-css` | — | URL of a custom CSS file to inject |
+| `BITVAULT_THREADS` | `--threads` / `-t` | `1` | Number of worker threads |
+| `BITVAULT_GC_DAYS` | `--gc-days` / `-g` | `90` | Delete expired pastes older than N days |
+| `BITVAULT_DEFAULT_EXPIRY` | `--default-expiry` | `24hour` | Default expiration for new pastes |
+| `BITVAULT_MAX_EXPIRY` | `--max-expiry` | `1week` | Maximum expiration users may select |
+| `BITVAULT_DEFAULT_BURN_AFTER` | `--default-burn-after` / `-d` | `0` | Default burn-after-read count (0 = off) |
+| `BITVAULT_DEFAULT_PRIVACY` | `--default-privacy` | — | Default privacy level (`public`, `unlisted`, `readonly`, `private`, `secret`) |
+| `BITVAULT_EDITABLE` | `--editable` | `false` | Allow pastes to be edited after creation |
+| `BITVAULT_READONLY` | `--readonly` | `false` | Disable all write operations |
+| `BITVAULT_PRIVATE` | `--private` | `false` | Require auth for all read access |
+| `BITVAULT_NO_LISTING` | `--no-listing` | `false` | Hide the public paste list |
+| `BITVAULT_SHOW_READ_STATS` | `--show-read-stats` | `false` | Show read count and last-read time on paste view |
+| `BITVAULT_ETERNAL_PASTA` | `--eternal-pasta` | `false` | Allow pastes that never expire |
+| `BITVAULT_ENABLE_BURN_AFTER` | `--enable-burn-after` | `false` | Enable burn-after-read option |
+| `BITVAULT_ENABLE_READONLY` | `--enable-readonly` | `false` | Enable read-only paste option |
+| `BITVAULT_NO_FILE_UPLOAD` | `--no-file-upload` / `-n` | `false` | Disable file uploads |
+| `BITVAULT_MAX_FILE_SIZE_ENCRYPTED_MB` | `--max-file-size-encrypted-mb` | `256` | Max upload size for encrypted files (MB) |
+| `BITVAULT_MAX_FILE_SIZE_UNENCRYPTED_MB` | `--max-file-size-unencrypted-mb` | `2048` | Max upload size for unencrypted files (MB) |
+| `BITVAULT_ENCRYPTION_CLIENT_SIDE` | `--encryption-client-side` | `false` | Enable client-side (in-browser) encryption option |
+| `BITVAULT_ENCRYPTION_SERVER_SIDE` | `--encryption-server-side` | `true` | Enable server-side encryption option |
+| `BITVAULT_HIGHLIGHTSYNTAX` | `--highlightsyntax` | `false` | Enable syntax highlighting |
+| `BITVAULT_QR` | `--qr` | `false` | Show QR code link on paste view (requires `PUBLIC_PATH`) |
+| `BITVAULT_WIDE` | `--wide` | `false` | Use wide layout |
+| `BITVAULT_PURE_HTML` | `--pure-html` | `false` | Serve unstyled HTML (no CSS framework) |
+| `BITVAULT_HASH_IDS` | `--hash-ids` | `false` | Use short hash IDs instead of BIP39 word triples |
+| `BITVAULT_JSON_DB` | `--json-db` | `false` | Use JSON file database instead of SQLite |
+| `BITVAULT_HIDE_HEADER` | `--hide-header` | `false` | Hide the page header |
+| `BITVAULT_HIDE_FOOTER` | `--hide-footer` | `false` | Hide the page footer |
+| `BITVAULT_HIDE_LOGO` | `--hide-logo` | `false` | Hide the logo |
+| `BITVAULT_TRANSLATE_URL` | `--translate-url` | — | Base URL of a [translation-inference](https://github.com/overcuriousity/translation-inference) instance. When set, a **Translate** link appears on text paste view pages, deep-linking into the translation service with the paste's raw URL as the `from=` parameter. Suppressed for URL-type pastes, client-encrypted pastes, server-encrypted pastes, and when `PUBLIC_PATH` is unset. |
 
 ## REST API
 
