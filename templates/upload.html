@@ -32,6 +32,9 @@
     Copy URL
   </button>
   {%- endif %}
+  {% if args.translate_url_as_str() != "" && args.public_path_as_str() != "" && pasta.content != "" && pasta.pasta_type != "url" && !pasta.encrypt_client && !pasta.encrypt_server %}
+  <a style="margin-left: 0.5rem" href="{{ args.translate_url_as_str() }}?from={{ (args.public_path_as_str() ~ "/raw/" ~ pasta.id_as_words()) | urlencode }}">Translate</a>
+  {%- endif %}
 </div>
 
 <br>
