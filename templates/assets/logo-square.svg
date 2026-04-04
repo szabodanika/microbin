@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <!-- Amber rounded background -->
+  <rect width="40" height="40" rx="9" fill="#F2A900"/>
+  <!-- Vault dial body -->
+  <circle cx="20" cy="20" r="13" fill="#141b23"/>
+  <!-- Spokes -->
+  <line x1="20" y1="9" x2="20" y2="31" stroke="#F2A900" stroke-width="2" stroke-linecap="round"/>
+  <line x1="9" y1="20" x2="31" y2="20" stroke="#F2A900" stroke-width="2" stroke-linecap="round"/>
+  <line x1="12.2" y1="12.2" x2="27.8" y2="27.8" stroke="#F2A900" stroke-width="2" stroke-linecap="round"/>
+  <line x1="27.8" y1="12.2" x2="12.2" y2="27.8" stroke="#F2A900" stroke-width="2" stroke-linecap="round"/>
+  <!-- Centre knob -->
+  <circle cx="20" cy="20" r="4" fill="#F2A900"/>
+  <circle cx="20" cy="20" r="2" fill="#141b23"/>
+</svg>

@@ -110,6 +110,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::new("%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T"))
             // These endpoints are always open — register before the auth-wrapped scopes.
             .service(web::resource("/openapi.yaml").route(web::get().to(api::openapi_spec)))
+            .service(web::resource("/docs").route(web::get().to(api::swagger_docs)))
             .service(web::resource("/api/v1/health").route(web::get().to(api::health)))
             .service(
                 web::scope("/api/v1")

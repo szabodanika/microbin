@@ -3,10 +3,17 @@
 
 {% if !args.hide_footer %}
 
-<p style="font-size: small; text-align: center;margin-top: 2rem;">
+<p style="font-size: small; text-align: center; margin-top: 2rem; color: var(--text-muted, #70777f);">
     {% if args.footer_text.as_ref().is_none() %}
-     <a href="https://github.com/overcuriousity/bitvault/">BitVault</a> {%- else %} {{ args.footer_text.as_ref().unwrap() }} {%-
-    endif %}
+    <a href="https://github.com/overcuriousity/bitvault/">BitVault</a>
+    &middot;
+    <a href="/docs">API</a>
+    &middot;
+    <a href="https://github.com/overcuriousity/bitvault/commit/{{ args.git_commit() }}"
+       style="font-family: monospace;">{{ args.git_commit() }}</a>
+    {%- else %}
+    {{ args.footer_text.as_ref().unwrap() }}
+    {%- endif %}
 </p>
 
 {%- endif %}

@@ -16,6 +16,8 @@ pub struct Version {
     pub update_type: Cow<'static, str>,
 }
 
+pub static GIT_COMMIT: &str = env!("GIT_COMMIT_SHORT");
+
 pub static CURRENT_VERSION: Version = Version {
     major: 1,
     minor: 1,

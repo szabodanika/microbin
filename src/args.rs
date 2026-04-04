@@ -237,6 +237,10 @@ impl Args {
         }
     }
 
+    pub fn git_commit(&self) -> &'static str {
+        crate::util::version::GIT_COMMIT
+    }
+
     pub fn translate_url_as_str(&self) -> String {
         self.translate_url
             .as_deref()

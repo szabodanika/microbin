@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 148 36">
+  <!-- Vault icon (32×32 centred at 16,18) -->
+  <rect x="0" y="2" width="32" height="32" rx="7" fill="#F2A900"/>
+  <circle cx="16" cy="18" r="11" fill="#141b23"/>
+  <line x1="16" y1="9"  x2="16" y2="27" stroke="#F2A900" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="7"  y1="18" x2="25" y2="18" stroke="#F2A900" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="9.8" y1="10.8" x2="22.2" y2="25.2" stroke="#F2A900" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="22.2" y1="10.8" x2="9.8" y2="25.2" stroke="#F2A900" stroke-width="1.6" stroke-linecap="round"/>
+  <circle cx="16" cy="18" r="3.4" fill="#F2A900"/>
+  <circle cx="16" cy="18" r="1.7" fill="#141b23"/>
+  <!-- Wordmark: bit in muted, V in amber, ault in muted -->
+  <text x="40" y="26"
+        font-family="system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif"
+        font-size="19"
+        xml:space="preserve"><tspan fill="#70777f" font-weight="400">bit</tspan><tspan fill="#F2A900" font-weight="700">V</tspan><tspan fill="#70777f" font-weight="400">ault</tspan></text>
+</svg>

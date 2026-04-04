@@ -13,7 +13,7 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="{{ args.public_path_as_str()    }}/static/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="{{ args.public_path_as_str() }}/static/favicon.svg">
 
     <script type="text/javascript" src="{{ args.public_path_as_str() }}/static/aes.js"></script>
     {% if !args.pure_html %} {% if args.custom_css.as_ref().is_none() ||
@@ -42,7 +42,7 @@ padding-right:0.5rem; line-height: 1.5; font-size: 1.1em; padding-top: 2rem;">
                 <!-- <i><span style="font-size:2.2rem;
                 margin-right:1rem">μ</span></i> -->
                 <a href="/"><img width=100 style="margin-bottom: -6px; margin-right:
-                0.5rem;" src="{{ args.public_path_as_str() }}/static/logo.png"></a>
+                0.5rem;" src="{{ args.public_path_as_str() }}/static/logo.svg"></a>
                 {%- endif %} {% if args.title.as_ref().is_none() %} {%- else %} {{
                 args.title.as_ref().unwrap() }} {%- endif %}
             </b>

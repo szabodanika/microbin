@@ -208,6 +208,12 @@ pub async fn openapi_spec() -> HttpResponse {
         .body(include_str!("../../openapi.yaml"))
 }
 
+pub async fn swagger_docs() -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(include_str!("../../templates/assets/swagger.html"))
+}
+
 pub async fn health() -> HttpResponse {
     HttpResponse::Ok().json(HealthResponse {
         status: "ok",
