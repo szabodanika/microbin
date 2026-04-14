@@ -6,6 +6,8 @@
     </a>
     {% else if file.is_video() %}
     <video class="embed-media" controls src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}"></video>
+    {% else if file.is_audio() %}
+    <audio class="embed-media" controls src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}"></audio>
     {% else %}
     <div class="embed-media" style="display: flex; align-items: center; justify-content: center; background-color: #eee; color: #555;">
         <span>{{ file.extension() }}</span>
