@@ -140,6 +140,22 @@ pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some()
 </span>
 {%- endif %}
 
+
+{% if pasta.file.is_some() && pasta.file.as_ref().unwrap().is_audio() &&
+pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
+<audio id="embed" controls src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}"></audio>
+<span style="margin-left: auto; margin-right: auto; display: flex;
+  justify-content: center; align-items: center;">
+  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
+    [{{pasta.file.as_ref().unwrap().size}}]</p>
+  <a href="{{ args.public_path_as_str()      }}/file/{{pasta.id_as_animals()}}" download id="download-link">
+    <button class="download-button">
+      Download
+    </button>
+  </a>
+</span>
+{%- endif %}
+
 {% if pasta.attachments.is_some() %}
 <div id="gallery-view" class="gallery-grid" style="display: grid; margin-top: 2rem;">
     {% if pasta.file.is_some() %}
@@ -535,6 +551,11 @@ pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some()
     display: flex;
     justify-content: center;
     align-items: center;
+  }
+
+  audio#embed {
+    width: 100%;
+    max-width: 600px;
   }
 
   .download-button {
