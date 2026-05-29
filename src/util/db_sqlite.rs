@@ -133,7 +133,30 @@ pub fn select_all_from_db() -> Vec<Pasta> {
     let _ = conn.execute("ALTER TABLE pasta ADD COLUMN attachments TEXT", params![]);
 
     let mut stmt = conn
-        .prepare("SELECT * FROM pasta ORDER BY created ASC")
+        .prepare(
+            "
+            SELECT
+                id,
+                content,
+                file_name,
+                file_size,
+                extension,
+                read_only,
+                private,
+                editable,
+                encrypt_server,
+                encrypt_client,
+                encrypted_key,
+                created,
+                expiration,
+                last_read,
+                read_count,
+                burn_after_reads,
+                pasta_type,
+                attachments
+            FROM pasta
+            ORDER BY created ASC;"
+        )
         .expect("Failed to prepare SQL statement to load pastas");
 
     let pasta_iter = stmt
