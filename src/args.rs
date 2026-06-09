@@ -32,16 +32,16 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_FOOTER_TEXT")]
     pub footer_text: Option<String>,
 
-    #[clap(long, env = "MICROBIN_HIDE_FOOTER")]
+    #[clap(long, env = "MICROBIN_HIDE_FOOTER", action = clap::ArgAction::Set, default_value_t = false)]
     pub hide_footer: bool,
 
-    #[clap(long, env = "MICROBIN_HIDE_HEADER")]
+    #[clap(long, env = "MICROBIN_HIDE_HEADER", action = clap::ArgAction::Set, default_value_t = false)]
     pub hide_header: bool,
 
-    #[clap(long, env = "MICROBIN_HIDE_LOGO")]
+    #[clap(long, env = "MICROBIN_HIDE_LOGO", action = clap::ArgAction::Set, default_value_t = false)]
     pub hide_logo: bool,
 
-    #[clap(long, env = "MICROBIN_NO_LISTING")]
+    #[clap(long, env = "MICROBIN_NO_LISTING", action = clap::ArgAction::Set, default_value_t = false)]
     pub no_listing: bool,
 
     #[clap(long, env = "MICROBIN_HIGHLIGHTSYNTAX", action = clap::ArgAction::Set, default_value_t = true)]
@@ -56,10 +56,10 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_PRIVATE", action = clap::ArgAction::Set, default_value_t = true)]
     pub private: bool,
 
-    #[clap(long, env = "MICROBIN_PURE_HTML")]
+    #[clap(long, env = "MICROBIN_PURE_HTML", action = clap::ArgAction::Set, default_value_t = false)]
     pub pure_html: bool,
 
-    #[clap(long, env = "MICROBIN_JSON_DB")]
+    #[clap(long, env = "MICROBIN_JSON_DB", action = clap::ArgAction::Set, default_value_t = false)]
     pub json_db: bool,
 
     #[clap(long, env = "MICROBIN_PUBLIC_PATH")]
@@ -71,7 +71,7 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_UPLOADER_PASSWORD")]
     pub uploader_password: Option<SecretArg>,
 
-    #[clap(long, env = "MICROBIN_READONLY")]
+    #[clap(long, env = "MICROBIN_READONLY", action = clap::ArgAction::Set, default_value_t = false)]
     pub readonly: bool,
 
     #[clap(long, env = "MICROBIN_SHOW_READ_STATS", action = clap::ArgAction::Set, default_value_t = true)]
@@ -86,7 +86,7 @@ pub struct Args {
     #[clap(short, long, env = "MICROBIN_GC_DAYS", default_value_t = 90)]
     pub gc_days: u16,
 
-    #[clap(long, env = "MICROBIN_ENABLE_BURN_AFTER", action = clap::ArgAction::Set, default_value_t = true)]
+    #[clap(long, env = "MICROBIN_ENABLE_BURN_AFTER", action = clap::ArgAction::Set, default_value_t = false)]
     pub enable_burn_after: bool,
 
     #[clap(short, long, env = "MICROBIN_DEFAULT_BURN_AFTER", default_value_t = 0)]
@@ -95,10 +95,10 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_WIDE")]
     pub wide: bool,
 
-    #[clap(long, env = "MICROBIN_QR")]
+    #[clap(long, env = "MICROBIN_QR", action = clap::ArgAction::Set, default_value_t = false)]
     pub qr: bool,
 
-    #[clap(long, env = "MICROBIN_ETERNAL_PASTA")]
+    #[clap(long, env = "MICROBIN_ETERNAL_PASTA", action = clap::ArgAction::Set, default_value_t = false)]
     pub eternal_pasta: bool,
 
     #[clap(long, env = "MICROBIN_ENABLE_READONLY", action = clap::ArgAction::Set, default_value_t = true)]
@@ -113,28 +113,28 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_DATA_DIR", default_value = "microbin_data")]
     pub data_dir: String,
 
-    #[clap(short, long, env = "MICROBIN_NO_FILE_UPLOAD")]
+    #[clap(short, long, env = "MICROBIN_NO_FILE_UPLOAD", action = clap::ArgAction::Set, default_value_t = false)]
     pub no_file_upload: bool,
 
     #[clap(long, env = "MICROBIN_CUSTOM_CSS")]
     pub custom_css: Option<String>,
 
-    #[clap(long, env = "MICROBIN_HASH_IDS")]
+    #[clap(long, env = "MICROBIN_HASH_IDS", action = clap::ArgAction::Set, default_value_t = false)]
     pub hash_ids: bool,
 
-    #[clap(long, env = "MICROBIN_LIST_SERVER")]
+    #[clap(long, env = "MICROBIN_LIST_SERVER", action = clap::ArgAction::Set, default_value_t = false)]
     pub list_server: bool,
 
-    #[clap(long, env = "MICROBIN_DISABLE_TELEMETRY")]
+    #[clap(long, env = "MICROBIN_DISABLE_TELEMETRY", action = clap::ArgAction::Set, default_value_t = false)]
     pub disable_telemetry: bool,
 
-    #[clap(long, env = "MICROBIN_DISABLE_UPDATE_CHECKING")]
+    #[clap(long, env = "MICROBIN_DISABLE_UPDATE_CHECKING", action = clap::ArgAction::Set, default_value_t = false)]
     pub disable_update_checking: bool,
 
-    #[clap(long, env = "MICROBIN_ENCRYPTION_CLIENT_SIDE", action = clap::ArgAction::Set, default_value_t = true)]
+    #[clap(long, env = "MICROBIN_ENCRYPTION_CLIENT_SIDE", action = clap::ArgAction::Set, default_value_t = false)]
     pub encryption_client_side: bool,
 
-    #[clap(long, env = "MICROBIN_ENCRYPTION_SERVER_SIDE", action = clap::ArgAction::Set, default_value_t = true)]
+    #[clap(long, env = "MICROBIN_ENCRYPTION_SERVER_SIDE", action = clap::ArgAction::Set, default_value_t = false)]
     pub encryption_server_side: bool,
 
     #[clap(long, env = "MICROBIN_DEFAULT_PRIVACY")]
