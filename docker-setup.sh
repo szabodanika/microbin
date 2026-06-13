@@ -32,4 +32,7 @@ sed -i "s|MICROBIN_PUBLIC_PATH=.*|MICROBIN_PUBLIC_PATH=${public_path}|" .env
 sed -i "s|MICROBIN_PORT=.*|MICROBIN_PORT=${port}|" .env
 
 # Start Microbin using Docker Compose
+# Data is stored in a named Docker volume (microbin_data).
+# To use a bind-mount instead, edit compose.yaml and pre-create the directory:
+#   mkdir -p $install_dir/microbin-data && chown 65532:65532 $install_dir/microbin-data
 docker compose --env-file .env up --detach
