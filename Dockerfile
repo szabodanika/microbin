@@ -13,8 +13,9 @@ RUN \
   CARGO_NET_GIT_FETCH_WITH_CLI=true \
   cargo build --release
 
-# https://hub.docker.com/r/bitnami/minideb
-FROM bitnami/minideb:latest
+#Support to armv7
+#https://hub.docker.com/_/debian
+FROM debian:trixie-slim
 
 # microbin will be in /app
 WORKDIR /app
