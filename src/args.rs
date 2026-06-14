@@ -71,6 +71,9 @@ pub struct Args {
     #[clap(long, env = "MICROBIN_UPLOADER_PASSWORD")]
     pub uploader_password: Option<SecretArg>,
 
+    #[clap(long, env = "MICROBIN_FILE_UPLOAD_PASSWORD")]
+    pub file_upload_password: Option<SecretArg>,
+
     #[clap(long, env = "MICROBIN_READONLY")]
     pub readonly: bool,
 
@@ -220,6 +223,7 @@ impl Args {
             public_path: self.public_path,
             short_path: self.short_path,
             uploader_password: None,
+            file_upload_password: None,
             readonly: self.readonly,
             show_read_stats: self.show_read_stats,
             title: self.title,
