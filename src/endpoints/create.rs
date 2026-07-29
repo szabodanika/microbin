@@ -103,7 +103,12 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
     }
 }
 
-pub fn is_valid_expiration(expiration: &str, max_expiry: &str) -> bool {
+pub fn is_valid_expiration(expiration: &str, max_expiry: &str, eternal_pasta: bool) -> bool {
+    // "never" is gated by the eternal_pasta flag, not by max_expiry, which
+    // only bounds the finite durations
+    if expiration == "never" {
+        return eternal_pasta;
+    }
     let max_index = EXPIRATION_OPTIONS.iter().position(|&x| x == max_expiry).unwrap_or(5);
     let current_index = EXPIRATION_OPTIONS.iter().position(|&x| x == expiration).unwrap_or(0);
     current_index <= max_index
@@ -204,7 +209,7 @@ pub async fn create(
                     expiration_str = std::str::from_utf8(&chunk).unwrap().to_string();
                 }
 
-                if !is_valid_expiration(&expiration_str, &ARGS.max_expiry) {
+                if !is_valid_expiration(&expiration_str, &ARGS.max_expiry, ARGS.eternal_pasta) {
                     return Err(ErrorBadRequest("Expiration exceeds maximum allowed"));
                 }
 
