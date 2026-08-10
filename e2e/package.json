@@ -1,0 +1,13 @@
+{
+  "name": "microbin-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Functional end-to-end tests for MicroBin (Playwright). Self-contained; runs against any MicroBin instance via BASE_URL.",
+  "scripts": {
+    "test": "playwright test",
+    "test:install": "playwright install --with-deps chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
