@@ -1,0 +1,39 @@
+name: E2E
+
+# Functional browser tests (Playwright). Kept separate from the project's own build/test
+# workflow so it never affects the existing CI — it boots the app and drives it over HTTP.
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build & start microbin
+        run: |
+          cargo build --release
+          ./target/release/microbin &
+          for i in $(seq 1 60); do
+            if curl -sSf http://localhost:8080/ >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install E2E deps
+        working-directory: e2e
+        run: |
+          npm ci || npm install
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        working-directory: e2e
+        env:
+          BASE_URL: http://localhost:8080
+        run: npx playwright test

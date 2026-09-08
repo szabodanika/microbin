@@ -1,0 +1,2 @@
+{ "name": "oss-genscript-suite", "private": true,
+  "devDependencies": { "@playwright/test": "^1.48.0" } }
