@@ -1,4 +1,7 @@
-FROM rust:1 AS build
+# the build stage must be on the same Debian release as the distroless
+# runtime image below, or the binary will require a newer glibc than the
+# runtime image provides
+FROM rust:1-trixie AS build
 
 WORKDIR /app
 
@@ -14,7 +17,7 @@ RUN CARGO_NET_GIT_FETCH_WITH_CLI=true cargo build --release && \
 
 # https://github.com/GoogleContainerTools/distroless
 # nonroot user (uid:gid 65532:65532) is pre-defined in distroless images
-FROM gcr.io/distroless/cc-debian12
+FROM gcr.io/distroless/cc-debian13
 
 WORKDIR /app
 

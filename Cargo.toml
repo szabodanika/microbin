@@ -51,7 +51,11 @@ serde_json = "1.0.114"
 serde = { version = "1.0.197", features = ["derive"] }
 syntect = { version = "5.2.0", default-features = false }
 webpki-roots = { version = "0.26", optional = true }
-zip = "2.4.2"
+# only STORED entries are written (see src/endpoints/archive.rs), so none of the
+# default compression backends are needed. Dropping them also drops the xz2 and
+# bzip2 C dependencies, which would otherwise dynamically link liblzma/libbz2.
+# "time" is kept so entries get a real timestamp instead of 1980-01-01.
+zip = { version = "2.4.2", default-features = false, features = ["time"] }
 tempfile = "3.25.0"
 bytes = "1.11.0"
 
