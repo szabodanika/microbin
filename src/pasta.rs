@@ -57,8 +57,16 @@ impl PastaFile {
         extensions.iter().any(|&ext| lowercase_name.ends_with(ext))
     }
 
+    pub fn is_audio(&self) -> bool {
+        let lowercase_name = self.name.to_lowercase();
+        let extensions = [
+            ".mp3", ".ogg", ".wav", ".flac", ".aac", ".m4a", ".opus", ".weba",
+        ];
+        extensions.iter().any(|&ext| lowercase_name.ends_with(ext))
+    }
+
     pub fn embeddable(&self) -> bool {
-        self.is_image() || self.is_video()
+        self.is_image() || self.is_video() || self.is_audio()
     }
 
     pub fn extension(&self) -> String {

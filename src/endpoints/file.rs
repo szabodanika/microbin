@@ -197,7 +197,9 @@ pub async fn get_file(
             // file path
             let file_reponse = actix_files::NamedFile::open(file_path)?;
             
-            let disposition = if query.get("preview").map(|s| s == "true").unwrap_or(false) {
+            let disposition = if query.get("preview").map(|s| s == "true").unwrap_or(false)
+                || (ARGS.inline_media && pasta_file.embeddable())
+            {
                 header::DispositionType::Inline
             } else {
                 header::DispositionType::Attachment

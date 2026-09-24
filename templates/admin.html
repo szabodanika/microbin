@@ -130,6 +130,8 @@
                         Image
                         {%- else if pasta.file.as_ref().unwrap().is_video() %}
                         Video
+                        {%- else if pasta.file.as_ref().unwrap().is_audio() %}
+                        Audio
                         {%- else %}
                         File
                         {%- endif %}
@@ -238,6 +240,8 @@
                             Image
                             {%- else if pasta.file.as_ref().unwrap().is_video() %}
                             Video
+                            {%- else if pasta.file.as_ref().unwrap().is_audio() %}
+                            Audio
                             {%- else %}
                             File
                             {%- endif %}
