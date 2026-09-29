@@ -423,6 +423,16 @@
                     <td>unset</td>
                     {% endif %}
                 </tr>
+                <tr>
+                    <td>file_upload_password</td>
+                    {% if args.file_upload_password.as_ref().is_some() %}
+                    <td>set</td>
+                    {% else %}
+                    <td>unset</td>
+                    {% endif %}
+                    <td></td>
+                    <td></td>
+                </tr>
             </tbody>
         </table>
         {% include "footer.html" %}

@@ -144,6 +144,7 @@ pub async fn create(
     let mut random_key: String = String::from("");
     let mut plain_key: String = String::from("");
     let mut uploader_password = String::from("");
+    let mut file_attached = false;
 
     while let Some(mut field) = payload.try_next().await? {
         let Some(field_name) = field.name() else {
@@ -315,6 +316,7 @@ pub async fn create(
                 }
                 
                 new_pasta.pasta_type = String::from("text");
+                file_attached = true;
             }
             field => {
                 log::error!("Unexpected multipart field:  {}", field);
@@ -325,6 +327,17 @@ pub async fn create(
     if ARGS.readonly && ARGS.uploader_password.is_some() {
         if uploader_password.trim() != ARGS.uploader_password.as_ref().unwrap().trim() {
             log::warn!("Uploader password mismatch. Input length: {}, Expected length: {}", uploader_password.trim().len(), ARGS.uploader_password.as_ref().unwrap().trim().len());
+            return Ok(HttpResponse::Found()
+                .append_header(("Location", format!("{}/incorrect", ARGS.public_path_as_str())))
+                .finish());
+        }
+    }
+
+    // Require a password to attach/upload a file when MICROBIN_FILE_UPLOAD_PASSWORD
+    // is set. Password-less public pastes (text only) remain allowed.
+    if file_attached && ARGS.file_upload_password.is_some() {
+        if uploader_password.trim() != ARGS.file_upload_password.as_ref().unwrap().trim() {
+            log::warn!("File upload password mismatch. Input length: {}, Expected length: {}", uploader_password.trim().len(), ARGS.file_upload_password.as_ref().unwrap().trim().len());
             return Ok(HttpResponse::Found()
                 .append_header(("Location", format!("{}/incorrect", ARGS.public_path_as_str())))
                 .finish());
