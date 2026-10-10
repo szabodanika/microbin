@@ -27,6 +27,8 @@ source .env;
 microbin
 ```
 
+All configuration options (environment variables and command line arguments) are documented in the bundled [`.env`](.env) file.
+
 On our website [microbin.eu](https://microbin.eu), you will find the following:
 
 - [Screenshots](https://microbin.eu/screenshots/)
@@ -36,7 +38,7 @@ On our website [microbin.eu](https://microbin.eu), you will find the following:
 ## Features
 
 - Entirely self-contained executable, MicroBin is a single file!
-- Server-side and client-side E2E encryption
+- Client-side (E2E) encryption and server-side encryption
 - File uploads (e.g. `server.com/file/pig-dog-cat`)
 - Raw text serving (e.g. `server.com/raw/pig-dog-cat`)
 - QR code support
