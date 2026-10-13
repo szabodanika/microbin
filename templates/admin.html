@@ -423,6 +423,10 @@
                     <td>unset</td>
                     {% endif %}
                 </tr>
+                <tr>
+                    <td>default_privacy</td>
+		            <td>{{ args.default_privacy.as_deref().unwrap_or("unset") }}</td>
+                </tr>
             </tbody>
         </table>
         {% include "footer.html" %}
