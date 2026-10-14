@@ -17,3 +17,4 @@ microbin_data/*
 /node_modules
 /playwright-report
 /test-results
+.DS_Store
