@@ -10,11 +10,8 @@
 
 MicroBin is a super tiny, feature-rich, configurable, self-contained and self-hosted paste bin web application. It is very easy to set up and use, and will only require a few megabytes of memory and disk storage. It takes only a couple minutes to set it up, why not give it a try now?
 
-## Get your own MicroBin server at [my.microbin.eu](https://my.microbin.eu)!
 
-Test MicroBin at [pub.microbin.eu](https://pub.microbin.eu)!
-
-### Or host MicroBin yourself
+### Host MicroBin yourself
 
 Run our quick docker setup script ([DockerHub](https://hub.docker.com/r/danielszabo99/microbin)):
 ```bash
