@@ -11,26 +11,30 @@ struct AuthAdmin<'a> {
 
 #[get("/auth_admin")]
 pub async fn auth_admin() -> HttpResponse {
-    return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
-        AuthAdmin {
-            args: &ARGS,
-            status: String::from(""),
-        }
-        .render()
-        .unwrap(),
-    );
+    return HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(
+            AuthAdmin {
+                args: &ARGS,
+                status: String::from(""),
+            }
+            .render()
+            .unwrap(),
+        );
 }
 
 #[get("/auth_admin/{status}")]
 pub async fn auth_admin_with_status(param: web::Path<String>) -> HttpResponse {
     let status = param.into_inner();
 
-    return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
-        AuthAdmin {
-            args: &ARGS,
-            status,
-        }
-        .render()
-        .unwrap(),
-    );
+    return HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(
+            AuthAdmin {
+                args: &ARGS,
+                status,
+            }
+            .render()
+            .unwrap(),
+        );
 }

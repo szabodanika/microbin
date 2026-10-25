@@ -2,8 +2,10 @@ use crate::args::ARGS;
 use linkify::{LinkFinder, LinkKind};
 use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use qrcode_generator::QrCodeEcc;
+use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{BufReader, Read, Write};
+use std::sync::Mutex;
 
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -11,7 +13,7 @@ use crate::Pasta;
 
 use super::db::delete;
 
-pub fn remove_expired(pastas: &mut Vec<Pasta>) {
+pub fn remove_expired(pastas: &mut Vec<Pasta>, active_uploads: &Mutex<HashMap<String, usize>>) {
     // get current time - this will be needed to check which pastas have expired
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(n) => n.as_secs(),
@@ -20,6 +22,8 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
             0
         }
     } as i64;
+
+    let active_uploads = active_uploads.lock().unwrap();
 
     pastas.retain(|p| {
         // keep if:
@@ -66,25 +70,25 @@ pub fn remove_expired(pastas: &mut Vec<Pasta>) {
         }
     });
 
-    // Find and remove and attachment folders that 
+    // Find and remove and attachment folders that
     // don't actually have an upload in the database pointing
     // at them. Could be a result of an interrupted upload for example.
 
     // Create a Set of valid IDs currently in the database
-    let valid_ids: std::collections::HashSet<String> = pastas
-        .iter()
-        .map(|p| p.id_as_animals())
-        .collect();
+    let valid_ids: std::collections::HashSet<String> =
+        pastas.iter().map(|p| p.id_as_animals()).collect();
 
     let attachments_path = format!("{}/attachments", ARGS.data_dir);
-    
+
     if let Ok(entries) = fs::read_dir(&attachments_path) {
         for entry in entries.flatten() {
             if let Ok(file_type) = entry.file_type() {
                 if file_type.is_dir() {
                     if let Some(dir_name) = entry.file_name().to_str() {
                         // Found an orphaned upload folder
-                        if !valid_ids.contains(dir_name) {
+                        // Found an orphaned upload folder
+                        // Found an orphaned upload folder
+                        if !valid_ids.contains(dir_name) && !active_uploads.contains_key(dir_name) {
                             log::info!("Removing orphaned upload directory: {}", dir_name);
                             if let Err(e) = fs::remove_dir_all(entry.path()) {
                                 log::error!("Failed to remove orphaned upload {}: {}", dir_name, e);

@@ -14,6 +14,7 @@ use actix_web_httpauth::middleware::HttpAuthentication;
 use chrono::Local;
 use env_logger::Builder;
 use log::LevelFilter;
+use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::sync::Mutex;
@@ -29,11 +30,11 @@ pub mod util {
     #[cfg(feature = "default")]
     pub mod db_sqlite;
     pub mod hashids;
+    pub mod http_client;
     pub mod misc;
     pub mod syntaxhighlighter;
     pub mod telemetry;
     pub mod version;
-    pub mod http_client;
 }
 
 pub mod endpoints {
@@ -55,6 +56,7 @@ pub mod endpoints {
 
 pub struct AppState {
     pub pastas: Mutex<Vec<Pasta>>,
+    pub active_uploads: Mutex<HashMap<String, usize>>,
 }
 
 #[actix_web::main]
@@ -95,6 +97,7 @@ async fn main() -> std::io::Result<()> {
 
     let data = web::Data::new(AppState {
         pastas: Mutex::new(read_all()),
+        active_uploads: Mutex::new(HashMap::new()),
     });
 
     if !ARGS.disable_telemetry {
@@ -106,10 +109,9 @@ async fn main() -> std::io::Result<()> {
             .app_data(data.clone())
             .wrap(middleware::NormalizePath::trim())
             .wrap(
-                middleware::Logger::new(r#"%{r}a "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#)
-            // `%{r}a` is actix's built‑in "real ip" token, which uses
-            // ConnectionInfo::realip_remote_addr(). it picks up headers like
-            // X-Real-IP / X-Forwarded-For when the framework is behind a proxy.
+                middleware::Logger::new(r#"%{r}a "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#), // `%{r}a` is actix's built‑in "real ip" token, which uses
+                                                                                                  // ConnectionInfo::realip_remote_addr(). it picks up headers like
+                                                                                                  // X-Real-IP / X-Forwarded-For when the framework is behind a proxy.
             )
             // Conditional / Public Services
             .service(pasta_endpoint::getpasta)
@@ -159,7 +161,7 @@ async fn main() -> std::io::Result<()> {
                     .service(remove::post_remove)
                     .service(list::list)
                     .service(web::resource("/upload").route(web::post().to(create::create)))
-                    .service(create::index_with_status)
+                    .service(create::index_with_status),
             )
             .default_service(web::route().to(errors::not_found))
     })

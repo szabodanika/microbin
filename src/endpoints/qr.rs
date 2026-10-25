@@ -28,7 +28,7 @@ pub async fn getqr(data: web::Data<AppState>, id: web::Path<String>) -> HttpResp
     };
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
@@ -55,15 +55,17 @@ pub async fn getqr(data: web::Data<AppState>, id: web::Path<String>) -> HttpResp
         });
 
         // serve qr code in template
-        return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
-            QRTemplate {
-                qr: &svg,
-                pasta: &pastas[index],
-                args: &ARGS,
-            }
-            .render()
-            .unwrap(),
-        );
+        return HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(
+                QRTemplate {
+                    qr: &svg,
+                    pasta: &pastas[index],
+                    args: &ARGS,
+                }
+                .render()
+                .unwrap(),
+            );
     }
 
     // otherwise

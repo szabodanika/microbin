@@ -134,25 +134,9 @@ impl Pasta {
     }
 
     pub fn created_as_string(&self) -> String {
-        Local.timestamp_opt(self.created, 0).map(|date| {
-            format!(
-                "{:02}-{:02} {:02}:{:02}",
-                date.month(),
-                date.day(),
-                date.hour(),
-                date.minute(),
-            )
-        }).earliest().unwrap_or_else(|| {
-            log::error!("Failed to process created date");
-            String::from("Unknow")
-        })
-    }
-
-    pub fn expiration_as_string(&self) -> String {
-        if self.expiration == 0 {
-            String::from("Never")
-        } else {
-            Local.timestamp_opt(self.expiration, 0).map(|date| {
+        Local
+            .timestamp_opt(self.created, 0)
+            .map(|date| {
                 format!(
                     "{:02}-{:02} {:02}:{:02}",
                     date.month(),
@@ -160,10 +144,34 @@ impl Pasta {
                     date.hour(),
                     date.minute(),
                 )
-            }).earliest().unwrap_or_else(|| {
-                log::error!("Failed to process expiration");
-                String::from("Never")
             })
+            .earliest()
+            .unwrap_or_else(|| {
+                log::error!("Failed to process created date");
+                String::from("Unknow")
+            })
+    }
+
+    pub fn expiration_as_string(&self) -> String {
+        if self.expiration == 0 {
+            String::from("Never")
+        } else {
+            Local
+                .timestamp_opt(self.expiration, 0)
+                .map(|date| {
+                    format!(
+                        "{:02}-{:02} {:02}:{:02}",
+                        date.month(),
+                        date.day(),
+                        date.hour(),
+                        date.minute(),
+                    )
+                })
+                .earliest()
+                .unwrap_or_else(|| {
+                    log::error!("Failed to process expiration");
+                    String::from("Never")
+                })
         }
     }
 

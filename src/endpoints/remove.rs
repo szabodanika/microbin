@@ -31,7 +31,11 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("{}/auth_remove_private/{}", ARGS.public_path_as_str(), pasta.id_as_animals()),
+                        format!(
+                            "{}/auth_remove_private/{}",
+                            ARGS.public_path_as_str(),
+                            pasta.id_as_animals()
+                        ),
                     ))
                     .finish();
             }
@@ -58,7 +62,7 @@ pub async fn remove(data: web::Data<AppState>, id: web::Path<String>) -> HttpRes
         }
     }
 
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
@@ -79,7 +83,7 @@ pub async fn post_remove(
 
     let mut pastas = data.pastas.lock().unwrap();
 
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     let password = auth::password_from_multipart(payload).await?;
 
@@ -112,16 +116,16 @@ pub async fn post_remove(
                     }
 
                     if is_password_correct {
-                // remove the directory and all its contents
-                if fs::remove_dir_all(format!(
-                    "{}/attachments/{}/",
-                    ARGS.data_dir,
-                    pasta.id_as_animals()
-                ))
-                .is_err()
-                {
-                    log::error!("Failed to delete directory for {}!", pasta.id_as_animals())
-                }
+                        // remove the directory and all its contents
+                        if fs::remove_dir_all(format!(
+                            "{}/attachments/{}/",
+                            ARGS.data_dir,
+                            pasta.id_as_animals()
+                        ))
+                        .is_err()
+                        {
+                            log::error!("Failed to delete directory for {}!", pasta.id_as_animals())
+                        }
 
                         // remove it from in-memory pasta list
                         pastas.remove(i);
@@ -138,7 +142,11 @@ pub async fn post_remove(
                         return Ok(HttpResponse::Found()
                             .append_header((
                                 "Location",
-                                format!("{}/auth_remove_private/{}/incorrect", ARGS.public_path_as_str(), pasta.id_as_animals()),
+                                format!(
+                                    "{}/auth_remove_private/{}/incorrect",
+                                    ARGS.public_path_as_str(),
+                                    pasta.id_as_animals()
+                                ),
                             ))
                             .finish());
                     }
@@ -146,7 +154,11 @@ pub async fn post_remove(
                     return Ok(HttpResponse::Found()
                         .append_header((
                             "Location",
-                            format!("{}/auth_remove_private/{}/incorrect", ARGS.public_path_as_str(), pasta.id_as_animals()),
+                            format!(
+                                "{}/auth_remove_private/{}/incorrect",
+                                ARGS.public_path_as_str(),
+                                pasta.id_as_animals()
+                            ),
                         ))
                         .finish());
                 }

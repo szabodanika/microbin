@@ -1,13 +1,13 @@
+use crate::args::{Args, ARGS};
 use crate::pasta::{Pasta, PastaFile};
 use crate::util::animalnumbers::to_animal_names;
 use crate::util::db::insert;
 use crate::util::hashids::to_hashids;
 use crate::util::misc::{encrypt, encrypt_file, is_valid_url};
-use crate::args::{Args, ARGS};
 use crate::AppState;
 use actix_multipart::Multipart;
-use actix_web::error::ErrorBadRequest;
 use actix_web::cookie::Cookie;
+use actix_web::error::ErrorBadRequest;
 use actix_web::{get, web, Error, HttpResponse, Responder};
 use askama::Template;
 use bytes::BytesMut;
@@ -17,6 +17,36 @@ use log::warn;
 use rand::Rng;
 use std::io::Write;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+struct ActiveUploadGuard {
+    data: web::Data<AppState>,
+    id: String,
+}
+
+impl ActiveUploadGuard {
+    fn new(data: web::Data<AppState>, id: String) -> Self {
+        {
+            let mut active = data.active_uploads.lock().unwrap();
+            *active.entry(id.clone()).or_insert(0) += 1;
+        }
+
+        Self { data, id }
+    }
+}
+
+impl Drop for ActiveUploadGuard {
+    fn drop(&mut self) {
+        let mut active = self.data.active_uploads.lock().unwrap();
+
+        if let Some(count) = active.get_mut(&self.id) {
+            *count -= 1;
+
+            if *count == 0 {
+                active.remove(&self.id);
+            }
+        }
+    }
+}
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -29,49 +59,47 @@ struct IndexTemplate<'a> {
 
 #[get("/")]
 pub async fn index() -> impl Responder {
-    HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
-        IndexTemplate {
-            args: &ARGS,
-            status: String::from(""),
-            default_privacy_value: ARGS.default_privacy.as_ref().map_or_else(|| String::from("public"), |s| s.clone()),
-            max_expiry_index: ARGS.max_expiry_index(),
-        }
-        .render()
-        .unwrap(),
-    )
+    HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(
+            IndexTemplate {
+                args: &ARGS,
+                status: String::from(""),
+                default_privacy_value: ARGS
+                    .default_privacy
+                    .as_ref()
+                    .map_or_else(|| String::from("public"), |s| s.clone()),
+                max_expiry_index: ARGS.max_expiry_index(),
+            }
+            .render()
+            .unwrap(),
+        )
 }
 
 #[get("/{status}")]
 pub async fn index_with_status(param: web::Path<String>) -> HttpResponse {
     let status = param.into_inner();
 
-    return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
-        IndexTemplate {
-            args: &ARGS,
-            status,
-            default_privacy_value: ARGS.default_privacy.as_ref().map_or_else(|| String::from("public"), |s| s.clone()),
-            max_expiry_index: ARGS.max_expiry_index(),
-        }
-        .render()
-        .unwrap(),
-    );
+    return HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(
+            IndexTemplate {
+                args: &ARGS,
+                status,
+                default_privacy_value: ARGS
+                    .default_privacy
+                    .as_ref()
+                    .map_or_else(|| String::from("public"), |s| s.clone()),
+                max_expiry_index: ARGS.max_expiry_index(),
+            }
+            .render()
+            .unwrap(),
+        );
 }
 
 const EXPIRATION_OPTIONS: &[&str] = &[
-    "1min",
-    "10min",
-    "1hour",
-    "24hour",
-    "3days",
-    "1week",
-    "1month",
-    "6months",
-    "1year",
-    "2years",
-    "4years",
-    "8years",
-    "16years",
-    "never",
+    "1min", "10min", "1hour", "24hour", "3days", "1week", "1month", "6months", "1year", "2years",
+    "4years", "8years", "16years", "never",
 ];
 
 pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
@@ -104,8 +132,14 @@ pub fn expiration_to_timestamp(expiration: &str, timenow: i64) -> i64 {
 }
 
 pub fn is_valid_expiration(expiration: &str, max_expiry: &str) -> bool {
-    let max_index = EXPIRATION_OPTIONS.iter().position(|&x| x == max_expiry).unwrap_or(5);
-    let current_index = EXPIRATION_OPTIONS.iter().position(|&x| x == expiration).unwrap_or(0);
+    let max_index = EXPIRATION_OPTIONS
+        .iter()
+        .position(|&x| x == max_expiry)
+        .unwrap_or(5);
+    let current_index = EXPIRATION_OPTIONS
+        .iter()
+        .position(|&x| x == expiration)
+        .unwrap_or(0);
     current_index <= max_index
 }
 
@@ -140,6 +174,8 @@ pub async fn create(
         expiration: expiration_to_timestamp(&ARGS.default_expiry, timenow),
         attachments: None,
     };
+
+    let _active_upload = ActiveUploadGuard::new(data.clone(), new_pasta.id_as_animals());
 
     let mut random_key: String = String::from("");
     let mut plain_key: String = String::from("");
@@ -313,7 +349,7 @@ pub async fn create(
                     }
                     new_pasta.attachments.as_mut().unwrap().push(file);
                 }
-                
+
                 new_pasta.pasta_type = String::from("text");
             }
             field => {
@@ -324,9 +360,16 @@ pub async fn create(
 
     if ARGS.readonly && ARGS.uploader_password.is_some() {
         if uploader_password.trim() != ARGS.uploader_password.as_ref().unwrap().trim() {
-            log::warn!("Uploader password mismatch. Input length: {}, Expected length: {}", uploader_password.trim().len(), ARGS.uploader_password.as_ref().unwrap().trim().len());
+            log::warn!(
+                "Uploader password mismatch. Input length: {}, Expected length: {}",
+                uploader_password.trim().len(),
+                ARGS.uploader_password.as_ref().unwrap().trim().len()
+            );
             return Ok(HttpResponse::Found()
-                .append_header(("Location", format!("{}/incorrect", ARGS.public_path_as_str())))
+                .append_header((
+                    "Location",
+                    format!("{}/incorrect", ARGS.public_path_as_str()),
+                ))
                 .finish());
         }
     }
@@ -357,14 +400,15 @@ pub async fn create(
         }
 
         for file in files_to_encrypt {
-             let filepath = format!(
+            let filepath = format!(
                 "{}/attachments/{}/{}",
                 ARGS.data_dir,
                 &new_pasta.id_as_animals(),
                 &file.name()
             );
             if new_pasta.encrypt_client {
-                encrypt_file(&random_key, &filepath).expect("Failed to encrypt file with random key")
+                encrypt_file(&random_key, &filepath)
+                    .expect("Failed to encrypt file with random key")
             } else {
                 encrypt_file(&plain_key, &filepath).expect("Failed to encrypt file with plain key")
             }
@@ -392,7 +436,10 @@ pub async fn create(
 
     if encrypt_server {
         Ok(HttpResponse::Found()
-            .append_header(("Location", format!("{}/auth/{}/success", ARGS.public_path_as_str(), slug)))
+            .append_header((
+                "Location",
+                format!("{}/auth/{}/success", ARGS.public_path_as_str(), slug),
+            ))
             .finish())
     } else {
         // Generate time-limited token for initial view using Hashids
@@ -401,7 +448,7 @@ pub async fn create(
             .unwrap()
             .as_secs();
         let expiry = timenow + 15; // 15 seconds validity
-        
+
         // Use global HARSH instance
         let encoded_token = crate::util::hashids::HARSH.encode(&[expiry, id]);
 

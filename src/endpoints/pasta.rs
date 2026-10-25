@@ -37,7 +37,7 @@ fn pastaresponse(
     };
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
@@ -55,7 +55,11 @@ fn pastaresponse(
             return HttpResponse::Found()
                 .append_header((
                     "Location",
-                    format!("{}/auth/{}", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
+                    format!(
+                        "{}/auth/{}",
+                        ARGS.public_path_as_str(),
+                        pastas[index].id_as_animals()
+                    ),
                 ))
                 .finish();
         }
@@ -81,21 +85,27 @@ fn pastaresponse(
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("{}/auth/{}/incorrect", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
+                        format!(
+                            "{}/auth/{}/incorrect",
+                            ARGS.public_path_as_str(),
+                            pastas[index].id_as_animals()
+                        ),
                     ))
                     .finish();
             }
         }
 
         // serve pasta in template
-        let response = HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
-            PastaTemplate {
-                pasta: &pastas[index],
-                args: &ARGS,
-            }
-            .render()
-            .unwrap(),
-        );
+        let response = HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(
+                PastaTemplate {
+                    pasta: &pastas[index],
+                    args: &ARGS,
+                }
+                .render()
+                .unwrap(),
+            );
 
         if pastas[index].content != original_content {
             pastas[index].content = original_content;
@@ -174,7 +184,10 @@ fn verify_owner_token(token: &str, id: &str) -> bool {
         if numbers.len() == 2 {
             let expiry = numbers[0];
             let token_id = numbers[1];
-            let timenow = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+            let timenow = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_secs();
 
             // verify the token is valid
             let target_id = if ARGS.hash_ids {
@@ -208,7 +221,7 @@ fn urlresponse(data: web::Data<AppState>, id: web::Path<String>) -> HttpResponse
     };
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
@@ -290,7 +303,7 @@ pub async fn getrawpasta(
     };
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
@@ -308,7 +321,11 @@ pub async fn getrawpasta(
             return Ok(HttpResponse::Found()
                 .append_header((
                     "Location",
-                    format!("{}/auth_raw/{}", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
+                    format!(
+                        "{}/auth_raw/{}",
+                        ARGS.public_path_as_str(),
+                        pastas[index].id_as_animals()
+                    ),
                 ))
                 .finish());
         }
@@ -363,7 +380,7 @@ pub async fn postrawpasta(
     };
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
@@ -381,7 +398,11 @@ pub async fn postrawpasta(
             return Ok(HttpResponse::Found()
                 .append_header((
                     "Location",
-                    format!("{}/auth/{}", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
+                    format!(
+                        "{}/auth/{}",
+                        ARGS.public_path_as_str(),
+                        pastas[index].id_as_animals()
+                    ),
                 ))
                 .finish());
         }
@@ -405,7 +426,11 @@ pub async fn postrawpasta(
                 return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("{}/auth/{}/incorrect", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
+                        format!(
+                            "{}/auth/{}/incorrect",
+                            ARGS.public_path_as_str(),
+                            pastas[index].id_as_animals()
+                        ),
                     ))
                     .finish());
             }

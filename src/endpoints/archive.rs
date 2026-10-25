@@ -5,10 +5,10 @@ use crate::util::misc::remove_expired;
 use crate::AppState;
 use actix_web::{get, web, Error, HttpResponse};
 use std::fs::File;
+use std::io::Seek;
 use std::io::{Read, Write};
 use std::path::PathBuf;
 use zip::write::SimpleFileOptions;
-use std::io::Seek;
 
 #[get("/archive/{id}")]
 pub async fn get_archive(
@@ -25,7 +25,7 @@ pub async fn get_archive(
     };
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
@@ -63,37 +63,37 @@ pub async fn get_archive(
         if let Some(file) = &pasta.file {
             let file_path = if pasta.encrypt_server {
                 // If encrypted, we download the encrypted data
-                 format!(
+                format!(
                     "{}/attachments/{}/{}.enc",
                     ARGS.data_dir,
                     pasta.id_as_animals(),
                     file.name()
                 )
             } else {
-                 format!(
+                format!(
                     "{}/attachments/{}/{}",
                     ARGS.data_dir,
                     pasta.id_as_animals(),
                     file.name()
                 )
             };
-            
+
             // Check if .enc exists, if not try legacy data.enc for encrypted
-             let mut final_path = PathBuf::from(&file_path);
-             if pasta.encrypt_server && !final_path.exists() {
-                  final_path = PathBuf::from(format!(
+            let mut final_path = PathBuf::from(&file_path);
+            if pasta.encrypt_server && !final_path.exists() {
+                final_path = PathBuf::from(format!(
                     "{}/attachments/{}/data.enc",
                     ARGS.data_dir,
                     pasta.id_as_animals()
                 ));
-             }
+            }
 
             if final_path.exists() {
-                 let filename = if pasta.encrypt_server {
-                     format!("{}.enc", file.name())
-                 } else {
-                     file.name().to_string()
-                 };
+                let filename = if pasta.encrypt_server {
+                    format!("{}.enc", file.name())
+                } else {
+                    file.name().to_string()
+                };
                 add_file_to_zip(&filename, final_path)?;
             }
         }
@@ -101,7 +101,7 @@ pub async fn get_archive(
         // Add attachments
         if let Some(attachments) = &pasta.attachments {
             for file in attachments {
-                 let file_path = if pasta.encrypt_server {
+                let file_path = if pasta.encrypt_server {
                     format!(
                         "{}/attachments/{}/{}.enc",
                         ARGS.data_dir,
@@ -116,20 +116,22 @@ pub async fn get_archive(
                         file.name()
                     )
                 };
-                 let final_path = PathBuf::from(&file_path);
-                 if final_path.exists() {
-                     let filename = if pasta.encrypt_server {
-                         format!("{}.enc", file.name())
-                     } else {
-                         file.name().to_string()
-                     };
+                let final_path = PathBuf::from(&file_path);
+                if final_path.exists() {
+                    let filename = if pasta.encrypt_server {
+                        format!("{}.enc", file.name())
+                    } else {
+                        file.name().to_string()
+                    };
                     add_file_to_zip(&filename, final_path)?;
-                 }
+                }
             }
         }
 
-        let mut zip_file = zip.finish().map_err(actix_web::error::ErrorInternalServerError)?;
-        
+        let mut zip_file = zip
+            .finish()
+            .map_err(actix_web::error::ErrorInternalServerError)?;
+
         // Read the zip back into a buffer to send
         zip_file.seek(std::io::SeekFrom::Start(0))?;
         let mut buffer = Vec::new();

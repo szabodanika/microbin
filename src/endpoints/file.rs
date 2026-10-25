@@ -30,7 +30,7 @@ pub async fn post_secure_file(
     };
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
@@ -48,30 +48,30 @@ pub async fn post_secure_file(
     if found {
         let mut target_filename = None;
         if let Some(fname) = query.get("fname") {
-             // sanitize fname? It should match one of the attachments or file.
-             // Security check: ensure fname is in the list of files for this pasta
-             if let Some(file) = &pastas[index].file {
-                 if file.name() == *fname {
-                     target_filename = Some(file.name());
-                 }
-             }
-             if target_filename.is_none() {
-                 if let Some(attachments) = &pastas[index].attachments {
-                     for att in attachments {
-                         if att.name() == *fname {
-                             target_filename = Some(att.name());
-                             break;
-                         }
-                     }
-                 }
-             }
+            // sanitize fname? It should match one of the attachments or file.
+            // Security check: ensure fname is in the list of files for this pasta
+            if let Some(file) = &pastas[index].file {
+                if file.name() == *fname {
+                    target_filename = Some(file.name());
+                }
+            }
+            if target_filename.is_none() {
+                if let Some(attachments) = &pastas[index].attachments {
+                    for att in attachments {
+                        if att.name() == *fname {
+                            target_filename = Some(att.name());
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         // Fallback to primary file if no fname or not found (and fname wasn't provided)
         if target_filename.is_none() && query.get("fname").is_none() {
-             if let Some(file) = &pastas[index].file {
-                 target_filename = Some(file.name());
-             }
+            if let Some(file) = &pastas[index].file {
+                target_filename = Some(file.name());
+            }
         }
 
         if let Some(filename) = target_filename {
@@ -82,10 +82,10 @@ pub async fn post_secure_file(
                 pastas[index].id_as_animals(),
                 filename
             );
-            
+
             if !std::path::Path::new(&enc_path).exists() {
-                 // Fallback for legacy primary file
-                 enc_path = format!(
+                // Fallback for legacy primary file
+                enc_path = format!(
                     "{}/attachments/{}/data.enc",
                     ARGS.data_dir,
                     pastas[index].id_as_animals()
@@ -135,8 +135,7 @@ pub async fn get_file(
     };
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
-
+    remove_expired(&mut pastas, &data.active_uploads);
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
     let mut found: bool = false;
@@ -169,7 +168,7 @@ pub async fn get_file(
             }
         } else {
             // Default to primary file
-             if let Some(file) = &pastas[index].file {
+            if let Some(file) = &pastas[index].file {
                 target_file = Some(file);
             }
         }
@@ -179,7 +178,11 @@ pub async fn get_file(
                 return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("{}/auth_file/{}", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
+                        format!(
+                            "{}/auth_file/{}",
+                            ARGS.public_path_as_str(),
+                            pastas[index].id_as_animals()
+                        ),
                     ))
                     .finish());
             }
@@ -196,7 +199,7 @@ pub async fn get_file(
             // This will stream the file and set the content type based on the
             // file path
             let file_reponse = actix_files::NamedFile::open(file_path)?;
-            
+
             let disposition = if query.get("preview").map(|s| s == "true").unwrap_or(false) {
                 header::DispositionType::Inline
             } else {

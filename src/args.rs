@@ -1,3 +1,4 @@
+use crate::fs;
 use clap::Parser;
 use lazy_static::lazy_static;
 use serde::Serialize;
@@ -5,7 +6,6 @@ use std::convert::Infallible;
 use std::fmt;
 use std::net::IpAddr;
 use std::str::FromStr;
-use crate::fs;
 
 lazy_static! {
     pub static ref ARGS: Args = Args::parse();
@@ -154,8 +154,6 @@ pub struct Args {
     )]
     pub max_file_size_unencrypted_mb: usize,
 
-
-
     #[clap(long, env = "MICROBIN_DEFAULT_VIEW", default_value = "gallery")]
     pub default_view: String,
 }
@@ -181,22 +179,13 @@ impl Args {
 
     pub fn max_expiry_index(&self) -> usize {
         let options = &[
-            "1min",
-            "10min",
-            "1hour",
-            "24hour",
-            "3days",
-            "1week",
-            "1month",
-            "6months",
-            "1year",
-            "2years",
-            "4years",
-            "8years",
-            "16years",
-            "never",
+            "1min", "10min", "1hour", "24hour", "3days", "1week", "1month", "6months", "1year",
+            "2years", "4years", "8years", "16years", "never",
         ];
-        options.iter().position(|&x| x == self.max_expiry).unwrap_or(5)
+        options
+            .iter()
+            .position(|&x| x == self.max_expiry)
+            .unwrap_or(5)
     }
 
     pub fn without_secrets(self) -> Args {
@@ -267,7 +256,10 @@ impl FromStr for SecretArg {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some(path) = s.strip_prefix("file://").or_else(|| s.strip_prefix("file:")) {
+        if let Some(path) = s
+            .strip_prefix("file://")
+            .or_else(|| s.strip_prefix("file:"))
+        {
             // Read value from file
             fs::read_to_string(path)
                 .map(|content| SecretArg(content.trim().to_string()))

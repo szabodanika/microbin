@@ -31,7 +31,7 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
         to_u64(&id.into_inner()).unwrap_or(0)
     };
 
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     for pasta in pastas.iter() {
         if pasta.id == id {
@@ -45,21 +45,27 @@ pub async fn get_edit(data: web::Data<AppState>, id: web::Path<String>) -> HttpR
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("{}/auth_edit_private/{}", ARGS.public_path_as_str(), pasta.id_as_animals()),
+                        format!(
+                            "{}/auth_edit_private/{}",
+                            ARGS.public_path_as_str(),
+                            pasta.id_as_animals()
+                        ),
                     ))
                     .finish();
             }
 
-            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
-                EditTemplate {
-                    pasta,
-                    args: &ARGS,
-                    path: &String::from("edit"),
-                    status: &String::from(""),
-                }
-                .render()
-                .unwrap(),
-            );
+            return HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(
+                    EditTemplate {
+                        pasta,
+                        args: &ARGS,
+                        path: &String::from("edit"),
+                        status: &String::from(""),
+                    }
+                    .render()
+                    .unwrap(),
+                );
         }
     }
 
@@ -83,7 +89,7 @@ pub async fn get_edit_with_status(
         to_u64(&id).unwrap_or(0)
     };
 
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     for pasta in pastas.iter() {
         if pasta.id == intern_id {
@@ -97,21 +103,27 @@ pub async fn get_edit_with_status(
                 return HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("{}/auth_edit_private/{}", ARGS.public_path_as_str(), pasta.id_as_animals()),
+                        format!(
+                            "{}/auth_edit_private/{}",
+                            ARGS.public_path_as_str(),
+                            pasta.id_as_animals()
+                        ),
                     ))
                     .finish();
             }
 
-            return HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
-                EditTemplate {
-                    pasta,
-                    args: &ARGS,
-                    path: &String::from("edit"),
-                    status: &status,
-                }
-                .render()
-                .unwrap(),
-            );
+            return HttpResponse::Ok()
+                .content_type("text/html; charset=utf-8")
+                .body(
+                    EditTemplate {
+                        pasta,
+                        args: &ARGS,
+                        path: &String::from("edit"),
+                        status: &status,
+                    }
+                    .render()
+                    .unwrap(),
+                );
         }
     }
 
@@ -146,7 +158,7 @@ pub async fn post_edit_private(
     let mut pastas = data.pastas.lock().unwrap();
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
@@ -186,16 +198,18 @@ pub async fn post_edit_private(
         }
 
         // serve pasta in template
-        let response = HttpResponse::Ok().content_type("text/html; charset=utf-8").body(
-            EditTemplate {
-                pasta: &pastas[index],
-                args: &ARGS,
-                path: &String::from("submit_edit_private"),
-                status: &String::from(""),
-            }
-            .render()
-            .unwrap(),
-        );
+        let response = HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(
+                EditTemplate {
+                    pasta: &pastas[index],
+                    args: &ARGS,
+                    path: &String::from("submit_edit_private"),
+                    status: &String::from(""),
+                }
+                .render()
+                .unwrap(),
+            );
 
         if pastas[index].content != original_content {
             pastas[index].content = original_content;
@@ -245,7 +259,7 @@ pub async fn post_submit_edit_private(
     let mut pastas = data.pastas.lock().unwrap();
 
     // remove expired pastas (including this one if needed)
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     // find the index of the pasta in the collection based on u64 id
     let mut index: usize = 0;
@@ -269,7 +283,11 @@ pub async fn post_submit_edit_private(
                 return Ok(HttpResponse::Found()
                     .append_header((
                         "Location",
-                        format!("{}/edit/{}/incorrect", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
+                        format!(
+                            "{}/edit/{}/incorrect",
+                            ARGS.public_path_as_str(),
+                            pastas[index].id_as_animals()
+                        ),
                     ))
                     .finish());
             }
@@ -298,7 +316,11 @@ pub async fn post_submit_edit_private(
         return Ok(HttpResponse::Found()
             .append_header((
                 "Location",
-                format!("{}/auth/{}/success", ARGS.public_path_as_str(), pastas[index].id_as_animals()),
+                format!(
+                    "{}/auth/{}/success",
+                    ARGS.public_path_as_str(),
+                    pastas[index].id_as_animals()
+                ),
             ))
             .finish());
     }
@@ -342,7 +364,7 @@ pub async fn post_edit(
 
     let mut pastas = data.pastas.lock().unwrap();
 
-    remove_expired(&mut pastas);
+    remove_expired(&mut pastas, &data.active_uploads);
 
     for (i, pasta) in pastas.iter().enumerate() {
         if pasta.id == id {
@@ -358,7 +380,11 @@ pub async fn post_edit(
                             return Ok(HttpResponse::Found()
                                 .append_header((
                                     "Location",
-                                    format!("{}/edit/{}/incorrect", ARGS.public_path_as_str(), pasta.id_as_animals()),
+                                    format!(
+                                        "{}/edit/{}/incorrect",
+                                        ARGS.public_path_as_str(),
+                                        pasta.id_as_animals()
+                                    ),
                                 ))
                                 .finish());
                         }
@@ -366,7 +392,11 @@ pub async fn post_edit(
                         return Ok(HttpResponse::Found()
                             .append_header((
                                 "Location",
-                                format!("{}/edit/{}/incorrect", ARGS.public_path_as_str(), pasta.id_as_animals()),
+                                format!(
+                                    "{}/edit/{}/incorrect",
+                                    ARGS.public_path_as_str(),
+                                    pasta.id_as_animals()
+                                ),
                             ))
                             .finish());
                     }
