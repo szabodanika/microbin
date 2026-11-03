@@ -33,6 +33,10 @@ On our website [microbin.eu](https://microbin.eu), you will find the following:
 - [Guide and Documentation](https://microbin.eu/docs/intro)
 - [Roadmap](https://microbin.eu/roadmap)
 
+## One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/MicroBin/)
+
 ## Features
 
 - Entirely self-contained executable, MicroBin is a single file!
