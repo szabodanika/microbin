@@ -109,6 +109,23 @@ pub fn is_valid_expiration(expiration: &str, max_expiry: &str) -> bool {
     current_index <= max_index
 }
 
+/// Detects command-line HTTP clients (curl, Wget, HTTPie, ...) from the
+/// `User-Agent` header so they can get the scripting-friendly plain-text URL
+/// response automatically, without needing `url_only_after_upload=true`.
+/// This is only a convenience heuristic (the header is trivially spoofable
+/// or omittable), so it never gates anything security-sensitive -- it only
+/// changes how the response to a successful upload is formatted.
+fn is_cli_user_agent(req: &HttpRequest) -> bool {
+    req.headers()
+        .get("User-Agent")
+        .and_then(|value| value.to_str().ok())
+        .map(|ua| {
+            let ua = ua.to_ascii_lowercase();
+            ua.starts_with("curl/") || ua.starts_with("wget/") || ua.starts_with("httpie/")
+        })
+        .unwrap_or(false)
+}
+
 /// Builds the absolute, user-facing URL for an upload, following the same
 /// short_path / public_path rules as the "Copy URL" button in the UI. If
 /// neither is configured, falls back to the scheme/host of the incoming
@@ -427,8 +444,12 @@ pub async fn create(
     // Scripting-friendly response: skip the browser redirect dance entirely
     // and just hand back the plain-text URL of the upload. This makes it
     // trivial to use MicroBin from curl, e.g.:
-    //   curl -F "content=@file.txt" -F "url_only_after_upload=true" https://microbin.example.com/upload
-    if url_only_after_upload {
+    //   curl -F "content=@file.txt" https://microbin.example.com/upload
+    // The same response is also returned automatically whenever the request
+    // looks like it came from a command-line client (based on User-Agent),
+    // so `url_only_after_upload=true` is only needed to opt in explicitly
+    // from clients that don't want to rely on that detection.
+    if url_only_after_upload || is_cli_user_agent(&req) {
         return Ok(HttpResponse::Ok()
             .content_type("text/plain; charset=utf-8")
             .body(upload_url(&req, &slug)));

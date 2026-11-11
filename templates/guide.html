@@ -99,13 +99,21 @@
 <p>
   By default the server responds to a successful upload with an HTTP redirect
   (<code>302</code>) to the upload page, which is what the browser needs but is
-  inconvenient to parse from a script. Add
-  <code>url_only_after_upload=true</code> to the form data to make the server
-  respond with just the resulting URL as plain text (<code>200 OK</code>)
-  instead, so it can be captured directly:
+  inconvenient to parse from a script. MicroBin detects command-line clients
+  (<code>curl</code>, <code>Wget</code>, <code>HTTPie</code>) from their
+  <code>User-Agent</code> automatically and responds with just the resulting
+  URL as plain text (<code>200 OK</code>) instead, so a plain upload is
+  already script-friendly without any extra flags:
 </p>
-<pre><code>url=$(curl -s -F "content=&lt;mypastafile.txt" -F "url_only_after_upload=true" https://microbin.myserver.com/upload)
+<pre><code>url=$(curl -s -F "content=&lt;mypastafile.txt" https://microbin.myserver.com/upload)
 echo "$url"</code></pre>
+<p>
+  If you're calling the endpoint from a client whose <code>User-Agent</code>
+  isn't recognized (an HTTP library, a proxy that rewrites headers, etc.), add
+  <code>url_only_after_upload=true</code> to the form data to opt into the
+  same plain-text response explicitly:
+</p>
+<pre><code>curl -s -F "content=&lt;mypastafile.txt" -F "url_only_after_upload=true" https://microbin.myserver.com/upload</code></pre>
 <p>
   This also works together with <code>file</code>, <code>privacy</code>,
   <code>expiration</code>, <code>burn_after</code> and
@@ -116,7 +124,6 @@ echo "$url"</code></pre>
   curl -s -F "file=@${1:-/dev/stdin}" \
           -F "privacy=unlisted" \
           -F "expiration=1week" \
-          -F "url_only_after_upload=true" \
           https://microbin.myserver.com/upload
 }
 
