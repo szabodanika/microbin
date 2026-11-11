@@ -186,7 +186,9 @@ pub async fn create(
     let mut random_key: String = String::from("");
     let mut plain_key: String = String::from("");
     let mut uploader_password = String::from("");
-    let mut url_only_after_upload = false;
+    // None = not specified by the client, defer to User-Agent auto-detection.
+    // Some(true)/Some(false) = client explicitly forced the behavior on/off.
+    let mut url_only_after_upload: Option<bool> = None;
 
     while let Some(mut field) = payload.try_next().await? {
         let Some(field_name) = field.name() else {
@@ -211,7 +213,11 @@ pub async fn create(
                 while let Some(chunk) = field.try_next().await? {
                     value.push_str(std::str::from_utf8(&chunk).unwrap());
                 }
-                url_only_after_upload = matches!(value.trim(), "true" | "1" | "on" | "yes");
+                url_only_after_upload = match value.trim().to_ascii_lowercase().as_str() {
+                    "true" | "1" | "on" | "yes" => Some(true),
+                    "false" | "0" | "off" | "no" => Some(false),
+                    _ => None,
+                };
                 continue;
             }
             "privacy" => {
@@ -445,11 +451,13 @@ pub async fn create(
     // and just hand back the plain-text URL of the upload. This makes it
     // trivial to use MicroBin from curl, e.g.:
     //   curl -F "content=@file.txt" https://microbin.example.com/upload
-    // The same response is also returned automatically whenever the request
-    // looks like it came from a command-line client (based on User-Agent),
-    // so `url_only_after_upload=true` is only needed to opt in explicitly
-    // from clients that don't want to rely on that detection.
-    if url_only_after_upload || is_cli_user_agent(&req) {
+    // This is returned automatically whenever the request looks like it came
+    // from a command-line client (based on User-Agent). An explicit
+    // url_only_after_upload=true/false always overrides that auto-detection,
+    // so CLI clients can still request the normal redirect, and non-CLI
+    // clients (or ones with a rewritten/unrecognized User-Agent) can still
+    // opt in.
+    if url_only_after_upload.unwrap_or_else(|| is_cli_user_agent(&req)) {
         return Ok(HttpResponse::Ok()
             .content_type("text/plain; charset=utf-8")
             .body(upload_url(&req, &slug)));

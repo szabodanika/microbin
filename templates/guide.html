@@ -111,9 +111,12 @@ echo "$url"</code></pre>
   If you're calling the endpoint from a client whose <code>User-Agent</code>
   isn't recognized (an HTTP library, a proxy that rewrites headers, etc.), add
   <code>url_only_after_upload=true</code> to the form data to opt into the
-  same plain-text response explicitly:
+  same plain-text response explicitly. Conversely, pass
+  <code>url_only_after_upload=false</code> to force the normal redirect even
+  from a detected command-line client, for example while testing:
 </p>
-<pre><code>curl -s -F "content=&lt;mypastafile.txt" -F "url_only_after_upload=true" https://microbin.myserver.com/upload</code></pre>
+<pre><code>curl -s -F "content=&lt;mypastafile.txt" -F "url_only_after_upload=true" https://microbin.myserver.com/upload
+curl -s -i -F "content=&lt;mypastafile.txt" -F "url_only_after_upload=false" https://microbin.myserver.com/upload</code></pre>
 <p>
   This also works together with <code>file</code>, <code>privacy</code>,
   <code>expiration</code>, <code>burn_after</code> and
