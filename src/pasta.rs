@@ -32,12 +32,26 @@ impl PastaFile {
         &self.name
     }
 
+    /// HTML/attribute/JS-string-safe version of `name()`. Uploaded filenames
+    /// are attacker-controlled, and the templates that render them disable
+    /// Askama's auto-escaping (`escape = "none"`), so every render site must
+    /// escape explicitly. `encode_quoted_attribute` covers text nodes, both
+    /// quote styles, and single-quoted JS string literals in one pass.
+    pub fn name_escaped(&self) -> String {
+        html_escape::encode_quoted_attribute(&self.name).to_string()
+    }
+
     pub fn url_encoded_name(&self) -> String {
         utf8_percent_encode(&self.name, NON_ALPHANUMERIC).to_string()
     }
 
     pub fn display_name(&self) -> &str {
         self.name.strip_suffix(".enc").unwrap_or(&self.name)
+    }
+
+    /// Escaped version of `display_name()`, see `name_escaped()`.
+    pub fn display_name_escaped(&self) -> String {
+        html_escape::encode_quoted_attribute(self.display_name()).to_string()
     }
 
     pub fn is_image(&self) -> bool {
@@ -67,6 +81,11 @@ impl PastaFile {
             .and_then(std::ffi::OsStr::to_str)
             .unwrap_or("FILE")
             .to_uppercase()
+    }
+
+    /// Escaped version of `extension()`, see `name_escaped()`.
+    pub fn extension_escaped(&self) -> String {
+        html_escape::encode_quoted_attribute(&self.extension()).to_string()
     }
 }
 

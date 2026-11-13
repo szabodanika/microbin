@@ -70,7 +70,7 @@ justify-content: center; align-items: center;">
     <button class="small-button" id="download-button" style="margin-right:
   0.5rem">
       <b>
-        Download {{pasta.file.as_ref().unwrap().display_name()}}
+        Download {{pasta.file.as_ref().unwrap().display_name_escaped()}}
         [{{pasta.file.as_ref().unwrap().size}}]
       </b>
     </button>
@@ -98,7 +98,7 @@ justify-content: center; align-items: center;">
 {% if pasta.file.is_some() && !pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some() %}
 <span style="margin-left: auto; margin-right: auto; display: flex;
     justify-content: center; align-items: center;">
-  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
+  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name_escaped()}}
     [{{pasta.file.as_ref().unwrap().size}}]</p>
   <a href="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" id="download-link">
     <button class="download-button" autofocus>
@@ -114,7 +114,7 @@ pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some()
 <img id="embed" src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" style="max-height: 50vh; max-width: 100%; height: auto; width: auto;" />
 <span style="margin-left: auto; margin-right: auto; display: flex;
   justify-content: center; align-items: center;">
-  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
+  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name_escaped()}}
     [{{pasta.file.as_ref().unwrap().size}}]</p>
   <a href="{{ args.public_path_as_str()      }}/file/{{pasta.id_as_animals()}}" id="download-link" download>
     <button class="download-button" autofocus>
@@ -130,7 +130,7 @@ pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some()
 <video id="embed" controls src="{{ args.public_path_as_str()}}/file/{{pasta.id_as_animals()}}" height="300"></video>
 <span style="margin-left: auto; margin-right: auto; display: flex;
   justify-content: center; align-items: center;">
-  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name()}}
+  <p style="font-size: small;">{{pasta.file.as_ref().unwrap().name_escaped()}}
     [{{pasta.file.as_ref().unwrap().size}}]</p>
   <a href="{{ args.public_path_as_str()      }}/file/{{pasta.id_as_animals()}}" download id="download-link">
     <button class="download-button">
@@ -166,12 +166,12 @@ pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some()
             {% if pasta.file.is_some() %}
             {% let file = pasta.file.as_ref().unwrap() %}
             <tr>
-                <td style="padding: 8px;">{{ file.name() }}</td>
+                <td style="padding: 8px;">{{ file.name_escaped() }}</td>
                 <td style="padding: 8px;">{{ file.size }}</td>
                 <td style="padding: 8px;">
                     {% if !pasta.encrypt_client %}
                     <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}"
-                       class="download-link" data-filename="{{ file.name() }}"
+                       class="download-link" data-filename="{{ file.name_escaped() }}"
                        {% if !pasta.encrypt_server %}download{% endif %}>Download</a>
                     {% else %}<em>Encrypted</em>{% endif %}
                 </td>
@@ -179,12 +179,12 @@ pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some()
             {% endif %}
             {% for file in pasta.attachments.as_ref().unwrap() %}
             <tr>
-                <td style="padding: 8px;">{{ file.name() }}</td>
+                <td style="padding: 8px;">{{ file.name_escaped() }}</td>
                 <td style="padding: 8px;">{{ file.size }}</td>
                 <td style="padding: 8px;">
                     {% if !pasta.encrypt_client %}
                     <a href="{{ args.public_path_as_str() }}/file/{{pasta.id_as_animals()}}?fname={{ file.url_encoded_name() }}"
-                       class="download-link" data-filename="{{ file.name() }}"
+                       class="download-link" data-filename="{{ file.name_escaped() }}"
                        {% if !pasta.encrypt_server %}download{% endif %}>Download</a>
                     {% else %}<em>Encrypted</em>{% endif %}
                 </td>
@@ -370,7 +370,7 @@ pasta.file_embeddable() && !pasta.encrypt_client && !pasta.attachments.is_some()
     const tempAnchorEl = document.createElement('a');
     // tempAnchorEl.href = dataUri;
     tempAnchorEl.href = URL.createObjectURL(decryptedBlob);
-    tempAnchorEl.download = '{{pasta.file.as_ref().unwrap().display_name()}}';
+    tempAnchorEl.download = '{{pasta.file.as_ref().unwrap().display_name_escaped()}}';
 
     // Programmatically click anchor element to trigger download
     tempAnchorEl.click();
