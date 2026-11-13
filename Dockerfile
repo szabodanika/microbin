@@ -1,4 +1,6 @@
-FROM rust:1 AS build
+# Keep the build stage on the same Debian release as the distroless runtime
+# image below, otherwise the binary may require a newer glibc than it has.
+FROM rust:1-bookworm AS build
 
 WORKDIR /app
 
@@ -9,7 +11,9 @@ RUN DEBIAN_FRONTEND=noninteractive \
 
 COPY . .
 
-RUN CARGO_NET_GIT_FETCH_WITH_CLI=true cargo build --release && \
+# LZMA_API_STATIC: link liblzma (pulled in by the zip crate) statically,
+# since the distroless runtime image does not ship it.
+RUN CARGO_NET_GIT_FETCH_WITH_CLI=true LZMA_API_STATIC=1 cargo build --release && \
     mkdir -p /app/microbin_data
 
 # https://github.com/GoogleContainerTools/distroless

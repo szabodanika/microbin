@@ -1,0 +1,11 @@
+target/
+.git/
+.github/
+microbin_data/
+pasta_data/
+*.env
+.env
+/.agent
+/node_modules
+/playwright-report
+/test-results

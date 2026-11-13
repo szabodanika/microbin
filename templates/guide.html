@@ -78,5 +78,59 @@
   password never even leave your device. This option requires you to enter your
   password many times when accessing your data, but is extremely safe.</p>
 
+<a id="cli">
+  <h2>Using MicroBin from the console</h2>
+</a>
+<p>
+  The <code>/upload</code> endpoint accepts regular <code>multipart/form-data</code>,
+  so you can upload from the terminal with <code>curl</code> instead of using the
+  web page. Uploading a file keeps the original filename and reads the data
+  straight from disk, so it works for any file size and avoids the
+  "argument list too long" error you can get from passing file contents on the
+  command line:
+</p>
+<pre><code>curl -F "file=@mypastafile.txt" -F "expiration=10min" https://microbin.myserver.com/upload</code></pre>
+<p>
+  To upload text that should be pasted and displayed inline (rather than stored
+  as a downloadable file), use the <code>content</code> field instead, still
+  reading from the file so there are no escaping or shell quoting issues:
+</p>
+<pre><code>curl -F "content=&lt;mypastafile.txt" -F "expiration=10min" https://microbin.myserver.com/upload</code></pre>
+<p>
+  By default the server responds to a successful upload with an HTTP redirect
+  (<code>302</code>) to the upload page, which is what the browser needs but is
+  inconvenient to parse from a script. MicroBin detects command-line clients
+  (<code>curl</code>, <code>Wget</code>, <code>HTTPie</code>) from their
+  <code>User-Agent</code> automatically and responds with just the resulting
+  URL as plain text (<code>200 OK</code>) instead, so a plain upload is
+  already script-friendly without any extra flags:
+</p>
+<pre><code>url=$(curl -s -F "content=&lt;mypastafile.txt" https://microbin.myserver.com/upload)
+echo "$url"</code></pre>
+<p>
+  If you're calling the endpoint from a client whose <code>User-Agent</code>
+  isn't recognized (an HTTP library, a proxy that rewrites headers, etc.), add
+  <code>url_only_after_upload=true</code> to the form data to opt into the
+  same plain-text response explicitly. Conversely, pass
+  <code>url_only_after_upload=false</code> to force the normal redirect even
+  from a detected command-line client, for example while testing:
+</p>
+<pre><code>curl -s -F "content=&lt;mypastafile.txt" -F "url_only_after_upload=true" https://microbin.myserver.com/upload
+curl -s -i -F "content=&lt;mypastafile.txt" -F "url_only_after_upload=false" https://microbin.myserver.com/upload</code></pre>
+<p>
+  This also works together with <code>file</code>, <code>privacy</code>,
+  <code>expiration</code>, <code>burn_after</code> and
+  <code>uploader_password</code>, so a full upload from a shell function might
+  look like this:
+</p>
+<pre><code>microbin-upload() {
+  curl -s -F "file=@${1:-/dev/stdin}" \
+          -F "privacy=unlisted" \
+          -F "expiration=1week" \
+          https://microbin.myserver.com/upload
+}
+
+microbin-upload test-code.py
+cat test-code.py | microbin-upload</code></pre>
 
 {% include "footer.html" %}

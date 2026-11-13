@@ -8,7 +8,7 @@ use crate::AppState;
 use actix_multipart::Multipart;
 use actix_web::error::ErrorBadRequest;
 use actix_web::cookie::Cookie;
-use actix_web::{get, web, Error, HttpResponse, Responder};
+use actix_web::{get, web, Error, HttpRequest, HttpResponse, Responder};
 use askama::Template;
 use bytes::BytesMut;
 use bytesize::ByteSize;
@@ -109,8 +109,50 @@ pub fn is_valid_expiration(expiration: &str, max_expiry: &str) -> bool {
     current_index <= max_index
 }
 
+/// Detects command-line HTTP clients (curl, Wget, HTTPie, ...) from the
+/// `User-Agent` header so they can get the scripting-friendly plain-text URL
+/// response automatically, without needing `url_only_after_upload=true`.
+/// This is only a convenience heuristic (the header is trivially spoofable
+/// or omittable), so it never gates anything security-sensitive -- it only
+/// changes how the response to a successful upload is formatted.
+fn is_cli_user_agent(req: &HttpRequest) -> bool {
+    req.headers()
+        .get("User-Agent")
+        .and_then(|value| value.to_str().ok())
+        .map(|ua| {
+            let ua = ua.to_ascii_lowercase();
+            ua.starts_with("curl/") || ua.starts_with("wget/") || ua.starts_with("httpie/")
+        })
+        .unwrap_or(false)
+}
+
+/// Builds the absolute, user-facing URL for an upload, following the same
+/// short_path / public_path rules as the "Copy URL" button in the UI. If
+/// neither is configured, falls back to the scheme/host of the incoming
+/// request so that the URL is always usable outside of a browser (e.g. curl).
+fn upload_url(req: &HttpRequest, slug: &str) -> String {
+    let short_path = ARGS.short_path_as_str();
+    if !short_path.is_empty() {
+        format!("{}/p/{}", short_path, slug)
+    } else {
+        let public_path = ARGS.public_path_as_str();
+        if !public_path.is_empty() {
+            format!("{}/upload/{}", public_path, slug)
+        } else {
+            let connection_info = req.connection_info();
+            format!(
+                "{}://{}/upload/{}",
+                connection_info.scheme(),
+                connection_info.host(),
+                slug
+            )
+        }
+    }
+}
+
 pub async fn create(
     data: web::Data<AppState>,
+    req: HttpRequest,
     mut payload: Multipart,
 ) -> Result<HttpResponse, Error> {
     let timenow: i64 = match SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -144,6 +186,9 @@ pub async fn create(
     let mut random_key: String = String::from("");
     let mut plain_key: String = String::from("");
     let mut uploader_password = String::from("");
+    // None = not specified by the client, defer to User-Agent auto-detection.
+    // Some(true)/Some(false) = client explicitly forced the behavior on/off.
+    let mut url_only_after_upload: Option<bool> = None;
 
     while let Some(mut field) = payload.try_next().await? {
         let Some(field_name) = field.name() else {
@@ -161,6 +206,18 @@ pub async fn create(
                 while let Some(chunk) = field.try_next().await? {
                     random_key = std::str::from_utf8(&chunk).unwrap().to_string();
                 }
+                continue;
+            }
+            "url_only_after_upload" => {
+                let mut value = String::new();
+                while let Some(chunk) = field.try_next().await? {
+                    value.push_str(std::str::from_utf8(&chunk).unwrap());
+                }
+                url_only_after_upload = match value.trim().to_ascii_lowercase().as_str() {
+                    "true" | "1" | "on" | "yes" => Some(true),
+                    "false" | "0" | "off" | "no" => Some(false),
+                    _ => None,
+                };
                 continue;
             }
             "privacy" => {
@@ -389,6 +446,22 @@ pub async fn create(
     } else {
         to_animal_names(id)
     };
+
+    // Scripting-friendly response: skip the browser redirect dance entirely
+    // and just hand back the plain-text URL of the upload. This makes it
+    // trivial to use MicroBin from curl, e.g.:
+    //   curl -F "content=@file.txt" https://microbin.example.com/upload
+    // This is returned automatically whenever the request looks like it came
+    // from a command-line client (based on User-Agent). An explicit
+    // url_only_after_upload=true/false always overrides that auto-detection,
+    // so CLI clients can still request the normal redirect, and non-CLI
+    // clients (or ones with a rewritten/unrecognized User-Agent) can still
+    // opt in.
+    if url_only_after_upload.unwrap_or_else(|| is_cli_user_agent(&req)) {
+        return Ok(HttpResponse::Ok()
+            .content_type("text/plain; charset=utf-8")
+            .body(upload_url(&req, &slug)));
+    }
 
     if encrypt_server {
         Ok(HttpResponse::Found()
