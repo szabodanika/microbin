@@ -122,7 +122,12 @@ pub async fn create(
     } as i64;
 
     let mut new_pasta = Pasta {
-        id: rand::thread_rng().gen::<u16>() as u64,
+        // u32 instead of u16: 16 bits (65,536 possible IDs) made the
+        // "unlisted" privacy level's obscurity-based security trivially
+        // brute-forceable by enumerating every possible slug. u32 raises
+        // that to ~4.3 billion while still fitting cleanly within the
+        // existing 6-character minimum hashid length.
+        id: rand::thread_rng().gen::<u32>() as u64,
         content: String::from(""),
         file: None,
         extension: String::from(""),
@@ -140,6 +145,17 @@ pub async fn create(
         expiration: expiration_to_timestamp(&ARGS.default_expiry, timenow),
         attachments: None,
     };
+
+    // Re-roll on collision with an existing (non-expired) pasta. With a
+    // random u32 this is astronomically unlikely, but previously there was
+    // no check at all, so two unrelated uploads could silently share an ID.
+    {
+        let pastas = data.pastas.lock().unwrap();
+        while pastas.iter().any(|p| p.id == new_pasta.id) {
+            new_pasta.id = rand::thread_rng().gen::<u32>() as u64;
+        }
+    }
+
 
     let mut random_key: String = String::from("");
     let mut plain_key: String = String::from("");
